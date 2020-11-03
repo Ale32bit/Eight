@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Reflection;
-using System.Reflection.Emit;
 using Eight.LuaLibs;
 using State = KeraLua;
 using NLua;
@@ -14,7 +12,7 @@ namespace Eight {
             L = new Lua();
 
             L["_HOST"] = "Eight " + Eight.Version;
-            
+
             Sandbox();
 
             AddLibs();

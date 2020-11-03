@@ -8,6 +8,7 @@
       <e p="bin" t="ExcludeRecursive" />
       <e p="Eight.cs" t="Include" />
       <e p="Eight.csproj" t="IncludeRecursive" />
+      <e p="Eight.csproj.DotSettings" t="Include" />
       <e p="Eight.sln" t="IncludeFlat" />
       <e p="LuaLibs" t="Include">
         <e p="screen.cs" t="Include" />

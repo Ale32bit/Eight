@@ -5,14 +5,14 @@ using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
 
 namespace Eight {
-    class Eight {
-        public static string Version = "0.0.1";
+    internal static class Eight {
+        public const string Version = "0.0.1";
 
-        public static int WindowWidth = 10;
-        public static int WindowHeight = 10;
-        public static int WindowScale = 40;
+        public static int WindowWidth = 200;
+        public static int WindowHeight = 150;
+        public static int WindowScale = 4;
 
-        public static int Tickrate = 50;
+        public static int Tickrate;
         public static double Ticktime;
 
         public static IntPtr Window = IntPtr.Zero;
@@ -21,10 +21,8 @@ namespace Eight {
 
         private static bool _quit = false;
 
-        static void Main() {
+        private static void Main() {
             Console.WriteLine("Eight {0}", Version);
-
-            Ticktime = 1 / Tickrate;
 
             if (!SDLLogic.Init()) {
                 return;
@@ -35,9 +33,11 @@ namespace Eight {
             }
 
             SDLLogic.CreateCanvas();
-
+            
+            SetTickrate(60);
+            
             RunEventLoop();
-
+            
             Quit();
         }
 
@@ -49,7 +49,7 @@ namespace Eight {
             byte oldMouseButton = 0;
             int x, y;
 
-            uint lastTime = 0, currentTime;
+            uint lastTime = 0;
 
             SDL_Event e;
             using var state = LuaLogic.sL;
@@ -57,7 +57,7 @@ namespace Eight {
             Console.WriteLine("Running event loop");
 
             while (!_quit) {
-                while (SDL_PollEvent(out e) != 0) {
+                while (SDL_WaitEventTimeout(out e, (int) Ticktime * 1000) != 0) {
                     switch (e.type) {
                         case SDL_QUIT:
                             _quit = true;
@@ -136,23 +136,23 @@ namespace Eight {
                     }
                 }
 
-                currentTime = SDL_GetTicks();
+                var currentTime = SDL_GetTicks();
                 if (currentTime > lastTime + (1000 / Tickrate)) {
                     state.PushString("_eight_tick");
                     Resume(1);
                     SDLLogic.DrawCanvas();
                     lastTime = currentTime;
                 }
-
+                
                 SDL_Delay(1);
+
             }
         }
 
         private static void Resume(int n) {
-            if (!LuaLogic.Resume(n)) {
-                Console.WriteLine("reached exception");
-                _quit = true;
-            }
+            if (LuaLogic.Resume(n)) return;
+            Console.WriteLine("reached exception");
+            _quit = true;
         }
 
         public static void SetTickrate(int tickrate) {

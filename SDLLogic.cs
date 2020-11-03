@@ -20,7 +20,7 @@ namespace Eight {
             Eight.Window = SDL_CreateWindow("Eight " + Eight.Version, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                 Eight.WindowWidth * Eight.WindowScale,
                 Eight.WindowHeight * Eight.WindowScale,
-                SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI);
+                SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_OPENGL);
 
             if (Eight.Window == IntPtr.Zero) {
                 Console.WriteLine("SDL_CreateWindow Error: {0}", SDL_GetError());
@@ -40,7 +40,7 @@ namespace Eight {
             }
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-            
+
             return true;
         }
 
@@ -67,6 +67,9 @@ namespace Eight {
             Eight.WindowWidth = width;
             Eight.WindowHeight = height;
             Eight.WindowScale = scale;
+
+            SDL_SetWindowSize(Eight.Window, Eight.WindowWidth * Eight.WindowScale,
+                Eight.WindowHeight * Eight.WindowScale);
             
             CreateCanvas();
         }
@@ -84,23 +87,33 @@ namespace Eight {
         }
 
         public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
-            var pixel = new SDL_Rect();
-            pixel.x = x * Eight.WindowScale;
-            pixel.y = y * Eight.WindowScale;
-            pixel.w = Eight.WindowScale;
-            pixel.h = Eight.WindowScale;
+            var pixel = new SDL_Rect {
+                x = x * Eight.WindowScale,
+                y = y * Eight.WindowScale,
+                w = Eight.WindowScale,
+                h = Eight.WindowScale
+            };
 
             SDL_Surface sur = Marshal.PtrToStructure<SDL_Surface>(Eight.Surface);
 
             SDL_FillRect(Eight.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
         }
 
-        public static void Clear() {
-            
+        public static void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
+            var rect = new SDL_Rect {
+                x = x * Eight.WindowScale,
+                y = y * Eight.WindowScale,
+                w = w * Eight.WindowScale,
+                h = h * Eight.WindowScale,
+            };
+
+            SDL_Surface sur = Marshal.PtrToStructure<SDL_Surface>(Eight.Surface);
+
+            SDL_FillRect(Eight.Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));
         }
 
-        public static void Clear(byte r, byte g, byte b) {
-            
+        public static void Clear() {
+            CreateCanvas();
         }
     }
 }
