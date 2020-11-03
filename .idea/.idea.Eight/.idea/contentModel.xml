@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\alepr\AppData\Local\JetBrains\Rider2020.2\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\alepr\AppData\Local\JetBrains\Rider2020.2\resharper-host\Local\Transient\Rider\v202\SolutionCaches\_Eight.2033555707.00" t="ExcludeRecursive" />
+    <e p="C:\Users\alepr\RiderProjects\Eight" t="IncludeRecursive">
+      <e p=".gitignore" t="Include" />
+      <e p="bin" t="ExcludeRecursive" />
+      <e p="Eight.cs" t="Include" />
+      <e p="Eight.csproj" t="IncludeRecursive" />
+      <e p="Eight.sln" t="IncludeFlat" />
+      <e p="LuaLibs" t="Include">
+        <e p="screen.cs" t="Include" />
+      </e>
+      <e p="LuaLogic.cs" t="Include" />
+      <e p="obj" t="ExcludeRecursive">
+        <e p="Debug" t="Include">
+          <e p="netcoreapp3.1" t="Include">
+            <e p="Eight.AssemblyInfo.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="SDLLogic.cs" t="Include" />
+    </e>
+  </component>
+</project>
