@@ -10,6 +10,14 @@
       <e p="Eight.csproj" t="IncludeRecursive" />
       <e p="Eight.csproj.DotSettings" t="Include" />
       <e p="Eight.sln" t="IncludeFlat" />
+      <e p="init.lua" t="Include" />
+      <e p="lua" t="Include">
+        <e p="fonts" t="Include">
+          <e p="tewi.lua" t="Include" />
+        </e>
+        <e p="init.lua" t="Include" />
+        <e p="term.lua" t="Include" />
+      </e>
       <e p="LuaLibs" t="Include">
         <e p="screen.cs" t="Include" />
       </e>

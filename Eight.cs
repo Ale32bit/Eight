@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static SDL2.SDL;
@@ -33,14 +35,13 @@ namespace Eight {
             }
 
             SDLLogic.CreateCanvas();
-            
-            SetTickrate(60);
-            
-            RunEventLoop();
-            
+
+            SetTickrate(50);
+
+            Parallel.Invoke(RunEventLoop, TickTimer);
+
             Quit();
         }
-
 
         static void RunEventLoop() {
             bool isClicking = false;
@@ -49,15 +50,13 @@ namespace Eight {
             byte oldMouseButton = 0;
             int x, y;
 
-            uint lastTime = 0;
-
             SDL_Event e;
             using var state = LuaLogic.sL;
 
             Console.WriteLine("Running event loop");
 
             while (!_quit) {
-                while (SDL_WaitEventTimeout(out e, (int) Ticktime * 1000) != 0) {
+                while (!_quit && SDL_WaitEvent(out e) != 0) {
                     switch (e.type) {
                         case SDL_QUIT:
                             _quit = true;
@@ -65,11 +64,27 @@ namespace Eight {
                         case SDL_KEYDOWN:
                         case SDL_KEYUP:
 
+                            string keyName = SDL_GetKeyName(e.key.keysym.sym);
+                            keyName = keyName.ToLower();
+                            keyName = keyName.Replace(" ", "_");
+                            
                             state.PushString(e.key.state == SDL_PRESSED ? "key_down" : "key_up");
                             state.PushInteger((long) e.key.keysym.sym);
+                            state.PushString(keyName);
                             state.PushBoolean(e.key.repeat != 0);
 
-                            Resume(3);
+                            Resume(4);
+
+                            break;
+                        case SDL_TEXTINPUT:
+                            string c;
+                            unsafe {
+                                c = cstr(e.text.text);
+                            }
+
+                            state.PushString("char");
+                            state.PushString(c);
+                            Resume(2);
 
                             break;
                         case SDL_MOUSEMOTION:
@@ -77,7 +92,6 @@ namespace Eight {
                             y = e.motion.y / WindowScale;
                             if (oldx != x || oldy != y) {
                                 state.PushString(isClicking ? "mouse_drag" : "mouse_hover");
-
 
                                 if (isClicking) {
                                     state.PushInteger(oldMouseButton);
@@ -133,19 +147,26 @@ namespace Eight {
                             Resume(5);
 
                             break;
+                        case SDL_USEREVENT:
+                            if (e.user.code == 0) {
+                                state.PushString("_eight_tick");
+                                Resume(1);
+                                SDLLogic.DrawCanvas();
+                            }
+
+                            break;
                     }
                 }
 
-                var currentTime = SDL_GetTicks();
-                if (currentTime > lastTime + (1000 / Tickrate)) {
-                    state.PushString("_eight_tick");
-                    Resume(1);
-                    SDLLogic.DrawCanvas();
-                    lastTime = currentTime;
-                }
-                
-                SDL_Delay(1);
+                //SDL_Delay(1);
+            }
+        }
 
+        private static void TickTimer() {
+            while (!_quit) {
+                var ev = new SDL_Event {type = SDL_USEREVENT, user = {code = 0},};
+                SDL_PushEvent(ref ev);
+                Thread.Sleep(1000 / Tickrate);
             }
         }
 
@@ -165,6 +186,19 @@ namespace Eight {
             SDL_DestroyRenderer(Renderer);
             SDL_DestroyWindow(Window);
             SDL_Quit();
+        }
+
+        // bytechan is a monster
+        private static unsafe string cstr(byte* s) {
+            byte* end = s;
+            while (*end != 0) ++end;
+
+            byte[] o = new byte[end - s];
+            for (var i = 0; i < o.Length; i++) {
+                o[i] = s[i];
+            }
+
+            return Encoding.UTF8.GetString(o);
         }
     }
 }

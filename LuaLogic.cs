@@ -48,31 +48,25 @@ namespace Eight {
                 Console.WriteLine("Lua Exception: {0}", error);
 
                 string nr;
-                switch (nres) {
-                    case (int) State.LuaStatus.OK:
-                        nr = "OK";
-                        break;
-                    case (int) State.LuaStatus.ErrRun:
+                switch (ok) {
+                    case State.LuaStatus.ErrRun:
                         nr = "ERRRUN";
                         break;
-                    case (int) State.LuaStatus.ErrMem:
+                    case State.LuaStatus.ErrMem:
                         nr = "ERRMEM";
                         break;
-                    case (int) State.LuaStatus.ErrErr:
+                    case State.LuaStatus.ErrErr:
                         nr = "ERRERR";
                         break;
-                    case (int) State.LuaStatus.ErrSyntax:
+                    case State.LuaStatus.ErrSyntax:
                         nr = "ERRSYNTAX";
                         break;
-                    case (int) State.LuaStatus.Yield:
-                        nr = "YIELD";
-                        break;
                     default:
-                        nr = nres.ToString();
+                        nr = ok.ToString();
                         break;
                 }
                 
-                Console.WriteLine("NRESULT [{0:X}] {1}", nres, nr);
+                Console.WriteLine("NRESULT [{0:X}] {1}", ok, nr);
 
                 return false;
             }

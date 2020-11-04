@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Tracing;
-
-namespace Eight.LuaLibs {
+﻿namespace Eight.LuaLibs {
     public class Screen {
         public Screen() {
             
