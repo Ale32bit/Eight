@@ -40,7 +40,8 @@ namespace Eight {
                 return false;
             }
 
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+            SDL_SetRenderDrawBlendMode(Eight.Surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
             return true;
         }

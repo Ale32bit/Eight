@@ -10,8 +10,9 @@
       <e p="Eight.csproj" t="IncludeRecursive" />
       <e p="Eight.csproj.DotSettings" t="Include" />
       <e p="Eight.sln" t="IncludeFlat" />
-      <e p="init.lua" t="Include" />
+      <e p="key.snk" t="Include" />
       <e p="lua" t="Include">
+        <e p="bios.lua" t="Include" />
         <e p="fonts" t="Include">
           <e p="tewi.lua" t="Include" />
         </e>
@@ -32,9 +33,6 @@
       </e>
       <e p="packages" t="ExcludeRecursive" />
       <e p="SDLLogic.cs" t="Include" />
-      <e p="Test" t="IncludeRecursive">
-        <e p="Test.csproj" t="IncludeRecursive" />
-      </e>
     </e>
   </component>
 </project>

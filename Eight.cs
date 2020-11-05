@@ -68,7 +68,7 @@ namespace Eight {
             Console.WriteLine("Running event loop");
 
             while (!_quit) {
-                while (!_quit && SDL_PollEvent(out e) != 0) {
+                while (!_quit && SDL_WaitEvent(out e) != 0) {
                     switch (e.type) {
                         case SDL_QUIT:
                             _quit = true;

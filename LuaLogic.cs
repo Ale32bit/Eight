@@ -28,7 +28,7 @@ namespace Eight {
             sL = L.State.NewThread();
 
 
-            State.LuaStatus status = sL.LoadFile("init.lua");
+            State.LuaStatus status = sL.LoadFile("lua/bios.lua");
 
             if (status > 0) {
                 string error = sL.ToString(-1);

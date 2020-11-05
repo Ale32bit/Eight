@@ -7,6 +7,14 @@
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PackageVersion>0.0.1</PackageVersion>
+        <Title>Eight</Title>
+        <Authors>AlexDevs</Authors>
+        <Copyright>Eight (c) 2020 AlexDevs</Copyright>
+        <AssemblyVersion>0.0.1</AssemblyVersion>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+        <PublicSign>true</PublicSign>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -18,6 +26,12 @@
       <PlatformTarget>AnyCPU</PlatformTarget>
       <Prefer32bit>true</Prefer32bit>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="lua\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="KeraLua" Version="1.2.9" />
