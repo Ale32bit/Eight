@@ -1,13 +1,11 @@
-﻿namespace Eight.LuaLibs {
+﻿using static SDL2.SDL;
+
+namespace Eight.LuaLibs {
     public class Screen {
         public Screen() {
             
         }
 
-        public static int Test() {
-            return 0;
-        }
-        
         public void SetPixel(int x, int y, byte r, byte g, byte b) {
             SDLLogic.DrawPixel(x, y, r, g, b);
         }
@@ -35,6 +33,13 @@
 
         public void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
             SDLLogic.DrawRectangle(x, y, w, h, r, g, b);
+        }
+
+        public void SetTitle(string title) {
+            SDL_SetWindowTitle(Eight.Window, title);
+        }
+        public string GetTitle() {
+            return SDL_GetWindowTitle(Eight.Window);
         }
     }
 }

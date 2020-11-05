@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +9,17 @@ using static SDL2.SDL.SDL_EventType;
 namespace Eight {
     internal static class Eight {
         public const string Version = "0.0.1";
+        
+        public const int DefaultWidth = 200;
+        public const int DefaultHeight = 150;
+        public const int DefaultScale = 4;
 
-        public static int WindowWidth = 200;
-        public static int WindowHeight = 150;
-        public static int WindowScale = 4;
-
+        public const int DefaultTickrate = 50;
+        
+        public static int WindowWidth = DefaultWidth;
+        public static int WindowHeight = DefaultHeight;
+        public static int WindowScale = DefaultScale;
+        
         public static int Tickrate;
         public static double Ticktime;
 
@@ -21,11 +27,19 @@ namespace Eight {
         public static IntPtr Renderer = IntPtr.Zero;
         public static IntPtr Surface = IntPtr.Zero;
 
+        public static readonly DateTime Epoch = DateTime.Now;
+
         private static bool _quit = false;
 
         private static void Main() {
             Console.WriteLine("Eight {0}", Version);
 
+            Init();
+
+            Quit();
+        }
+
+        private static void Init() {
             if (!SDLLogic.Init()) {
                 return;
             }
@@ -36,11 +50,9 @@ namespace Eight {
 
             SDLLogic.CreateCanvas();
 
-            SetTickrate(50);
+            SetTickrate(DefaultTickrate);
 
             Parallel.Invoke(RunEventLoop, TickTimer);
-
-            Quit();
         }
 
         static void RunEventLoop() {
@@ -56,7 +68,7 @@ namespace Eight {
             Console.WriteLine("Running event loop");
 
             while (!_quit) {
-                while (!_quit && SDL_WaitEvent(out e) != 0) {
+                while (!_quit && SDL_PollEvent(out e) != 0) {
                     switch (e.type) {
                         case SDL_QUIT:
                             _quit = true;
@@ -67,7 +79,7 @@ namespace Eight {
                             string keyName = SDL_GetKeyName(e.key.keysym.sym);
                             keyName = keyName.ToLower();
                             keyName = keyName.Replace(" ", "_");
-                            
+
                             state.PushString(e.key.state == SDL_PRESSED ? "key_down" : "key_up");
                             state.PushInteger((long) e.key.keysym.sym);
                             state.PushString(keyName);
@@ -77,13 +89,13 @@ namespace Eight {
 
                             break;
                         case SDL_TEXTINPUT:
-                            string c;
+                            byte[] c;
                             unsafe {
                                 c = cstr(e.text.text);
                             }
 
                             state.PushString("char");
-                            state.PushString(c);
+                            state.PushBuffer(c);
                             Resume(2);
 
                             break;
@@ -136,22 +148,32 @@ namespace Eight {
                                 y *= -1;
                             }
 
-                            state.PushString("mouse_wheel");
+                            if (y != 0 || x != 0) {
 
-                            state.PushInteger(x);
-                            state.PushInteger(y);
+                                state.PushString("mouse_scroll");
 
-                            state.PushInteger(oldx);
-                            state.PushInteger(oldy);
+                                state.PushInteger(x);
+                                state.PushInteger(y);
 
-                            Resume(5);
+                                state.PushInteger(oldx);
+                                state.PushInteger(oldy);
+
+                                Resume(5);
+                            }
 
                             break;
                         case SDL_USEREVENT:
-                            if (e.user.code == 0) {
-                                state.PushString("_eight_tick");
-                                Resume(1);
-                                SDLLogic.DrawCanvas();
+                            switch (e.user.code) {
+                                case 0:
+                                    state.PushString("_eight_tick");
+                                    Resume(1);
+                                    SDLLogic.DrawCanvas();
+                                    break;
+                                case 1:
+                                    state.PushString("timer");
+                                    state.PushInteger((int) e.user.data1);
+                                    Resume(2);
+                                    break;
                             }
 
                             break;
@@ -172,7 +194,6 @@ namespace Eight {
 
         private static void Resume(int n) {
             if (LuaLogic.Resume(n)) return;
-            Console.WriteLine("reached exception");
             _quit = true;
         }
 
@@ -181,15 +202,31 @@ namespace Eight {
             Ticktime = 1 / (double) tickrate;
         }
 
+        public static void Reset(bool doQuit = false) {
+
+            LuaLogic.IsResetting = true;
+            _quit = true;
+            
+            LuaLogic.Reset();
+
+            SetTickrate(DefaultTickrate);
+
+            SDLLogic.Reset();
+
+
+            if (doQuit) return;
+            LuaLogic.IsResetting = false;
+            Init();
+        }
+        
         public static void Quit() {
             Console.WriteLine("Quitting");
-            SDL_DestroyRenderer(Renderer);
-            SDL_DestroyWindow(Window);
+            Reset(true);
             SDL_Quit();
         }
 
         // bytechan is a monster
-        private static unsafe string cstr(byte* s) {
+        private static unsafe byte[] cstr(byte* s) {
             byte* end = s;
             while (*end != 0) ++end;
 
@@ -198,7 +235,7 @@ namespace Eight {
                 o[i] = s[i];
             }
 
-            return Encoding.UTF8.GetString(o);
+            return o;
         }
     }
 }

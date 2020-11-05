@@ -1,5 +1,6 @@
 local font = require("lua.fonts.tewi")
 local grid = {}
+local term = {}
 
 local fontWidth = font._width or 0
 local fontHeight = font._height or 0
@@ -11,16 +12,30 @@ local bgColor = {0, 0, 0}
 local posX = 0
 local posY = 0
 
-local function redraw()
-	for i, y in pairs(grid) do
-		for j, x in pairs(y) do
-			drawChar(x[1], x[2], x[3], true)
-		end
+local initated = false
+
+if not utf8.sub then
+	function utf8.sub(s, i, j)
+		return string.sub(s, utf8.offset(s, i), j and (utf8.offset(s, j + 1) - 1) or #s)
 	end
 end
 
+local function setChar(x, y, char, fg, bg)
+	if x >= 0 and y >= 0 and x < width and y < height then
+		grid[posY] = grid[posY] or {}
+		grid[posY][posX] = {
+			char, fg, bg
+		}
+	end
+end
+
+local function getChar(x, y)
+	grid[posY] = grid[posY] or {}
+	return grid[posY][posX]
+end
+
 local function drawChar(c, fg, bg, noset)
-	local char = font[c] or font["?"] or {{}}
+	local char = font[c] or font[string.byte("?")] or {{}}
 	fg = fg or fgColor
 	bg = bg or bgColor
 	
@@ -46,16 +61,25 @@ local function drawChar(c, fg, bg, noset)
 	end
 	
 	if not noset then
-		grid[posY] = grid[posY] or {}
-		grid[posY][posX] = {
-			c, fg, bg
-		}
+		setChar(posX, posY, c, fg, bg)
 	end
 	posX = posX + 1
 	
 end
 
-local term = {}
+local function redraw()
+	local cx, cy = term.getPos()
+	for y, row in pairs(grid) do
+		for x, char in pairs(row) do
+			term.setPos(x, y)
+			if char[1] then
+				drawChar(char[1], char[2] or fgColor, char[3] or bgColor, true)
+			end
+		end
+	end
+	
+	term.setPos(cx, cy)
+end
 
 function term.setSize(w, h, s)
 	local ow, oh, os = screen.getSize()
@@ -68,6 +92,15 @@ function term.setSize(w, h, s)
 	width = w
 	height = h
 	scale = s or os
+	
+	grid = {}
+	
+	for y = 1, h do
+		grid[y] = {}
+		for x = 1, w do
+			grid[y][x] = {}
+		end
+	end
 end
 
 function term.getSize()
@@ -99,22 +132,35 @@ function term.write(...)
 	
 	local text = table.concat(chunks, " ")
 	
-	for i = 1, #text do
+	for _, char in utf8.codes(text) do
 		
-		local char = text:sub(i,i)
-		if char == "\n" then
+		if char == 10 then
 			posY = posY + 1
+			if posY >= height then
+				term.scroll(-1)
+				posY = height - 1
+			end
 			posX = 0
-		elseif char == "\t" then
+		elseif char == 9 then
 			posX = posX + 2
-		else
+		elseif char ~= 13 then
 			drawChar(char)
 		end
 	end
 end
 
 function term.print(...)
-	term.write(..., "\n")
+	if posX >= width then
+		term.scroll(-1)
+	end
+	local chunks = {}
+	for k, v in ipairs({...}) do
+		chunks[#chunks+1] = tostring(v)
+	end
+	
+	local text = table.concat(chunks, " ")
+	
+	term.write(text, "\n")
 end
 
 function term.read(sReplace)
@@ -129,7 +175,7 @@ function term.read(sReplace)
 		screen.drawRectangle(startx * fontWidth, starty * fontHeight, fontWidth * (#content + extra), fontHeight, table.unpack(bgColor))
 		posX = startx
 		if sReplace then
-			term.write(string.rep(sReplace:sub(1,1), #content))
+			term.write(string.rep(utf8.sub(sReplace,1,1), utf8.len(content)))
 		else
 			term.write(content)
 		end
@@ -139,7 +185,7 @@ function term.read(sReplace)
 		local ev = {event.pull()}
 		
 		if ev[1] == "char" then
-			content = string.sub(content, 1, nPos) .. ev[2] .. string.sub(content, nPos + 1)
+			content = utf8.sub(content, 1, nPos) .. ev[2] .. utf8.sub(content, nPos + 1)
 			nPos = nPos + 1
 			
 			redraw()
@@ -149,7 +195,7 @@ function term.read(sReplace)
 				break
 			elseif key == "backspace" then -- backspace
 				if nPos > 0 then
-					content = string.sub(content, 1, nPos - 1) .. string.sub(content, nPos + 1)
+					content = utf8.sub(content, 1, nPos - 1) .. utf8.sub(content, nPos + 1)
 					nPos = nPos - 1
 					redraw(1)
 				end
@@ -167,7 +213,7 @@ function term.read(sReplace)
 				nPos = #content
 			elseif key == "delete" then
 				if nPos < #content then
-                    content = string.sub(content, 1, nPos) .. string.sub(content, nPos + 2)
+                    content = utf8.sub(content, 1, nPos) .. utf8.sub(content, nPos + 2)
                 end
 				redraw(1)
 			end
@@ -187,6 +233,48 @@ end
 function term.clearLine()
 	local w, h = screen.getSize()
 	screen.drawRectangle(0, posY * fontHeight, w, fontWidth, table.unpack(bgColor))
+end
+
+function term.scroll(n)
+	local copy = {}
+	for k, v in pairs(grid) do
+		copy[k+1] = v
+	end
+	
+	if n < 0 then
+		for i = 1, math.abs(n) do
+			table.remove(copy, 1)
+			table.insert(copy, #copy, {})
+		end
+	end
+	
+	if n > 0 then
+		for i = 1, math.abs(n) do
+			table.insert(copy, 1, {})
+			table.remove(copy, #copy)
+		end
+	end
+	
+	grid = {}
+	for k, v in pairs(copy) do
+		grid[k-1] = v
+	end
+
+	term.clear()
+	redraw()
+end
+
+function term.init()
+	if initated then return end
+	initated = true
+	
+	local w, h, s = screen.getSize()
+	
+	term.setSize( 
+		math.floor(w / fontWidth),
+		math.floor(h / fontHeight),
+		s
+	)
 end
 
 return term

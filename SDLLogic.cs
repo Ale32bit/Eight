@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Resources;
 using System.Runtime.InteropServices;
 using static SDL2.SDL;
 
@@ -58,7 +59,7 @@ namespace Eight {
                 0x0000ff00,
                 0x000000ff);
             if (Eight.Surface == IntPtr.Zero) {
-                SDL_Log("SDL_CreateRGBSurface() failed: " + SDL_GetError());
+                Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
                 Eight.Quit();
             }
         }
@@ -114,6 +115,12 @@ namespace Eight {
 
         public static void Clear() {
             CreateCanvas();
+        }
+
+        public static void Reset() {
+            SDL_DestroyRenderer(Eight.Renderer);
+            SDL_DestroyWindow(Eight.Window);
+            ResizeCanvas(Eight.DefaultWidth, Eight.DefaultHeight, Eight.DefaultScale);
         }
     }
 }

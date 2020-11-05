@@ -19,6 +19,7 @@
         <e p="term.lua" t="Include" />
       </e>
       <e p="LuaLibs" t="Include">
+        <e p="Os.cs" t="Include" />
         <e p="screen.cs" t="Include" />
       </e>
       <e p="LuaLogic.cs" t="Include" />
@@ -31,6 +32,9 @@
       </e>
       <e p="packages" t="ExcludeRecursive" />
       <e p="SDLLogic.cs" t="Include" />
+      <e p="Test" t="IncludeRecursive">
+        <e p="Test.csproj" t="IncludeRecursive" />
+      </e>
     </e>
   </component>
 </project>

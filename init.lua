@@ -31,6 +31,40 @@ end
 function screen.clear()
 	n_screen:Clear()
 end
+function screen.setTitle(title)
+	n_screen:SetTitle(title)
+end
+function screen.getTitle()
+	return n_screen:GetTitle()
+end
+
+local n_os = os;
+_G.os = {}
+function os.timer(time)
+	if time <= 0 then
+		error("bad argument #1 (time must be greater than 0)", 2)
+	end
+	
+	return n_os:Timer(time)
+end
+
+function os.sleep(ms)
+	local timer = os.timer(ms or 1)
+	
+	local _, par
+	repeat
+		_, par = event.pull("timer")
+	until par == timer
+	return timer
+end
+
+function os.reset()
+	n_os:Reset()
+end
+
+function os.quit()
+	n_os:Quit()
+end
 
 _G.event = {}
 local eventsQueue = {}
@@ -49,6 +83,17 @@ end
 function event.push(...)
 	eventsQueue[#eventsQueue+1] = {...}
 end
+
+local term = require("lua.term")
+
+_G.term = term
+term.init()
+
+local cprint = print
+_G.cprint = cprint
+
+_G.print = term.print
+_G.write = term.write
 
 local func, err = loadfile("lua/init.lua")
 if not func then
@@ -75,12 +120,15 @@ local function resume()
 	eventsQueue = {}
 end
 
+
 while true do
 	local ev = {coroutine.yield()}
 	
 	if ev[1] == "_eight_tick" then
+		eventsQueue[#eventsQueue+1] = {"tick"}
 		resume()
 	else
 		eventsQueue[#eventsQueue+1] = ev
+		resume()
 	end
 end
