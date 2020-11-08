@@ -50,7 +50,7 @@ namespace Eight.Logic {
 
         public static bool Resume(int n = 0) {
             if (_quit) return false;
-            var status = State.Resume(State, n, out var nres);
+            var status = State.Resume(null, n, out var nres);
             if (status == LuaStatus.OK || status == LuaStatus.Yield) {
                 State.Pop(nres);
                 if (status == LuaStatus.OK) {

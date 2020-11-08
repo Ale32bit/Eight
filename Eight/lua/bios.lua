@@ -1,7 +1,3 @@
-while true do
-    print(coroutine.yield())
-end
-
 print("EightOS")
 
 local function inTable(tbl, el)

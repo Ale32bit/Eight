@@ -1,10 +1,5 @@
 term.setSize(64, 24, 2)
 
-cprint(os);
-for k,v in pairs(os) do
-    cprint(k, v)
-end
-
 local bExit = false
 local tHistory = {}
 
