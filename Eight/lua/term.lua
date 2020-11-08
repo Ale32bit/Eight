@@ -186,8 +186,6 @@ function term.read(sReplace, tHistory)
         end
     end
 
-    local blinkTimer = timer.start(500);
-
     while not bExit do
         local ev = { event.pull() }
 
@@ -268,11 +266,6 @@ function term.read(sReplace, tHistory)
                     redraw(1)
                 end
             end
-
-        elseif ev[1] == "timer" then
-            blinkTimer = timer.start(500);
-            blink = not blink
-            redraw()
         end
     end
 
