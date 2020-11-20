@@ -79,7 +79,12 @@ namespace Eight.LuaLibs {
         private static void TimerHandler(object sender, ElapsedEventArgs e, int timerId) {
             if (!_timers.ContainsKey(timerId)) return;
 
-            var ev = new SDL.SDL_Event {type = SDL.SDL_EventType.SDL_USEREVENT, user = {code = 1}};
+            var ev = new SDL.SDL_Event {
+                type = SDL.SDL_EventType.SDL_USEREVENT,
+                user = {
+                    code = 1
+                }
+            };
             ev.user.data1 = (IntPtr) timerId;
             SDL.SDL_PushEvent(ref ev);
 

@@ -4,7 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <PackageVersion>Alpha 0.0.2</PackageVersion>
+        <PackageVersion>0.0.3-alpha</PackageVersion>
         <Title>Eight</Title>
         <Authors>AlexDevs</Authors>
     </PropertyGroup>
@@ -24,7 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="lua" />
       <Folder Include="static" />
     </ItemGroup>
 

@@ -14,8 +14,6 @@ namespace Eight.Logic {
                 Encoding = Encoding.UTF8
             };
 
-            //LuaState.SetHook(Hook, LuaHookMask.Count, 100000);
-            
             LuaState.PushString($"Eight {Eight.Version}");
             LuaState.SetGlobal("_HOST");
 
@@ -37,20 +35,18 @@ namespace Eight.Logic {
             // Destroy dem libtards with shapiro
             LuaState.PushNil();
             LuaState.SetGlobal("io");
+            
+            LuaState.PushNil();
+            LuaState.SetGlobal("dofile");
+            
+            LuaState.PushNil();
+            LuaState.SetGlobal("loadfile");
 
             LuaLibs.FileSystem.Setup();
             LuaLibs.Os.Setup();
             LuaLibs.Timer.Setup();
             LuaLibs.Screen.Setup();
-        }
-
-        private static void Hook(IntPtr luaState, IntPtr luaDebug) {
-            KeraLua.Lua state = KeraLua.Lua.FromIntPtr(luaState);
-            LuaDebug debug = LuaDebug.FromIntPtr(luaDebug);
-
-            //Console.WriteLine("shit happened");
-            //Console.WriteLine($"{debug.Name} {debug.Source}");
-            State.Error("hi");
+            LuaLibs.Other.Setup();
         }
 
         public static bool Resume(int n = 0) {
@@ -89,6 +85,7 @@ namespace Eight.Logic {
             string hexStatus = status.ToString("X").TrimStart('0');
             Console.WriteLine($"Lua Exception [0x{hexStatus}] {nr}: {error}");
             Console.WriteLine(traceback);
+            Console.WriteLine("Could not resume");
 
             return false;
         }

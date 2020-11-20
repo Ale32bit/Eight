@@ -12,7 +12,7 @@ using Timer = System.Timers.Timer;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 0.0.2";
+        public const string Version = "Alpha 0.0.3";
 
         public static readonly string BaseDir = Directory.GetCurrentDirectory();
         public static readonly string LuaDir = Path.Combine(BaseDir, "lua");
@@ -34,8 +34,8 @@ namespace Eight {
         public static DateTime Epoch = DateTime.Now;
 
         private static bool _quit;
-        private static SDL_Event e;
-
+        private static SDL_Event _e;
+        
         public static void Main(string[] args) {
             Console.WriteLine($"Eight {Version}");
             Directory.SetCurrentDirectory(LuaDir);
@@ -78,7 +78,7 @@ namespace Eight {
             syncTimer.Elapsed += SyncTimerHandler;
 
             bool ok = Logic.Lua.Resume(n);
-            
+
             syncTimer.Stop();
             if (!ok) {
                 _quit = true;
@@ -88,7 +88,7 @@ namespace Eight {
         // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
         private static void SyncTimerHandler(object sender, ElapsedEventArgs ev) {
             Console.WriteLine("Warning: Lua State is out of sync!");
-            Console.WriteLine("Caused after event: {0}", e.type);
+            Console.WriteLine("Caused after event: {0}", _e.type);
         }
 
         private static void EventLoop() {
@@ -99,31 +99,32 @@ namespace Eight {
 
             using var state = Logic.Lua.State;
 
-            while (!_quit && SDL_WaitEvent(out e) != 0) {
-                switch (e.type) {
+            while (!_quit && SDL_WaitEvent(out _e) != 0) {
+                switch (_e.type) {
                     case SDL_QUIT:
-                        _quit = true;
+                        Quit();
                         break;
                     case SDL_KEYDOWN:
                     case SDL_KEYUP:
 
-                        string keyName = SDL_GetKeyName(e.key.keysym.sym);
+                        string keyName = SDL_GetKeyName(_e.key.keysym.sym);
                         keyName = keyName.ToLower();
                         keyName = keyName.Replace(" ", "_");
 
-                        state.PushString(e.key.state == SDL_PRESSED ? "key_down" : "key_up");
-                        state.PushInteger((long) e.key.keysym.sym);
+                        state.PushString(_e.key.state == SDL_PRESSED ? "key_down" : "key_up");
+                        state.PushInteger((long) _e.key.keysym.sym);
                         state.PushString(keyName);
-                        state.PushBoolean(e.key.repeat != 0);
+                        state.PushBoolean(_e.key.repeat != 0);
 
                         Resume(4);
 
                         break;
                     case SDL_TEXTINPUT:
                         byte[] c;
-                        var a = e; // "You cannot use fixed size buffers contained in unfixed expressions. Try using the 'fixed' statement" my ass
+                        var
+                            a = _e; // "You cannot use fixed size buffers contained in unfixed expressions. Try using the 'fixed' statement" my ass
                         unsafe {
-                            c = Utils.CString(a.text.text); 
+                            c = Utils.CString(a.text.text);
                         }
 
                         state.PushString("char");
@@ -132,8 +133,8 @@ namespace Eight {
 
                         break;
                     case SDL_MOUSEMOTION:
-                        x = e.motion.x / WindowScale;
-                        y = e.motion.y / WindowScale;
+                        x = _e.motion.x / WindowScale;
+                        y = _e.motion.y / WindowScale;
                         if (oldX != x || oldY != y) {
                             state.PushString((pressedMouseButtons.Count > 0) ? "mouse_drag" : "mouse_hover");
 
@@ -153,36 +154,36 @@ namespace Eight {
                         break;
                     case SDL_MOUSEBUTTONDOWN:
                     case SDL_MOUSEBUTTONUP:
-                        x = e.motion.x / WindowScale;
-                        y = e.motion.y / WindowScale;
+                        x = _e.motion.x / WindowScale;
+                        y = _e.motion.y / WindowScale;
 
-                        if (e.button.state == SDL_PRESSED) {
-                            if (!pressedMouseButtons.Contains(e.button.button)) {
-                                pressedMouseButtons.Add(e.button.button);
+                        if (_e.button.state == SDL_PRESSED) {
+                            if (!pressedMouseButtons.Contains(_e.button.button)) {
+                                pressedMouseButtons.Add(_e.button.button);
                             }
                         }
                         else {
-                            if (pressedMouseButtons.Contains(e.button.button)) {
-                                pressedMouseButtons.Remove(e.button.button);
+                            if (pressedMouseButtons.Contains(_e.button.button)) {
+                                pressedMouseButtons.Remove(_e.button.button);
                             }
                         }
 
-                        state.PushString(e.button.state == SDL_PRESSED ? "mouse_click" : "mouse_up");
-                        state.PushInteger(e.button.button);
+                        state.PushString(_e.button.state == SDL_PRESSED ? "mouse_click" : "mouse_up");
+                        state.PushInteger(_e.button.button);
 
                         state.PushInteger(x);
                         state.PushInteger(y);
 
-                        state.PushBoolean(e.button.clicks != 1);
+                        state.PushBoolean(_e.button.clicks != 1);
 
                         Resume(5);
 
                         break;
                     case SDL_MOUSEWHEEL:
-                        x = e.wheel.x;
-                        y = e.wheel.y;
+                        x = _e.wheel.x;
+                        y = _e.wheel.y;
 
-                        if (SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED.Equals(e.wheel.direction)) {
+                        if (SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED.Equals(_e.wheel.direction)) {
                             x *= -1;
                             y *= -1;
                         }
@@ -201,7 +202,7 @@ namespace Eight {
 
                         break;
                     case SDL_USEREVENT:
-                        switch (e.user.code) {
+                        switch (_e.user.code) {
                             case 0:
                                 Logic.SDL.DrawCanvas();
                                 state.PushString("_eight_tick");
@@ -209,7 +210,7 @@ namespace Eight {
                                 break;
                             case 1:
                                 state.PushString("timer");
-                                state.PushInteger((int) e.user.data1);
+                                state.PushInteger((int) _e.user.data1);
                                 Resume(2);
                                 break;
                         }
@@ -217,8 +218,6 @@ namespace Eight {
                         break;
                 }
             }
-            
-            Console.WriteLine(SDL_GetError());
         }
 
         private static void TickEmitter() {
@@ -237,6 +236,9 @@ namespace Eight {
         public static void Quit() {
             Console.WriteLine("Quitting");
             _quit = true;
+
+            Logic.Lua.Quit();
+            Logic.SDL.Quit();
         }
     }
 }

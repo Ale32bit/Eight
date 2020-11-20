@@ -126,6 +126,14 @@ function term.setBackground(r, g, b)
     bgColor = { r, g, b }
 end
 
+function term.getForeground()
+    return table.unpack(fgColor)
+end
+
+function term.getBackground()
+    return table.unpack(bgColor)
+end
+
 function term.write(...)
     local chunks = {}
     for k, v in ipairs({ ... }) do
@@ -147,6 +155,11 @@ function term.write(...)
             posX = posX + 2
         elseif char ~= 13 then
             drawChar(char)
+        end
+
+        if posX >= width then
+            posX = 0;
+            posY = posY + 1
         end
     end
 end

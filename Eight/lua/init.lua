@@ -1,25 +1,12 @@
-term.setSize(64, 24, 2)
+﻿local term = require("term")
+local screen = require("screen")
 
-local bExit = false
-local tHistory = {}
-
-shell = {}
-
-function shell.exit()
-    bExit = true
+local function main()
+    term.setPos(0,0)
+    term.print("Eight", os.version())
 end
 
-function shell.run(program)
-
+local ok, err = pcall(main)
+if not ok then
+    panic(err)
 end
-
-term.setForeground(33, 150, 243)
-print("Eight", os.version())
-term.setForeground(255, 255, 255)
-
-while not bExit do
-    term.write("> ")
-    local input = term.read(nil, tHistory)
-    table.insert(tHistory, input)
-    shell.run(input)
-end 

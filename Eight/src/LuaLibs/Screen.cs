@@ -22,6 +22,10 @@ namespace Eight.LuaLibs {
                 function = SetTickrate,
             },
             new LuaRegister {
+                name = "getTickrate",
+                function = GetTickrate,
+            },
+            new LuaRegister {
                 name = "clear",
                 function = Clear,
             },
@@ -92,6 +96,15 @@ namespace Eight.LuaLibs {
             int tickrate = (int) state.ToNumber(1);
             Eight.SetTickrate(tickrate);
             return 0;
+        }
+
+        public static int GetTickrate(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.PushInteger(Eight.Tickrate);
+            
+            return 1;
+
         }
 
         public static int Clear(IntPtr luaState) {

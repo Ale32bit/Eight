@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using static SDL2.SDL;
 
@@ -53,18 +54,16 @@ namespace Eight.Logic {
                 SDL_FreeSurface(Surface);
                 Surface = IntPtr.Zero;
             }
-
-
+            
             Surface = SDL_CreateRGBSurface(0, Eight.WindowWidth * Eight.WindowScale,
                 Eight.WindowHeight * Eight.WindowScale, 32,
                 0xff000000,
                 0x00ff0000,
                 0x0000ff00,
                 0x000000ff);
-            if (Surface == IntPtr.Zero) {
-                Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
-                Eight.Quit();
-            }
+            if (Surface != IntPtr.Zero) return;
+            Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
+            Eight.Quit();
         }
 
         private static void UpdateWindow() {
@@ -113,7 +112,7 @@ namespace Eight.Logic {
                 h = Eight.WindowScale
             };
 
-            SDL_Surface sur = Marshal.PtrToStructure<SDL_Surface>(Surface);
+            var sur = Marshal.PtrToStructure<SDL_Surface>(Surface);
 
             SDL_FillRect(Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
         }
