@@ -152,6 +152,8 @@ namespace Eight.LuaLibs {
                 List<string> files = new List<string>(Directory.GetFiles(resolvedPath));
                 string[] allFiles = dirs.Concat(files).ToArray();
 
+                Array.Sort(allFiles);
+                
                 state.NewTable();
                 for (int i = 1; i <= allFiles.Length; i++) {
                     state.PushString(Path.GetFileName(allFiles[i - 1]));
