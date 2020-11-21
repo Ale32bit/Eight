@@ -1,4 +1,4 @@
-print("EightOS")
+print("Booting Eight...")
 
 local fs = require("filesystem")
 local screen = require("screen")

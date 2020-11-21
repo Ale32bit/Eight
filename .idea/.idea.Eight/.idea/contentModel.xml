@@ -39,30 +39,6 @@
             </e>
           </e>
         </e>
-        <e p="out" t="Include">
-          <e p="Eight" t="Include" />
-          <e p="Eight.deps.json" t="Include" />
-          <e p="Eight.dll" t="Include" />
-          <e p="Eight.pdb" t="Include" />
-          <e p="Eight.runtimeconfig.json" t="Include" />
-          <e p="KeraLua.dll" t="Include" />
-          <e p="liblua54.so" t="Include" />
-          <e p="lua" t="Include">
-            <e p="bios.lua" t="Include" />
-            <e p="fonts" t="Include">
-              <e p="tewi.lua" t="Include" />
-            </e>
-            <e p="init.lua" t="Include" />
-            <e p="old.init.lua" t="Include" />
-            <e p="shell.lua" t="Include" />
-            <e p="term.lua" t="Include" />
-            <e p="test" t="Include">
-              <e p="test" t="Include" />
-            </e>
-          </e>
-          <e p="SDL2-CS.dll" t="Include" />
-          <e p="SDL2-CS.dll.config" t="Include" />
-        </e>
         <e p="src" t="Include">
           <e p="Eight.cs" t="Include" />
           <e p="Logic" t="Include">
@@ -71,6 +47,7 @@
           </e>
           <e p="LuaLibs" t="Include">
             <e p="FileSystem.cs" t="Include" />
+            <e p="FileSystemHandle.cs" t="Include" />
             <e p="Os.cs" t="Include" />
             <e p="Other.cs" t="Include" />
             <e p="screen.cs" t="Include" />

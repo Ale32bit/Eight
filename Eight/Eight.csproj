@@ -33,4 +33,16 @@
       </Reference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="out\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="out\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="out\**" />
+    </ItemGroup>
+
 </Project>

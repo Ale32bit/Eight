@@ -1,5 +1,4 @@
 ﻿local term = require("term")
-local screen = require("screen")
 
 local function main()
     term.setPos(0,0)

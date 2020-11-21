@@ -1,23 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
-using System.Resources;
-using System.Text.RegularExpressions;
 using KeraLua;
 
 namespace Eight.LuaLibs {
     public class FileSystem {
-        public static readonly char[] IllegalChars = {
-            '"',
-            ':',
-            '<',
-            '>',
-            '?',
-            '|'
-        };
-
         public static LuaRegister[] Fs_lib = {
             new LuaRegister {
                 name = "open",
@@ -70,6 +58,25 @@ namespace Eight.LuaLibs {
         public static int Open(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
+            if (!state.IsString(1)) {
+                state.Error(Utils.GenArgError(1, state.TypeName(1), "string"));
+                return 0;
+            }
+
+            if (!state.IsString(2)) {
+                state.Error(Utils.GenArgError(2, state.TypeName(2), "string"));
+                return 0;
+            }
+
+            var path = state.ToString(1);
+            var mode = state.ToString(2);
+
+            var resolvedPath = Resolve(path);
+
+
+            state.PushNil();
+            state.PushNil();
+
             return 2;
         }
 
@@ -78,14 +85,14 @@ namespace Eight.LuaLibs {
 
             string path = state.ToString(1);
             string resolvedPath = Resolve(path);
-            
+
             string text = File.ReadAllText(resolvedPath);
-            
+
             state.PushString(text);
-            
+
             return 1;
         }
-        
+
         public static int Write(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
@@ -95,7 +102,7 @@ namespace Eight.LuaLibs {
             string content = state.ToString(2);
 
             File.WriteAllText(resolvedPath, content);
-            
+
             return 0;
         }
 
@@ -150,7 +157,7 @@ namespace Eight.LuaLibs {
                     state.PushString(Path.GetFileName(allFiles[i - 1]));
                     state.RawSetInteger(-2, i);
                 }
-                
+
                 state.PushNil();
             }
             else {
@@ -170,20 +177,21 @@ namespace Eight.LuaLibs {
             if (PathExists(resolvedPath)) {
                 if (Directory.Exists(resolvedPath)) {
                     state.PushString("directory");
-                } else if (File.Exists(resolvedPath)) {
+                }
+                else if (File.Exists(resolvedPath)) {
                     state.PushString("file");
                 }
                 else {
                     state.PushString("unknown");
                 }
-                
+
                 state.PushNil();
             }
             else {
                 state.PushNil();
                 state.PushString("Path not found");
             }
-            
+
             return 2;
         }
 
@@ -253,24 +261,24 @@ namespace Eight.LuaLibs {
         }
 
         // god, spare me please
-        private static string Resolve(string path) {
-            string invalidChars = new string(IllegalChars);
-            Regex r = new Regex($"[{Regex.Escape(invalidChars)}]");
-            path = r.Replace(path, "");
+        public static string Resolve(string path) {
+            // Replace \ to / for cross compatibility in case users prefer to use \
             path = path.Replace("\\", "/");
+            
+            // Get drive root (C:\ for Windows, / for *nix)
+            string rootPath = Path.GetFullPath(Path.GetPathRoot("/") ?? "/");
+            
+            // Join path to rootPath and resolves to absolute path
+            // Relative paths are resolved here (es. ../ and ./)
+            string absolutePath = Path.GetFullPath(path, rootPath);
+            
+            // Trim root from path
+            string isolatedPath = absolutePath.Remove(0, rootPath.Length - 1);
 
-            if (path.StartsWith("/")) {
-                path = path.TrimStart('/');
-            }
+            // Now join the isolatedPath to the Lua directory, always inside of it
+            string resolvedPath = Path.Join(Eight.LuaDir, isolatedPath);
 
-            string resolved = Path.GetFullPath(path, Path.GetPathRoot(Eight.LuaDir));
-            resolved = resolved.Substring(2);
-            resolved = r.Replace(resolved, "");
-            string fullPath = Path.Join(Eight.LuaDir, resolved);
-
-            Console.WriteLine("[FS DEBUG] {0}", fullPath);
-
-            return fullPath;
+            return resolvedPath;
         }
     }
 }
