@@ -245,14 +245,11 @@ namespace Eight.LuaLibs {
         }
 
         public static int Exists(IntPtr luaState) {
-            Console.WriteLine("Exist");
             var state = Lua.FromIntPtr(luaState);
 
             string path = state.ToString(1);
             string resolvedPath = Resolve(path);
-
-            Console.WriteLine(PathExists(resolvedPath));
-
+            
             state.PushBoolean(PathExists(resolvedPath));
 
             return 1;
