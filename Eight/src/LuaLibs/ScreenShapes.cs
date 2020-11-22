@@ -31,13 +31,36 @@ namespace Eight.LuaLibs {
 
             SDL_FillRect(SDL.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
         }
+        
+        // why isn't this function drawing anything?!!
+        public static void DrawText(IntPtr font, string text, int x, int y, byte r, byte g, byte b) {
+            SDL_Color color = new SDL_Color {
+                r = r,
+                g = g,
+                b = b,
+            };
+            var textSurface = TTF_RenderText_Solid(font, text, color);
+
+            var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
+
+            SDL_Rect textRectangle = new SDL_Rect {
+                x = x,
+                y = y,
+                h = tx.h,
+                w = tx.w,
+            };
+
+            SDL_BlitSurface(textSurface, ref textRectangle, SDL.Surface, IntPtr.Zero);
+            
+            SDL_FreeSurface(textSurface);
+        }
 
         public static IntPtr LoadFont(string path, int size) {
             IntPtr font = TTF_OpenFont(path, size);
             if (font == IntPtr.Zero) {
                 throw new Exception(SDL_GetError());
             }
-            return IntPtr.Zero;
+            return font;
         }
     }
 }

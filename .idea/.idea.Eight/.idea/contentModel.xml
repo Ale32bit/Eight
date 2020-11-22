@@ -18,6 +18,7 @@
             <e p="01_filesystem.lua" t="Include" />
             <e p="02_timer.lua" t="Include" />
           </e>
+          <e p="font.ttf" t="Include" />
           <e p="fonts" t="Include">
             <e p="tewi.lua" t="Include" />
           </e>
@@ -42,7 +43,6 @@
           </e>
           <e p="LuaLibs" t="Include">
             <e p="FileSystem.cs" t="Include" />
-            <e p="FileSystemHandle.cs" t="Include" />
             <e p="Os.cs" t="Include" />
             <e p="Other.cs" t="Include" />
             <e p="screen.cs" t="Include" />
