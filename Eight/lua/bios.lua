@@ -3,7 +3,9 @@ print("Booting Eight...")
 local fs = require("filesystem")
 local screen = require("screen")
 function _G.loadfile(filename, mode, env)
-    local content = fs.readFile(filename);
+    local f = fs.open(filename, "r");
+    local content = f.readAll()
+    f.close()
     return load(content, "=" .. filename, mode, env or _ENV)
 end
 

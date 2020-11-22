@@ -19,9 +19,9 @@
           </e>
           <e p="bios.lua" t="Include" />
           <e p="boot" t="Include">
-            <e p="filesystem.lua" t="Include" />
-            <e p="require.lua" t="Include" />
-            <e p="timer.lua" t="Include" />
+            <e p="00_require.lua" t="Include" />
+            <e p="01_filesystem.lua" t="Include" />
+            <e p="02_timer.lua" t="Include" />
           </e>
           <e p="fonts" t="Include">
             <e p="tewi.lua" t="Include" />

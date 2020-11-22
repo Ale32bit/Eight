@@ -12,14 +12,6 @@ namespace Eight.LuaLibs {
                 function = Open,
             },
             new LuaRegister {
-                name = "readFile",
-                function = Read,
-            },
-            new LuaRegister {
-                name = "writeFile",
-                function = Write,
-            },
-            new LuaRegister {
                 name = "makeDir",
                 function = MakeDir,
             },
@@ -73,37 +65,27 @@ namespace Eight.LuaLibs {
 
             var resolvedPath = Resolve(path);
 
+            FileSystemHandle handler;
+            
+            try {
+                handler = new FileSystemHandle(resolvedPath, mode);
+            }
+            catch (Exception e) {
+                state.Error(e.Message);
+                return 0;
+            }
+            
+            var exported = handler.Export();
 
-            state.PushNil();
-            state.PushNil();
+            state.NewTable();
 
-            return 2;
-        }
-
-        public static int Read(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-
-            string path = state.ToString(1);
-            string resolvedPath = Resolve(path);
-
-            string text = File.ReadAllText(resolvedPath);
-
-            state.PushString(text);
-
+            for (int i = 0; i < exported.Length; i++) {
+                state.PushString(exported[i].name);
+                state.PushCFunction(exported[i].function);
+                state.SetTable(-3);
+            }
+            
             return 1;
-        }
-
-        public static int Write(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-
-            string path = state.ToString(1);
-            string resolvedPath = Resolve(path);
-
-            string content = state.ToString(2);
-
-            File.WriteAllText(resolvedPath, content);
-
-            return 0;
         }
 
         public static int MakeDir(IntPtr luaState) {

@@ -1,6 +1,4 @@
-﻿
-
-local fs = require("filesystem")
+﻿local fs = require("filesystem")
 
 _G.package.cpath = ""
 _G.package.path = "?;?.lua;?/init.lua;lib/?.lua;lib/?/init.lua;libs/?.lua;libs/?/init.lua"
@@ -44,7 +42,6 @@ _G.package.searchers = {
     from_file(_G, "/")
 };
 
-
 local sentinel = {}
 function _G.require(name)
     if package.loaded[name] == sentinel then
@@ -61,7 +58,9 @@ function _G.require(name)
         if loader[1] then
             package.loaded[name] = sentinel
             local result = loader[1](name, table.unpack(loader, 2, loader.n))
-            if result == nil then result = true end
+            if result == nil then
+                result = true
+            end
 
             package.loaded[name] = result
             return result
