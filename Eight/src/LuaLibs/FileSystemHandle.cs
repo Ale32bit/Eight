@@ -124,7 +124,13 @@ namespace Eight.LuaLibs {
         }
 
         public int Close(IntPtr luaState) {
-            WriteStream.Dispose();
+            if (IsReadMode) {
+                ReadStream.Dispose();
+            }
+            else {
+                WriteStream.Dispose();
+            }
+
             return 1;
         }
 
@@ -157,18 +163,18 @@ namespace Eight.LuaLibs {
                     name = "write",
                     function = Write,
                 });
+                
+                functions.Add(new LuaRegister {
+                    name = "flush",
+                    function = Flush,
+                });
             }
 
             functions.Add(new LuaRegister {
                 name = "close",
                 function = Close,
             });
-            
-            functions.Add(new LuaRegister {
-                name = "flush",
-                function = Flush,
-            });
-            
+
             return functions.ToArray();
         }
     }
