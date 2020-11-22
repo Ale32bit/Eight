@@ -1,3 +1,4 @@
+![Workflow Status](https://img.shields.io/github/workflow/status/Ale32bit/Eight/.NET%20Core?style=flat-square)
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
