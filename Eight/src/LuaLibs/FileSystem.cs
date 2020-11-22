@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -65,26 +65,11 @@ namespace Eight.LuaLibs {
 
             var resolvedPath = Resolve(path);
 
-            FileSystemHandle handler;
-            
-            try {
-                handler = new FileSystemHandle(resolvedPath, mode);
-            }
-            catch (Exception e) {
-                state.Error(e.Message);
-                return 0;
-            }
-            
-            var exported = handler.Export();
+            state.GetField(LuaRegistry.Index, "_io_open");
+            state.PushString(resolvedPath);
+            state.PushString(mode);
+            state.Call(2, 1);
 
-            state.NewTable();
-
-            for (int i = 0; i < exported.Length; i++) {
-                state.PushString(exported[i].name);
-                state.PushCFunction(exported[i].function);
-                state.SetTable(-3);
-            }
-            
             return 1;
         }
 

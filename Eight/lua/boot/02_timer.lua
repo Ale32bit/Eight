@@ -1,4 +1,4 @@
-﻿local expect = require("expect")
+local expect = require("expect")
 local timer = require("timer");
 function timer.sleep(ms)
     expect(1, ms, "number")

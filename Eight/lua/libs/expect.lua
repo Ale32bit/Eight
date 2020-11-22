@@ -1,4 +1,4 @@
-﻿local function contains(tbl, val)
+local function contains(tbl, val)
     for k,v in ipairs(tbl) do
         if v == val then
             return true

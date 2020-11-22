@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KeraLua;
 using static SDL2.SDL;
 

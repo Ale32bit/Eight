@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using static SDL2.SDL;
 using static SDL2.SDL_ttf;
 
