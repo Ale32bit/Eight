@@ -64,7 +64,7 @@ namespace Eight.LuaLibs {
             byte g = (byte) state.ToNumber(4);
             byte b = (byte) state.ToNumber(5);
 
-            Logic.SDL.DrawPixel(x, y, r, g, b);
+            ScreenShapes.DrawPixel(x, y, r, g, b);
             return 0;
         }
 
@@ -124,7 +124,7 @@ namespace Eight.LuaLibs {
             byte g = (byte) state.ToNumber(6);
             byte b = (byte) state.ToNumber(7);
 
-            Logic.SDL.DrawRectangle(x, y, w, h, r, g, b);
+            ScreenShapes.DrawRectangle(x, y, w, h, r, g, b);
 
             return 0;
         }

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using static SDL2.SDL;
+using static SDL2.SDL_ttf;
 
 namespace Eight.Logic {
     public class SDL {
@@ -19,6 +18,8 @@ namespace Eight.Logic {
                 SDL_Quit();
                 return false;
             }
+
+            TTF_Init();
 
             ResetSize();
 
@@ -104,38 +105,14 @@ namespace Eight.Logic {
             SDL_DestroyTexture(sTexture);
         }
 
-        public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
-            var pixel = new SDL_Rect {
-                x = x * Eight.WindowScale,
-                y = y * Eight.WindowScale,
-                w = Eight.WindowScale,
-                h = Eight.WindowScale
-            };
-
-            var sur = Marshal.PtrToStructure<SDL_Surface>(Surface);
-
-            SDL_FillRect(Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
-        }
-        
-        public static void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
-            var rect = new SDL_Rect {
-                x = x * Eight.WindowScale,
-                y = y * Eight.WindowScale,
-                w = w * Eight.WindowScale,
-                h = h * Eight.WindowScale,
-            };
-
-            SDL_Surface sur = Marshal.PtrToStructure<SDL_Surface>(Surface);
-
-            SDL_FillRect(Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));
-        }
-
         public static void Quit() {
             if (Surface != IntPtr.Zero)
                 SDL_FreeSurface(Surface);
             
             SDL_DestroyRenderer(Renderer);
             SDL_DestroyWindow(Window);
+            SDL_Quit();
+            TTF_Quit();
         }
     }
 }

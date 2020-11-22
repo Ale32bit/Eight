@@ -10,39 +10,34 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="KeraLua" Version="1.2.9" />
-      <PackageReference Include="SDL2-CS" Version="2.0.0" />
+        <PackageReference Include="KeraLua" Version="1.2.10" />
+        <PackageReference Include="SDL2-CS" Version="2.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="static\**">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
         <Content Include="lua\**">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="static" />
+        <Reference Include="SDL2-CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>libs\SDL2-CS.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="SDL2-CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>libs\SDL2-CS.dll</HintPath>
-      </Reference>
+        <Compile Remove="out\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="out\**" />
+        <EmbeddedResource Remove="out\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Remove="out\**" />
+        <None Remove="out\**" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Remove="out\**" />
-    </ItemGroup>
+    <Import Project="..\Libraries\Libraries.projitems" Label="Shared" />
 
 </Project>

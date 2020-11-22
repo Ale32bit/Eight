@@ -8,11 +8,6 @@
       <e p="Eight" t="IncludeRecursive">
         <e p="bin" t="ExcludeRecursive" />
         <e p="Eight.csproj" t="IncludeRecursive" />
-        <e p="libs" t="Include">
-          <e p="SDL2-CS.dll" t="Include" />
-          <e p="SDL2-CS.dll.config" t="Include" />
-          <e p="SDL2.dll" t="Include" />
-        </e>
         <e p="lua" t="Include">
           <e p="bin" t="Include">
             <e p="ls.lua" t="Include" />
@@ -51,13 +46,25 @@
             <e p="Os.cs" t="Include" />
             <e p="Other.cs" t="Include" />
             <e p="screen.cs" t="Include" />
+            <e p="ScreenShapes.cs" t="Include" />
             <e p="Timer.cs" t="Include" />
           </e>
           <e p="Utils.cs" t="Include" />
         </e>
-        <e p="static" t="Include" />
       </e>
       <e p="Eight.sln" t="IncludeFlat" />
+      <e p="Libraries" t="IncludeRecursive">
+        <e p="libfreetype-6.dll" t="Include" />
+        <e p="Libraries.projitems" t="Include" />
+        <e p="Libraries.shproj" t="IncludeRecursive" />
+        <e p="LICENSE.freetype.txt" t="Include" />
+        <e p="LICENSE.zlib.txt" t="Include" />
+        <e p="SDL2-CS.dll" t="Include" />
+        <e p="SDL2-CS.dll.config" t="Include" />
+        <e p="SDL2.dll" t="Include" />
+        <e p="SDL2_ttf.dll" t="Include" />
+        <e p="zlib1.dll" t="Include" />
+      </e>
       <e p="packages" t="ExcludeRecursive" />
     </e>
   </component>

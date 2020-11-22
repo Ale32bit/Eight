@@ -1,8 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eight", "Eight\Eight.csproj", "{6FE973FD-A5B1-45EE-8726-D7C6F526071F}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eight", "Eight\Eight.csproj", "{6FE973FD-A5B1-45EE-8726-D7C6F526071F}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Libraries", "Libraries\Libraries.shproj", "{4B758B34-4CD9-404F-8562-42642345A3A4}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Libraries\Libraries.projitems*{4b758b34-4cd9-404f-8562-42642345a3a4}*SharedItemsImports = 13
+		Libraries\Libraries.projitems*{6fe973fd-a5b1-45ee-8726-d7c6f526071f}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -12,5 +21,11 @@ Global
 		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C6DD6BBE-6DE1-4F50-9A14-2B12F0BCEC7D}
 	EndGlobalSection
 EndGlobal
