@@ -1,4 +1,4 @@
-﻿local fs = require("filesystem")
+local fs = require("filesystem")
 
 local args = {...}
 

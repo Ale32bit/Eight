@@ -1,4 +1,4 @@
-﻿local fs = require("filesystem")
+local fs = require("filesystem")
 
 _G.package.cpath = ""
 _G.package.path = "?;?.lua;?/init.lua;lib/?.lua;lib/?/init.lua;libs/?.lua;libs/?/init.lua"

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using KeraLua;
 
@@ -32,6 +32,10 @@ namespace Eight.Logic {
         }
 
         private static void DoLibs() {
+            LuaState.GetGlobal("io");
+            LuaState.GetField(-1, "open");
+            LuaState.SetField((int)LuaRegistry.Index, "_io_open");
+            LuaState.Pop(1);
             // Destroy dem libtards with shapiro
             LuaState.PushNil();
             LuaState.SetGlobal("io");

@@ -4,8 +4,8 @@ local fs = require("filesystem")
 local screen = require("screen")
 function _G.loadfile(filename, mode, env)
     local f = fs.open(filename, "r");
-    local content = f.readAll()
-    f.close()
+    local content = f:read("*a")
+    f:close()
     return load(content, "=" .. filename, mode, env or _ENV)
 end
 

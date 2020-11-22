@@ -1,4 +1,4 @@
-﻿local term = require("term")
+local term = require("term")
 local fs = require("filesystem")
 
 term.setPos(0,0)
