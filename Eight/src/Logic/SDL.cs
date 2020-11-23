@@ -10,7 +10,7 @@ namespace Eight.Logic {
 
         public static bool Init() {
             Console.WriteLine("Initializing SDL...");
-            
+
             SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 
             if (SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
@@ -35,6 +35,9 @@ namespace Eight.Logic {
                 return false;
             }
 
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+            SDL_SetRenderDrawBlendMode(Surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
+
             Console.WriteLine("Creating renderer...");
             Renderer = SDL_CreateRenderer(Window, -1,
                 SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
@@ -44,9 +47,6 @@ namespace Eight.Logic {
                 return false;
             }
 
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-            SDL_SetRenderDrawBlendMode(Surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
-
             return true;
         }
 
@@ -55,9 +55,9 @@ namespace Eight.Logic {
                 SDL_FreeSurface(Surface);
                 Surface = IntPtr.Zero;
             }
-            
-            Surface = SDL_CreateRGBSurface(0, Eight.WindowWidth * Eight.WindowScale,
-                Eight.WindowHeight * Eight.WindowScale, 32,
+
+            Surface = SDL_CreateRGBSurface(0, Eight.WindowWidth,
+                Eight.WindowHeight, 32,
                 0xff000000,
                 0x00ff0000,
                 0x0000ff00,
@@ -108,7 +108,7 @@ namespace Eight.Logic {
         public static void Quit() {
             if (Surface != IntPtr.Zero)
                 SDL_FreeSurface(Surface);
-            
+
             SDL_DestroyRenderer(Renderer);
             SDL_DestroyWindow(Window);
             SDL_Quit();

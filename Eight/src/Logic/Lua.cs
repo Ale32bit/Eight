@@ -32,11 +32,18 @@ namespace Eight.Logic {
         }
 
         private static void DoLibs() {
+            
+            // Get io.open for filesystem
             LuaState.GetGlobal("io");
             LuaState.GetField(-1, "open");
             LuaState.SetField((int)LuaRegistry.Index, "_io_open");
             LuaState.Pop(1);
+            
             // Destroy dem libtards with shapiro
+            
+            LuaState.PushNil();
+            LuaState.PushString("debug");
+            
             LuaState.PushNil();
             LuaState.SetGlobal("io");
             
@@ -50,6 +57,7 @@ namespace Eight.Logic {
             LuaLibs.Os.Setup();
             LuaLibs.Timer.Setup();
             LuaLibs.Screen.Setup();
+            LuaLibs.HTTP.Setup();
             LuaLibs.Other.Setup();
         }
 

@@ -12,7 +12,7 @@ using Timer = System.Timers.Timer;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 0.0.3";
+        public const string Version = "Alpha 0.0.4";
 
         public static readonly string BaseDir = Directory.GetCurrentDirectory();
         public static readonly string LuaDir = Path.Combine(BaseDir, "lua");

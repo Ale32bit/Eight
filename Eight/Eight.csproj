@@ -2,11 +2,12 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageVersion>0.0.3-alpha</PackageVersion>
         <Title>Eight</Title>
         <Authors>AlexDevs</Authors>
+        <LangVersion>9</LangVersion>
+        <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

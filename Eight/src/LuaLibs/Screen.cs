@@ -1,5 +1,6 @@
 using System;
 using KeraLua;
+using SDL2;
 using static SDL2.SDL;
 
 namespace Eight.LuaLibs {
@@ -40,6 +41,14 @@ namespace Eight.LuaLibs {
             new LuaRegister {
                 name = "getTitle",
                 function = GetTitle,
+            },
+            new LuaRegister {
+                name = "loadFont",
+                function = LoadFont,
+            },
+            new LuaRegister {
+                name = "drawText",
+                function = DrawText,
             },
             new LuaRegister(),
         };
@@ -102,9 +111,8 @@ namespace Eight.LuaLibs {
             var state = Lua.FromIntPtr(luaState);
 
             state.PushInteger(Eight.Tickrate);
-            
-            return 1;
 
+            return 1;
         }
 
         public static int Clear(IntPtr luaState) {
@@ -139,6 +147,55 @@ namespace Eight.LuaLibs {
         public static int GetTitle(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
             state.PushString(SDL_GetWindowTitle(Logic.SDL.Window));
+            return 1;
+        }
+
+        public static int LoadFont(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            var path = state.ToString(1);
+            var size = (int) state.ToInteger(2);
+
+            var resolvedPath = FileSystem.Resolve(path);
+
+            var font = ScreenShapes.LoadFont(resolvedPath, size);
+            var height = SDL_ttf.TTF_FontHeight(font);
+            
+            state.NewTable();
+            
+            state.PushString("font");
+            state.PushLightUserData(font);
+            state.SetTable(-3);
+            
+            state.PushString("height");
+            state.PushInteger(height);
+            state.SetTable(-3);
+            
+            return 1;
+        }
+
+        public static int DrawText(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            var font = state.ToUserData(1);
+            var text = state.ToString(2);
+            var x = (int) state.ToInteger(3);
+            var y = (int) state.ToInteger(4);
+            var r = (byte) state.ToInteger(5);
+            var g = (byte) state.ToInteger(6);
+            var b = (byte) state.ToInteger(7);
+            
+            var surface = ScreenShapes.DrawText(font, text, x, y, r, g, b);
+            
+            state.NewTable();
+            
+            state.PushString("width");
+            state.PushInteger(surface.w);
+            state.SetTable(-3);
+            state.PushString("height");
+            state.PushInteger(surface.h);
+            state.SetTable(-3);
+
             return 1;
         }
     }
