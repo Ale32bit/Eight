@@ -30,16 +30,19 @@ namespace Eight {
         public static int Ticktime;
 
         public static int SyncTimeout = 3000;
+        public static bool OutOfSync = false;
 
-        public static DateTime Epoch = DateTime.Now;
+        public static readonly DateTime Epoch = DateTime.Now;
+
+        public static List<Utils.LuaParameter[]> UserEventQueue = new();
 
         private static bool _quit;
         private static SDL_Event _e;
-        
+
         public static void Main(string[] args) {
             Console.WriteLine($"Eight {Version}");
             Directory.SetCurrentDirectory(LuaDir);
-
+            
             Init();
         }
 
@@ -78,6 +81,7 @@ namespace Eight {
             syncTimer.Elapsed += SyncTimerHandler;
 
             bool ok = Logic.Lua.Resume(n);
+            OutOfSync = false;
 
             syncTimer.Stop();
             if (!ok) {
@@ -87,6 +91,7 @@ namespace Eight {
 
         // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
         private static void SyncTimerHandler(object sender, ElapsedEventArgs ev) {
+            OutOfSync = true;
             Console.WriteLine("Warning: Lua State is out of sync!");
             Console.WriteLine("Caused after event: {0}", _e.type);
         }
@@ -213,6 +218,51 @@ namespace Eight {
                                 state.PushInteger((int) _e.user.data1);
                                 Resume(2);
                                 break;
+                            case -1:
+                                // I don't really trust this code
+                                // It will probably give problems in the future
+                                try {
+                                    int index = (int) _e.user.data1;
+                                    var parameters = UserEventQueue[index];
+
+                                    for (int i = 0; i < parameters.Length; i++) {
+                                        var type = parameters[i].Type;
+                                        var value = parameters[i].Value;
+
+                                        switch (type) {
+                                            case Lua.LuaType.Nil:
+                                                state.PushNil();
+                                                break;
+                                            case Lua.LuaType.Boolean:
+                                                state.PushBoolean((bool) value);
+                                                break;
+                                            case Lua.LuaType.LightUserData:
+                                                state.PushLightUserData((IntPtr) value);
+                                                break;
+                                            case Lua.LuaType.Number:
+                                                state.PushNumber((double) value);
+                                                break;
+                                            case Lua.LuaType.String:
+                                                if (value is byte[] v) {
+                                                    state.PushBuffer(v);
+                                                } else if (value is string s) {
+                                                    state.PushString(s);
+                                                }
+
+                                                break;
+                                            case Lua.LuaType.UserData:
+                                                state.PushLightUserData((IntPtr) value);
+                                                break;
+                                        }
+                                    }
+
+                                    Resume(parameters.Length);
+                                }
+                                catch (Exception e) {
+                                    Console.WriteLine(e);
+                                }
+
+                                break;
                         }
 
                         break;
@@ -222,15 +272,36 @@ namespace Eight {
 
         private static void TickEmitter() {
             while (!_quit) {
-                var tickEvent = new SDL_Event {
-                    type = SDL_USEREVENT,
-                    user = {
-                        code = 0
-                    },
-                };
-                SDL_PushEvent(ref tickEvent);
+                if (OutOfSync) {
+                    Logic.SDL.DrawCanvas();
+                }
+                else {
+                    var tickEvent = new SDL_Event {
+                        type = SDL_USEREVENT,
+                        user = {
+                            code = 0
+                        },
+                    };
+                    SDL_PushEvent(ref tickEvent);
+                }
+
                 Thread.Sleep(Ticktime);
             }
+        }
+
+        public static void PushEvent(Utils.LuaParameter[] parameters) {
+            UserEventQueue.Add(parameters);
+            int index = UserEventQueue.Count - 1;
+
+            SDL_Event userEvent = new SDL_Event {
+                type = SDL_USEREVENT,
+                user = {
+                    code = -1,
+                    data1 = (IntPtr) index,
+                }
+            };
+
+            SDL_PushEvent(ref userEvent);
         }
 
         public static void Quit() {

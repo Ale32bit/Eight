@@ -1,9 +1,16 @@
+#nullable enable
 using System;
 using System.Linq;
 using System.Text;
+using KeraLua;
 
 namespace Eight {
     public class Utils {
+        public struct LuaParameter {
+            public LuaType Type;
+            public object Value;
+        }
+        
         public static unsafe byte[] CString(byte* s) {
             byte* end = s;
             while (*end != 0) ++end;

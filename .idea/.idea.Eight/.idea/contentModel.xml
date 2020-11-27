@@ -17,6 +17,7 @@
             <e p="00_require.lua" t="Include" />
             <e p="01_filesystem.lua" t="Include" />
             <e p="02_timer.lua" t="Include" />
+            <e p="03_http.lua" t="Include" />
           </e>
           <e p="font.ttf" t="Include" />
           <e p="fonts" t="Include">
@@ -44,7 +45,6 @@
           <e p="LuaLibs" t="Include">
             <e p="FileSystem.cs" t="Include" />
             <e p="HTTP.cs" t="Include" />
-            <e p="HTTPHandler.cs" t="Include" />
             <e p="Os.cs" t="Include" />
             <e p="Other.cs" t="Include" />
             <e p="screen.cs" t="Include" />
