@@ -3,48 +3,53 @@ using System.Collections.Generic;
 using System.Timers;
 using KeraLua;
 using SDL2;
+using Lua = Eight.Logic.Lua;
 
 namespace Eight.LuaLibs {
     public static class Timer {
-        private static Dictionary<int, System.Timers.Timer> _timers = new Dictionary<int, System.Timers.Timer>();
+        private static readonly Dictionary<int, System.Timers.Timer> _timers = new();
 
-        private static LuaRegister[] timer_lib = {
-            new LuaRegister {
+        private static readonly LuaRegister[] timer_lib = {
+            new() {
                 function = Start,
-                name = "start",
+                name = "start"
             },
-            new LuaRegister() {
+            new() {
                 function = Stop,
-                name = "stop",
+                name = "stop"
             },
-            new LuaRegister(), // Null
+            new() // Null
         };
 
         public static void Setup() {
-            Logic.Lua.LuaState.RequireF("timer", Open, false);
+            Lua.LuaState.RequireF("timer", Open, false);
         }
 
         private static int Open(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
             state.NewLib(timer_lib);
             return 1;
         }
 
         public static int Start(IntPtr s) {
-            var State = Lua.FromIntPtr(s);
+            var state = KeraLua.Lua.FromIntPtr(s);
+            
+            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
 
-            int ms = (int) State.ToInteger(1);
+            var ms = (int) state.ToInteger(1);
 
-            State.PushInteger(StartTimer(ms));
+            state.PushInteger(StartTimer(ms));
             return 1;
         }
 
         public static int Stop(IntPtr s) {
-            var State = Lua.FromIntPtr(s);
+            var state = KeraLua.Lua.FromIntPtr(s);
+            
+            state.ArgumentCheck(state.IsInteger(1), 1, "expected integer");
 
-            int timerId = (int) State.ToInteger(1);
+            var timerId = (int) state.ToInteger(1);
 
-            State.PushBoolean(StopTimer(timerId));
+            state.PushBoolean(StopTimer(timerId));
             return 1;
         }
 
@@ -55,7 +60,7 @@ namespace Eight.LuaLibs {
                 Enabled = true
             };
 
-            int timerId = (DateTime.Now - Eight.Epoch).GetHashCode();
+            var timerId = (DateTime.Now - Eight.Epoch).GetHashCode();
 
             timer.Elapsed += (sender, e) => TimerHandler(sender, e, timerId);
             timer.Start();

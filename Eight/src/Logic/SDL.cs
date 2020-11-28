@@ -94,7 +94,7 @@ namespace Eight.Logic {
         }
 
         public static void DrawCanvas() {
-            IntPtr sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
+            var sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
 
             SDL_RenderClear(Renderer);
 

@@ -3,62 +3,55 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KeraLua;
+using Lua = Eight.Logic.Lua;
 
 namespace Eight.LuaLibs {
     public class FileSystem {
         public static LuaRegister[] Fs_lib = {
-            new LuaRegister {
+            new() {
                 name = "open",
-                function = Open,
+                function = Open
             },
-            new LuaRegister {
+            new() {
                 name = "makeDir",
-                function = MakeDir,
+                function = MakeDir
             },
-            new LuaRegister {
+            new() {
                 name = "list",
-                function = List,
+                function = List
             },
-            new LuaRegister {
+            new() {
                 name = "delete",
-                function = Delete,
+                function = Delete
             },
-            new LuaRegister {
+            new() {
                 name = "exists",
-                function = Exists,
+                function = Exists
             },
-            new LuaRegister {
+            new() {
                 name = "getType",
-                function = GetType,
+                function = GetType
             },
-            new LuaRegister(), // NULL
+            new() // NULL
         };
-
 
         public static void Setup() {
             Console.WriteLine("Working in {0}", Directory.GetCurrentDirectory());
 
-            Logic.Lua.LuaState.RequireF("filesystem", OpenLib, false);
+            Lua.LuaState.RequireF("filesystem", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
             state.NewLib(Fs_lib);
             return 1;
         }
 
         public static int Open(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
 
-            if (!state.IsString(1)) {
-                state.Error(Utils.GenArgError(1, state.TypeName(1), "string"));
-                return 0;
-            }
-
-            if (!state.IsString(2)) {
-                state.Error(Utils.GenArgError(2, state.TypeName(2), "string"));
-                return 0;
-            }
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.ArgumentCheck(state.IsString(2), 2, "expected string");
 
             var path = state.ToString(1);
             var mode = state.ToString(2);
@@ -74,12 +67,14 @@ namespace Eight.LuaLibs {
         }
 
         public static int MakeDir(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-            string error = "Unknown error";
-            bool ok = true;
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var error = "Unknown error";
+            var ok = true;
+            
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
-            string dirPath = state.ToString(1);
-            string resolvedPath = Resolve(dirPath);
+            var dirPath = state.ToString(1);
+            var resolvedPath = Resolve(dirPath);
 
             if (PathExists(resolvedPath)) {
                 ok = false;
@@ -98,31 +93,31 @@ namespace Eight.LuaLibs {
 
             state.PushBoolean(ok);
 
-            if (ok) {
+            if (ok)
                 state.PushNil();
-            }
-            else {
+            else
                 state.PushString(error);
-            }
 
             return 2;
         }
 
         public static int List(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+            
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
-            string path = state.ToString(1);
-            string resolvedPath = Resolve(path);
+            var path = state.ToString(1);
+            var resolvedPath = Resolve(path);
 
             if (PathExists(resolvedPath)) {
-                List<string> dirs = new List<string>(Directory.GetDirectories(resolvedPath));
-                List<string> files = new List<string>(Directory.GetFiles(resolvedPath));
-                string[] allFiles = dirs.Concat(files).ToArray();
+                var dirs = new List<string>(Directory.GetDirectories(resolvedPath));
+                var files = new List<string>(Directory.GetFiles(resolvedPath));
+                var allFiles = dirs.Concat(files).ToArray();
 
                 Array.Sort(allFiles);
-                
+
                 state.NewTable();
-                for (int i = 1; i <= allFiles.Length; i++) {
+                for (var i = 1; i <= allFiles.Length; i++) {
                     state.PushString(Path.GetFileName(allFiles[i - 1]));
                     state.RawSetInteger(-2, i);
                 }
@@ -138,21 +133,20 @@ namespace Eight.LuaLibs {
         }
 
         public static int GetType(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+            
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
-            string path = state.ToString(1);
-            string resolvedPath = Resolve(path);
+            var path = state.ToString(1);
+            var resolvedPath = Resolve(path);
 
             if (PathExists(resolvedPath)) {
-                if (Directory.Exists(resolvedPath)) {
+                if (Directory.Exists(resolvedPath))
                     state.PushString("directory");
-                }
-                else if (File.Exists(resolvedPath)) {
+                else if (File.Exists(resolvedPath))
                     state.PushString("file");
-                }
-                else {
+                else
                     state.PushString("unknown");
-                }
 
                 state.PushNil();
             }
@@ -165,28 +159,24 @@ namespace Eight.LuaLibs {
         }
 
         public static int Delete(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+            
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
-            string path = state.ToString(1);
-            bool recursive = false;
-            if (state.IsBoolean(2)) {
-                recursive = state.ToBoolean(2);
-            }
+            var path = state.ToString(1);
+            var recursive = false;
+            if (state.IsBoolean(2)) recursive = state.ToBoolean(2);
 
-            string resolvedPath = Resolve(path);
+            var resolvedPath = Resolve(path);
 
-            bool ok = true;
-            string error = "Unknown error";
+            var ok = true;
+            var error = "Unknown error";
 
             if (PathExists(resolvedPath)) {
                 try {
-                    if (Directory.Exists(resolvedPath)) {
-                        // if it's path
+                    if (Directory.Exists(resolvedPath)) // if it's path
                         Directory.Delete(resolvedPath, recursive);
-                    }
-                    else if (File.Exists(resolvedPath)) {
-                        File.Delete(resolvedPath);
-                    }
+                    else if (File.Exists(resolvedPath)) File.Delete(resolvedPath);
                 }
                 catch (Exception e) {
                     Console.WriteLine(e);
@@ -212,11 +202,13 @@ namespace Eight.LuaLibs {
         }
 
         public static int Exists(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-
-            string path = state.ToString(1);
-            string resolvedPath = Resolve(path);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
             
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+
+            var path = state.ToString(1);
+            var resolvedPath = Resolve(path);
+
             state.PushBoolean(PathExists(resolvedPath));
 
             return 1;
@@ -230,19 +222,19 @@ namespace Eight.LuaLibs {
         public static string Resolve(string path) {
             // Replace \ to / for cross compatibility in case users prefer to use \
             path = path.Replace("\\", "/");
-            
+
             // Get drive root (C:\ for Windows, / for *nix)
-            string rootPath = Path.GetFullPath(Path.GetPathRoot("/") ?? "/");
-            
+            var rootPath = Path.GetFullPath(Path.GetPathRoot("/") ?? "/");
+
             // Join path to rootPath and resolves to absolute path
             // Relative paths are resolved here (es. ../ and ./)
-            string absolutePath = Path.GetFullPath(path, rootPath);
-            
+            var absolutePath = Path.GetFullPath(path, rootPath);
+
             // Trim root from path
-            string isolatedPath = absolutePath.Remove(0, rootPath.Length - 1);
+            var isolatedPath = absolutePath.Remove(0, rootPath.Length - 1);
 
             // Now join the isolatedPath to the Lua directory, always inside of it
-            string resolvedPath = Path.Join(Eight.LuaDir, isolatedPath);
+            var resolvedPath = Path.Join(Eight.LuaDir, isolatedPath);
 
             return resolvedPath;
         }

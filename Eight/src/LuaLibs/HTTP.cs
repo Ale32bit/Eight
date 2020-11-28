@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using KeraLua;
 using static Eight.Utils;
-using Lua = KeraLua.Lua;
+using Lua = Eight.Logic.Lua;
 
 namespace Eight.LuaLibs {
     public static class HTTP {
@@ -13,47 +13,34 @@ namespace Eight.LuaLibs {
                 function = Request,
                 name = "request"
             },
-            new(),
+            new()
         };
 
         public static HttpClient Http = new();
 
         public static void Setup() {
-            Logic.Lua.LuaState.RequireF("http", OpenLib, false);
+            Lua.LuaState.RequireF("http", OpenLib, false);
         }
 
         public static int OpenLib(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
             state.NewLib(HTTP_Lib);
             return 1;
         }
 
         public static int Request(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = KeraLua.Lua.FromIntPtr(luaState);
             string? body = null;
             string? method = null;
 
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.ArgumentCheck(state.IsString(2) || state.IsNoneOrNil(2), 2, "expected string");
+            state.ArgumentCheck(state.IsTable(3) || state.IsNoneOrNil(3), 3, "expected string");
+            state.ArgumentCheck(state.IsString(4) || state.IsNoneOrNil(4), 4, "expected string");
 
-            if (!state.IsString(1)) {
-                state.Error(GenArgError(1, state.TypeName(1), "string", "nil"));
-                return 0;
-            }
+            if (state.IsString(2)) body = state.ToString(2);
 
-            if (state.IsString(2)) {
-                body = state.ToString(2);
-            }
-            else if (!state.IsNoneOrNil(2)) {
-                state.Error(GenArgError(2, state.TypeName(2), "string", "nil"));
-                return 0;
-            }
-
-            if (state.IsString(4)) {
-                method = state.ToString(4);
-            }
-            else if (!state.IsNoneOrNil(4)) {
-                state.Error(GenArgError(4, state.TypeName(4), "string", "nil"));
-                return 0;
-            }
+            if (state.IsString(4)) method = state.ToString(4);
 
             var url = state.ToString(1);
 
@@ -71,16 +58,12 @@ namespace Eight.LuaLibs {
                     state.Pop(1);
                 }
             }
-            else if (!state.IsNoneOrNil(3)) {
-                state.Error(GenArgError(3, state.TypeName(3), LuaType.Table.ToString()));
-                return 0;
-            }
 
             Random random = new();
             var id = random.Next().ToString("x8");
 
             Uri? uri;
-            bool ok = Uri.TryCreate(url, UriKind.Absolute, out uri);
+            var ok = Uri.TryCreate(url, UriKind.Absolute, out uri);
 
             if (ok && uri != null) {
                 Request(uri, body, headers, method, id);
@@ -98,18 +81,16 @@ namespace Eight.LuaLibs {
         public static async void Request(Uri url, string? body,
             Dictionary<string, string>? headers, string? method, string rnd) {
             HttpRequestMessage message = new() {
-                RequestUri = url,
+                RequestUri = url
             };
 
             if (body != null)
                 message.Content = new StringContent(body);
 
-            if (headers != null) {
-                foreach (var (key, value) in headers) {
+            if (headers != null)
+                foreach (var (key, value) in headers)
                     message.Headers.TryAddWithoutValidation(key, value);
-                }
-            }
-            
+
             message.Method = method != null ? new HttpMethod(method) : HttpMethod.Get;
 
             try {
@@ -121,15 +102,15 @@ namespace Eight.LuaLibs {
                 LuaParameter[] parameters = {
                     new() {
                         Type = LuaType.String,
-                        Value = "http_failure",
+                        Value = "http_failure"
                     },
                     new() {
                         Type = LuaType.String,
-                        Value = rnd,
+                        Value = rnd
                     },
                     new() {
                         Type = LuaType.String,
-                        Value = e.Message,
+                        Value = e.Message
                     }
                 };
 
@@ -143,15 +124,15 @@ namespace Eight.LuaLibs {
             LuaParameter[] parameters = {
                 new() {
                     Type = LuaType.String,
-                    Value = "http_success",
+                    Value = "http_success"
                 },
                 new() {
                     Type = LuaType.String,
-                    Value = rnd,
+                    Value = rnd
                 },
                 new() {
                     Type = LuaType.String,
-                    Value = content,
+                    Value = content
                 }
             };
 

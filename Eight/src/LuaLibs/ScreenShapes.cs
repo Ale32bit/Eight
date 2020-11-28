@@ -11,10 +11,10 @@ namespace Eight.LuaLibs {
                 x = x,
                 y = y,
                 w = w,
-                h = h,
+                h = h
             };
 
-            SDL_Surface sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
+            var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
 
             SDL_FillRect(SDL.Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));
         }
@@ -34,10 +34,10 @@ namespace Eight.LuaLibs {
 
         // why isn't this function drawing anything?!!
         public static SDL_Surface DrawText(IntPtr font, string text, int x, int y, byte r, byte g, byte b) {
-            SDL_Color color = new SDL_Color {
+            var color = new SDL_Color {
                 r = r,
                 g = g,
-                b = b,
+                b = b
             };
             var textSurface = TTF_RenderUTF8_Solid(font, text, color);
 
@@ -45,11 +45,11 @@ namespace Eight.LuaLibs {
 
             Console.WriteLine($"{x} {y} {tx.w} {tx.h}");
 
-            SDL_Rect textRectangle = new SDL_Rect {
+            var textRectangle = new SDL_Rect {
                 x = x,
                 y = y,
                 w = tx.w,
-                h = tx.h,
+                h = tx.h
             };
 
             SDL_BlitSurface(textSurface, IntPtr.Zero, SDL.Surface, ref textRectangle);
@@ -60,10 +60,8 @@ namespace Eight.LuaLibs {
         }
 
         public static IntPtr LoadFont(string path, int size) {
-            IntPtr font = TTF_OpenFont(path, size);
-            if (font == IntPtr.Zero) {
-                throw new Exception(SDL_GetError());
-            }
+            var font = TTF_OpenFont(path, size);
+            if (font == IntPtr.Zero) throw new Exception(SDL_GetError());
 
             return font;
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using Eight.LuaLibs;
 using KeraLua;
 
 namespace Eight.Logic {
@@ -32,33 +33,31 @@ namespace Eight.Logic {
         }
 
         private static void DoLibs() {
-            
             // Get io.open for filesystem
             LuaState.GetGlobal("io");
             LuaState.GetField(-1, "open");
-            LuaState.SetField((int)LuaRegistry.Index, "_io_open");
+            LuaState.SetField((int) LuaRegistry.Index, "_io_open");
             LuaState.Pop(1);
-            
+
             // Destroy dem libtards with shapiro
-            
+
             LuaState.PushNil();
             LuaState.PushString("debug");
-            
+
             LuaState.PushNil();
             LuaState.SetGlobal("io");
-            
+
             LuaState.PushNil();
             LuaState.SetGlobal("dofile");
-            
+
             LuaState.PushNil();
             LuaState.SetGlobal("loadfile");
 
-            LuaLibs.FileSystem.Setup();
-            LuaLibs.Os.Setup();
-            LuaLibs.Timer.Setup();
-            LuaLibs.Screen.Setup();
-            LuaLibs.HTTP.Setup();
-            LuaLibs.Other.Setup();
+            FileSystem.Setup();
+            Os.Setup();
+            Timer.Setup();
+            Screen.Setup();
+            HTTP.Setup();
         }
 
         public static bool Resume(int n = 0) {
@@ -71,9 +70,9 @@ namespace Eight.Logic {
                 return false;
             }
 
-            string error = State.ToString(-1) ?? "Unknown Error";
+            var error = State.ToString(-1) ?? "Unknown Error";
             State.Traceback(State);
-            string traceback = State.ToString(-1) ?? "Unknown Trace";
+            var traceback = State.ToString(-1) ?? "Unknown Trace";
 
             string nr;
             switch (status) {
@@ -94,7 +93,7 @@ namespace Eight.Logic {
                     break;
             }
 
-            string hexStatus = status.ToString("X").TrimStart('0');
+            var hexStatus = status.ToString("X").TrimStart('0');
             Console.WriteLine($"Lua Exception [0x{hexStatus}] {nr}: {error}");
             Console.WriteLine(traceback);
             Console.WriteLine("Could not resume");

@@ -29,6 +29,9 @@
 
     <ItemGroup>
         <Compile Remove="out\**" />
+        <Compile Update="src\LuaLibs\ScreenShapes.cs">
+          <DependentUpon>Screen.cs</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>

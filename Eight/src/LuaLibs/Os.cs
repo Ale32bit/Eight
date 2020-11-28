@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Eight.Logic;
 using State = KeraLua;
-using Lua = KeraLua.Lua;
 
 namespace Eight.LuaLibs {
     public static class Os {
@@ -12,21 +12,21 @@ namespace Eight.LuaLibs {
         };
 
 
-        public static List<State.LuaRegister> Os_lib = new List<State.LuaRegister>();
+        public static List<State.LuaRegister> Os_lib = new();
 
         public static void Setup() {
-            var LuaState = Logic.Lua.LuaState;
+            var LuaState = Lua.LuaState;
 
             Os_lib.Add(new State.LuaRegister {
                 name = "version",
-                function = Version,
+                function = Version
             });
 
             Os_lib.Add(new State.LuaRegister {
                 name = "quit",
-                function = Quit,
+                function = Quit
             });
-            
+
             foreach (var name in Whitelist) {
                 LuaState.GetGlobal("os");
                 var funcType = LuaState.GetField(-1, name);
@@ -34,10 +34,10 @@ namespace Eight.LuaLibs {
                 var func = LuaState.ToCFunction(-1);
                 Os_lib.Add(new State.LuaRegister {
                     name = name,
-                    function = func,
+                    function = func
                 });
             }
-            
+
             LuaState.PushNil();
             LuaState.SetGlobal("os");
 
@@ -47,18 +47,12 @@ namespace Eight.LuaLibs {
                 LuaState.PushCFunction(reg.function);
                 LuaState.SetField(-2, reg.name);
             }
-            
+
             LuaState.SetGlobal("os");
         }
 
-        private static int Open(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-            state.NewLib(Os_lib.ToArray());
-            return 1;
-        }
-
         public static int Version(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
+            var state = State.Lua.FromIntPtr(luaState);
 
             state.PushString(Eight.Version);
 

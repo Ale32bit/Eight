@@ -1,10 +1,43 @@
 local fs = require("filesystem")
+local expect = require("expect")
 
-function fs.combine(base, dir)
+local function segments(path) 
+    local parts = {}
+    for part in path:gmatch("[^\\/]+") do
+        local current, up = part:find("^%.?%.$")
+        if current then
+            if up == 2 then
+                table.remove(parts)
+            end
+        else
+            table.insert(parts, part)
+        end
+    end
+    return parts
+end
 
+function fs.getAbsolutePath(path)
+    expect(1, path, "string")
+    local result = table.concat(segments(path), "/")
+    if string.sub(path, 1, 1) == "/" then
+        return "/" .. result
+    else
+        return result
+    end
+end
+
+function fs.joinPath(...)
+    local set = table.pack(...)
+    for index, value in ipairs(set) do
+        expect(index, value, "string")
+    end
+    return fs.getAbsolutePath(table.concat(set, "/"))
 end
 
 function fs.readFile(path, binary)
+    expect(1, path, "string")
+    expect(2, path, "boolean", "nil")
+    
     local f = fs.open(path, binary and "rb" or "r");
     local content = f:read("*a");
     f:close();
@@ -12,12 +45,20 @@ function fs.readFile(path, binary)
 end
 
 function fs.writeFile(path, content, binary)
+    expect(1, path, "string")
+    expect(2, content, "string")
+    expect(3, binary, "boolean", "nil")
+    
     local f = fs.open(path, binary and "wb" or "w");
     f:write(content);
     f:close();
 end
 
 function fs.appendFile(path, content, binary)
+    expect(1, path, "string")
+    expect(2, content, "string")
+    expect(3, binary, "boolean", "nil")
+    
     local f = fs.open(path, binary and "ab" or "a");
     f:write(content);
     f:close();

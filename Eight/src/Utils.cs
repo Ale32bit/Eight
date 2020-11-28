@@ -1,30 +1,20 @@
 #nullable enable
-using System;
-using System.Linq;
-using System.Text;
 using KeraLua;
 
 namespace Eight {
     public class Utils {
-        public struct LuaParameter {
-            public LuaType Type;
-            public object Value;
-        }
-        
         public static unsafe byte[] CString(byte* s) {
-            byte* end = s;
+            var end = s;
             while (*end != 0) ++end;
 
             byte[] o = new byte[end - s];
-            for (var i = 0; i < o.Length; i++) {
-                o[i] = s[i];
-            }
+            for (var i = 0; i < o.Length; i++) o[i] = s[i];
 
             return o;
         }
 
         /// <summary>
-        /// Generate an argument exception string
+        ///     Generate an argument exception string
         /// </summary>
         /// <param name="index">Index of the argument</param>
         /// <param name="got">Type gotten</param>
@@ -36,6 +26,11 @@ namespace Eight {
             var expected = string.Join(", ", expectedArray);
 
             return $"bad argument #{index} (expected {expected}, got {got})";
+        }
+
+        public struct LuaParameter {
+            public LuaType Type;
+            public object Value;
         }
     }
 }

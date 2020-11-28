@@ -24,7 +24,7 @@
             <e p="tewi.lua" t="Include" />
           </e>
           <e p="init.lua" t="Include" />
-          <e p="libs" t="Include">
+          <e p="lib" t="Include">
             <e p="expect.lua" t="Include" />
             <e p="term.lua" t="Include" />
           </e>
@@ -46,7 +46,6 @@
             <e p="FileSystem.cs" t="Include" />
             <e p="HTTP.cs" t="Include" />
             <e p="Os.cs" t="Include" />
-            <e p="Other.cs" t="Include" />
             <e p="screen.cs" t="Include" />
             <e p="ScreenShapes.cs" t="Include" />
             <e p="Timer.cs" t="Include" />

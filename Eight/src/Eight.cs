@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using Eight.Logic;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
 using Lua = KeraLua;
@@ -14,13 +15,13 @@ namespace Eight {
     public static class Eight {
         public const string Version = "Alpha 0.0.4";
 
-        public static readonly string BaseDir = Directory.GetCurrentDirectory();
-        public static readonly string LuaDir = Path.Combine(BaseDir, "lua");
-
         public const int DefaultWidth = 200;
         public const int DefaultHeight = 150;
         public const int DefaultScale = 2;
         public const int DefaultTickrate = 50;
+
+        public static readonly string BaseDir = Directory.GetCurrentDirectory();
+        public static readonly string LuaDir = Path.Combine(BaseDir, "lua");
 
         public static int WindowWidth;
         public static int WindowHeight;
@@ -30,7 +31,7 @@ namespace Eight {
         public static int Ticktime;
 
         public static int SyncTimeout = 3000;
-        public static bool OutOfSync = false;
+        public static bool OutOfSync;
 
         public static readonly DateTime Epoch = DateTime.Now;
 
@@ -42,7 +43,7 @@ namespace Eight {
         public static void Main(string[] args) {
             Console.WriteLine($"Eight {Version}");
             Directory.SetCurrentDirectory(LuaDir);
-            
+
             Init();
         }
 
@@ -54,7 +55,7 @@ namespace Eight {
                 return false;
             }
 
-            if (!Logic.SDL.Init()) {
+            if (!SDL.Init()) {
                 Console.WriteLine("SDL2 could not be initialized!");
                 return false;
             }
@@ -75,18 +76,16 @@ namespace Eight {
             var syncTimer = new Timer {
                 Enabled = true,
                 AutoReset = false,
-                Interval = SyncTimeout,
+                Interval = SyncTimeout
             };
 
             syncTimer.Elapsed += SyncTimerHandler;
 
-            bool ok = Logic.Lua.Resume(n);
+            var ok = Logic.Lua.Resume(n);
             OutOfSync = false;
 
             syncTimer.Stop();
-            if (!ok) {
-                _quit = true;
-            }
+            if (!ok) _quit = true;
         }
 
         // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
@@ -98,13 +97,13 @@ namespace Eight {
 
         private static void EventLoop() {
             int x, y;
-            int oldX = -1;
-            int oldY = -1;
+            var oldX = -1;
+            var oldY = -1;
             var pressedMouseButtons = new List<byte>();
 
             using var state = Logic.Lua.State;
 
-            while (!_quit && SDL_WaitEvent(out _e) != 0) {
+            while (!_quit && SDL_WaitEvent(out _e) != 0)
                 switch (_e.type) {
                     case SDL_QUIT:
                         Quit();
@@ -112,7 +111,7 @@ namespace Eight {
                     case SDL_KEYDOWN:
                     case SDL_KEYUP:
 
-                        string keyName = SDL_GetKeyName(_e.key.keysym.sym);
+                        var keyName = SDL_GetKeyName(_e.key.keysym.sym);
                         keyName = keyName.ToLower();
                         keyName = keyName.Replace(" ", "_");
 
@@ -141,11 +140,9 @@ namespace Eight {
                         x = _e.motion.x / WindowScale;
                         y = _e.motion.y / WindowScale;
                         if (oldX != x || oldY != y) {
-                            state.PushString((pressedMouseButtons.Count > 0) ? "mouse_drag" : "mouse_hover");
+                            state.PushString(pressedMouseButtons.Count > 0 ? "mouse_drag" : "mouse_hover");
 
-                            if (pressedMouseButtons.Count > 0) {
-                                state.PushInteger(pressedMouseButtons.Last());
-                            }
+                            if (pressedMouseButtons.Count > 0) state.PushInteger(pressedMouseButtons.Last());
 
                             state.PushInteger(x);
                             state.PushInteger(y);
@@ -163,14 +160,12 @@ namespace Eight {
                         y = _e.motion.y / WindowScale;
 
                         if (_e.button.state == SDL_PRESSED) {
-                            if (!pressedMouseButtons.Contains(_e.button.button)) {
+                            if (!pressedMouseButtons.Contains(_e.button.button))
                                 pressedMouseButtons.Add(_e.button.button);
-                            }
                         }
                         else {
-                            if (pressedMouseButtons.Contains(_e.button.button)) {
+                            if (pressedMouseButtons.Contains(_e.button.button))
                                 pressedMouseButtons.Remove(_e.button.button);
-                            }
                         }
 
                         state.PushString(_e.button.state == SDL_PRESSED ? "mouse_click" : "mouse_up");
@@ -209,7 +204,7 @@ namespace Eight {
                     case SDL_USEREVENT:
                         switch (_e.user.code) {
                             case 0:
-                                Logic.SDL.DrawCanvas();
+                                SDL.DrawCanvas();
                                 state.PushString("_eight_tick");
                                 Resume(1);
                                 break;
@@ -222,10 +217,10 @@ namespace Eight {
                                 // I don't really trust this code
                                 // It will probably give problems in the future
                                 try {
-                                    int index = (int) _e.user.data1;
+                                    var index = (int) _e.user.data1;
                                     var parameters = UserEventQueue[index];
 
-                                    for (int i = 0; i < parameters.Length; i++) {
+                                    for (var i = 0; i < parameters.Length; i++) {
                                         var type = parameters[i].Type;
                                         var value = parameters[i].Value;
 
@@ -243,11 +238,9 @@ namespace Eight {
                                                 state.PushNumber((double) value);
                                                 break;
                                             case Lua.LuaType.String:
-                                                if (value is byte[] v) {
+                                                if (value is byte[] v)
                                                     state.PushBuffer(v);
-                                                } else if (value is string s) {
-                                                    state.PushString(s);
-                                                }
+                                                else if (value is string s) state.PushString(s);
 
                                                 break;
                                             case Lua.LuaType.UserData:
@@ -267,20 +260,19 @@ namespace Eight {
 
                         break;
                 }
-            }
         }
 
         private static void TickEmitter() {
             while (!_quit) {
                 if (OutOfSync) {
-                    Logic.SDL.DrawCanvas();
+                    SDL.DrawCanvas();
                 }
                 else {
                     var tickEvent = new SDL_Event {
                         type = SDL_USEREVENT,
                         user = {
                             code = 0
-                        },
+                        }
                     };
                     SDL_PushEvent(ref tickEvent);
                 }
@@ -291,13 +283,13 @@ namespace Eight {
 
         public static void PushEvent(Utils.LuaParameter[] parameters) {
             UserEventQueue.Add(parameters);
-            int index = UserEventQueue.Count - 1;
+            var index = UserEventQueue.Count - 1;
 
-            SDL_Event userEvent = new SDL_Event {
+            var userEvent = new SDL_Event {
                 type = SDL_USEREVENT,
                 user = {
                     code = -1,
-                    data1 = (IntPtr) index,
+                    data1 = (IntPtr) index
                 }
             };
 
@@ -309,7 +301,7 @@ namespace Eight {
             _quit = true;
 
             Logic.Lua.Quit();
-            Logic.SDL.Quit();
+            SDL.Quit();
         }
     }
 }
