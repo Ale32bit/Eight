@@ -30,6 +30,8 @@ namespace Eight {
         public static int Tickrate;
         public static int Ticktime;
 
+        public static string[] Args;
+
         public static int SyncTimeout = 3000;
         public static bool OutOfSync;
 
@@ -41,6 +43,8 @@ namespace Eight {
         private static SDL_Event _e;
 
         public static void Main(string[] args) {
+            Args = args;
+            
             Console.WriteLine($"Eight {Version}");
             Directory.SetCurrentDirectory(LuaDir);
 
@@ -103,163 +107,169 @@ namespace Eight {
 
             using var state = Logic.Lua.State;
 
-            while (!_quit && SDL_WaitEvent(out _e) != 0)
-                switch (_e.type) {
-                    case SDL_QUIT:
-                        Quit();
-                        break;
-                    case SDL_KEYDOWN:
-                    case SDL_KEYUP:
+            foreach (var arg in Args) {
+                state.PushString(arg);
+            }
+            
+            Resume(Args.Length);
 
-                        var keyName = SDL_GetKeyName(_e.key.keysym.sym);
-                        keyName = keyName.ToLower();
-                        keyName = keyName.Replace(" ", "_");
+            while (!_quit) {
+                while (!_quit && SDL_PollEvent(out _e) != 0) {
+                    switch (_e.type) {
+                        case SDL_QUIT:
+                            Quit();
+                            break;
+                        case SDL_KEYDOWN:
+                        case SDL_KEYUP:
 
-                        state.PushString(_e.key.state == SDL_PRESSED ? "key_down" : "key_up");
-                        state.PushInteger((long) _e.key.keysym.sym);
-                        state.PushString(keyName);
-                        state.PushBoolean(_e.key.repeat != 0);
+                            var keyName = SDL_GetKeyName(_e.key.keysym.sym);
+                            keyName = keyName.ToLower();
+                            keyName = keyName.Replace(" ", "_");
 
-                        Resume(4);
+                            state.PushString(_e.key.state == SDL_PRESSED ? "key_down" : "key_up");
+                            state.PushInteger((long) _e.key.keysym.sym);
+                            state.PushString(keyName);
+                            state.PushBoolean(_e.key.repeat != 0);
 
-                        break;
-                    case SDL_TEXTINPUT:
-                        byte[] c;
-                        var
-                            a = _e; // "You cannot use fixed size buffers contained in unfixed expressions. Try using the 'fixed' statement" my ass
-                        unsafe {
-                            c = Utils.CString(a.text.text);
-                        }
+                            Resume(4);
 
-                        state.PushString("char");
-                        state.PushBuffer(c);
-                        Resume(2);
+                            break;
+                        case SDL_TEXTINPUT:
+                            byte[] c;
+                            var
+                                a = _e; // "You cannot use fixed size buffers contained in unfixed expressions. Try using the 'fixed' statement" my ass
+                            unsafe {
+                                c = Utils.CString(a.text.text);
+                            }
 
-                        break;
-                    case SDL_MOUSEMOTION:
-                        x = _e.motion.x / WindowScale;
-                        y = _e.motion.y / WindowScale;
-                        if (oldX != x || oldY != y) {
-                            state.PushString(pressedMouseButtons.Count > 0 ? "mouse_drag" : "mouse_hover");
+                            state.PushString("char");
+                            state.PushBuffer(c);
+                            Resume(2);
 
-                            if (pressedMouseButtons.Count > 0) state.PushInteger(pressedMouseButtons.Last());
+                            break;
+                        case SDL_MOUSEMOTION:
+                            x = _e.motion.x / WindowScale;
+                            y = _e.motion.y / WindowScale;
+                            if (oldX != x || oldY != y) {
+                                state.PushString(pressedMouseButtons.Count > 0 ? "mouse_drag" : "mouse_hover");
 
-                            state.PushInteger(x);
-                            state.PushInteger(y);
+                                if (pressedMouseButtons.Count > 0) state.PushInteger(pressedMouseButtons.Last());
 
-                            Resume(pressedMouseButtons.Count > 0 ? 4 : 3);
+                                state.PushInteger(x);
+                                state.PushInteger(y);
 
-                            oldX = x;
-                            oldY = y;
-                        }
+                                Resume(pressedMouseButtons.Count > 0 ? 4 : 3);
 
-                        break;
-                    case SDL_MOUSEBUTTONDOWN:
-                    case SDL_MOUSEBUTTONUP:
-                        x = _e.motion.x / WindowScale;
-                        y = _e.motion.y / WindowScale;
+                                oldX = x;
+                                oldY = y;
+                            }
 
-                        if (_e.button.state == SDL_PRESSED) {
-                            if (!pressedMouseButtons.Contains(_e.button.button))
-                                pressedMouseButtons.Add(_e.button.button);
-                        }
-                        else {
-                            if (pressedMouseButtons.Contains(_e.button.button))
-                                pressedMouseButtons.Remove(_e.button.button);
-                        }
+                            break;
+                        case SDL_MOUSEBUTTONDOWN:
+                        case SDL_MOUSEBUTTONUP:
+                            x = _e.motion.x / WindowScale;
+                            y = _e.motion.y / WindowScale;
 
-                        state.PushString(_e.button.state == SDL_PRESSED ? "mouse_click" : "mouse_up");
-                        state.PushInteger(_e.button.button);
+                            if (_e.button.state == SDL_PRESSED) {
+                                if (!pressedMouseButtons.Contains(_e.button.button))
+                                    pressedMouseButtons.Add(_e.button.button);
+                            }
+                            else {
+                                if (pressedMouseButtons.Contains(_e.button.button))
+                                    pressedMouseButtons.Remove(_e.button.button);
+                            }
 
-                        state.PushInteger(x);
-                        state.PushInteger(y);
-
-                        state.PushBoolean(_e.button.clicks != 1);
-
-                        Resume(5);
-
-                        break;
-                    case SDL_MOUSEWHEEL:
-                        x = _e.wheel.x;
-                        y = _e.wheel.y;
-
-                        if (SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED.Equals(_e.wheel.direction)) {
-                            x *= -1;
-                            y *= -1;
-                        }
-
-                        if (y != 0 || x != 0) {
-                            state.PushString("mouse_scroll");
+                            state.PushString(_e.button.state == SDL_PRESSED ? "mouse_click" : "mouse_up");
+                            state.PushInteger(_e.button.button);
 
                             state.PushInteger(x);
                             state.PushInteger(y);
 
-                            state.PushInteger(oldX);
-                            state.PushInteger(oldY);
+                            state.PushBoolean(_e.button.clicks != 1);
 
                             Resume(5);
-                        }
 
-                        break;
-                    case SDL_USEREVENT:
-                        switch (_e.user.code) {
-                            case 0:
-                                SDL.DrawCanvas();
-                                state.PushString("_eight_tick");
-                                Resume(1);
-                                break;
-                            case 1:
-                                state.PushString("timer");
-                                state.PushInteger((int) _e.user.data1);
-                                Resume(2);
-                                break;
-                            case -1:
-                                // I don't really trust this code
-                                // It will probably give problems in the future
-                                try {
-                                    var index = (int) _e.user.data1;
-                                    var parameters = UserEventQueue[index];
+                            break;
+                        case SDL_MOUSEWHEEL:
+                            x = _e.wheel.x;
+                            y = _e.wheel.y;
 
-                                    for (var i = 0; i < parameters.Length; i++) {
-                                        var type = parameters[i].Type;
-                                        var value = parameters[i].Value;
+                            if (SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED.Equals(_e.wheel.direction)) {
+                                x *= -1;
+                                y *= -1;
+                            }
 
-                                        switch (type) {
-                                            case Lua.LuaType.Nil:
-                                                state.PushNil();
-                                                break;
-                                            case Lua.LuaType.Boolean:
-                                                state.PushBoolean((bool) value);
-                                                break;
-                                            case Lua.LuaType.LightUserData:
-                                                state.PushLightUserData((IntPtr) value);
-                                                break;
-                                            case Lua.LuaType.Number:
-                                                state.PushNumber((double) value);
-                                                break;
-                                            case Lua.LuaType.String:
-                                                if (value is byte[] v)
-                                                    state.PushBuffer(v);
-                                                else if (value is string s) state.PushString(s);
+                            if (y != 0 || x != 0) {
+                                state.PushString("mouse_scroll");
 
-                                                break;
-                                            case Lua.LuaType.UserData:
-                                                state.PushLightUserData((IntPtr) value);
-                                                break;
+                                state.PushInteger(x);
+                                state.PushInteger(y);
+
+                                state.PushInteger(oldX);
+                                state.PushInteger(oldY);
+
+                                Resume(5);
+                            }
+
+                            break;
+                        case SDL_USEREVENT:
+                            switch (_e.user.code) {
+                                case 0:
+                                    SDL.DrawCanvas();
+                                    state.PushString("tick");
+                                    Resume(1);
+                                    break;
+                                case -1:
+                                    // I don't really trust this code
+                                    // It will probably give problems in the future
+                                    try {
+                                        var index = (int) _e.user.data1;
+                                        var parameters = UserEventQueue[index];
+
+                                        for (var i = 0; i < parameters.Length; i++) {
+                                            var type = parameters[i].Type;
+                                            var value = parameters[i].Value;
+
+                                            switch (type) {
+                                                case Lua.LuaType.Nil:
+                                                    state.PushNil();
+                                                    break;
+                                                case Lua.LuaType.Boolean:
+                                                    state.PushBoolean((bool) value);
+                                                    break;
+                                                case Lua.LuaType.LightUserData:
+                                                    state.PushLightUserData((IntPtr) value);
+                                                    break;
+                                                case Lua.LuaType.Number:
+                                                    state.PushNumber((double) value);
+                                                    break;
+                                                case Lua.LuaType.String:
+                                                    if (value is byte[] v)
+                                                        state.PushBuffer(v);
+                                                    else if (value is string s) state.PushString(s);
+
+                                                    break;
+                                                case Lua.LuaType.UserData:
+                                                    state.PushLightUserData((IntPtr) value);
+                                                    break;
+                                            }
                                         }
+
+                                        Resume(parameters.Length);
+                                    }
+                                    catch (Exception e) {
+                                        Console.WriteLine(e);
                                     }
 
-                                    Resume(parameters.Length);
-                                }
-                                catch (Exception e) {
-                                    Console.WriteLine(e);
-                                }
+                                    break;
+                            }
 
-                                break;
-                        }
-
-                        break;
+                            break;
+                    }
                 }
+                
+                SDL_Delay(1);
+            }
         }
 
         private static void TickEmitter() {

@@ -1,7 +1,7 @@
 local fs = require("filesystem")
 local expect = require("expect")
 
-local function segments(path) 
+local function segments(path)
     local parts = {}
     for part in path:gmatch("[^\\/]+") do
         local current, up = part:find("^%.?%.$")
@@ -38,10 +38,10 @@ function fs.readFile(path, binary)
     expect(1, path, "string")
     expect(2, path, "boolean", "nil")
     
-    local f = fs.open(path, binary and "rb" or "r");
-    local content = f:read("*a");
-    f:close();
-    return content;
+    local f = fs.open(path, binary and "rb" or "r")
+    local content = f:read("*a")
+    f:close()
+    return content
 end
 
 function fs.writeFile(path, content, binary)
@@ -49,9 +49,9 @@ function fs.writeFile(path, content, binary)
     expect(2, content, "string")
     expect(3, binary, "boolean", "nil")
     
-    local f = fs.open(path, binary and "wb" or "w");
-    f:write(content);
-    f:close();
+    local f = fs.open(path, binary and "wb" or "w")
+    f:write(content)
+    f:close()
 end
 
 function fs.appendFile(path, content, binary)
@@ -59,7 +59,7 @@ function fs.appendFile(path, content, binary)
     expect(2, content, "string")
     expect(3, binary, "boolean", "nil")
     
-    local f = fs.open(path, binary and "ab" or "a");
-    f:write(content);
-    f:close();
+    local f = fs.open(path, binary and "ab" or "a")
+    f:write(content)
+    f:close()
 end

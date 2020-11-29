@@ -25,6 +25,7 @@
           </e>
           <e p="init.lua" t="Include" />
           <e p="lib" t="Include">
+            <e p="event.lua" t="Include" />
             <e p="expect.lua" t="Include" />
             <e p="term.lua" t="Include" />
           </e>

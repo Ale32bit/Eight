@@ -2,6 +2,7 @@ print("Booting Eight...")
 
 local fs = require("filesystem")
 local screen = require("screen")
+
 function _G.loadfile(filename, mode, env)
     local f = fs.open(filename, "r");
     local content = f:read("*a")
@@ -19,7 +20,6 @@ function _G.dofile(filename)
 end
 
 -- Boot
-
 for _, file in ipairs(fs.list("boot")) do
     dofile("boot/" .. file)
 end
@@ -33,32 +33,10 @@ local function inTable(tbl, el)
     return false
 end
 
-_G.event = {}
-local eventsQueue = {}
-function event.pull(...)
-    local filters = { ... }
-    if #filters > 0 then
-        local ev = {}
-        repeat
-            ev = { coroutine.yield() }
-        until inTable(filters, ev[1])
-        return table.unpack(ev)
-    else
-        return coroutine.yield()
-    end
-end
-function event.push(...)
-    eventsQueue[#eventsQueue + 1] = { ... }
-end
-
+local event = require("event")
 local term = require("term")
-
-_G.term = term
-term.init()
-
 local cprint = print
 _G.cprint = cprint
-
 _G.print = term.print
 _G.write = term.write
 
@@ -94,35 +72,35 @@ end
 
 local initThread = coroutine.create(func)
 
-event.push("_eight_init")
 local filter
 local function resume()
-    for i = 1, #eventsQueue do
-        local event = eventsQueue[i]
+    for i = 1, #event.__eventsQueue do
+        local event = event.__eventsQueue[i]
         if filter == nil or filter == event[1] then
             if coroutine.status(initThread) == "dead" then
-                return
+                return false
             end
             local ok, par = coroutine.resume(initThread, table.unpack(event))
             if ok then
                 filter = par
             else
                 panic(par)
+                return false
             end
         end
     end
 
-    eventsQueue = {}
+    event.__eventsQueue = {}
+    
+    return true
 end
 
-while true do
-    local ev = { coroutine.yield() }
+term.init()
 
-    if ev[1] == "_eight_tick" then
-        eventsQueue[#eventsQueue + 1] = { "tick" }
-        resume()
-    else
-        eventsQueue[#eventsQueue + 1] = ev
-        resume()
-    end
+event.push("_eight_init")
+resume();
+
+while true do
+    event.push(coroutine.yield())
+    resume()
 end
