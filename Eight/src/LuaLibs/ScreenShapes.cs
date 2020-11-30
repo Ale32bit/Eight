@@ -32,7 +32,6 @@ namespace Eight.LuaLibs {
             SDL_FillRect(SDL.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
         }
 
-        // why isn't this function drawing anything?!!
         public static SDL_Surface DrawText(IntPtr font, string text, int x, int y, byte r, byte g, byte b) {
             var color = new SDL_Color {
                 r = r,
@@ -42,9 +41,7 @@ namespace Eight.LuaLibs {
             var textSurface = TTF_RenderUTF8_Solid(font, text, color);
 
             var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
-
-            Console.WriteLine($"{x} {y} {tx.w} {tx.h}");
-
+            
             var textRectangle = new SDL_Rect {
                 x = x,
                 y = y,
