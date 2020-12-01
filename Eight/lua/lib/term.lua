@@ -21,6 +21,26 @@ if not utf8.sub then
     end
 end
 
+function utf8.isValid(str)
+  local i, len = 1, #str
+  while i <= len do
+    if     i == string.find(str, "[%z\1-\127]", i) then i = i + 1
+    elseif i == string.find(str, "[\194-\223][\128-\191]", i) then i = i + 2
+    elseif i == string.find(str,        "\224[\160-\191][\128-\191]", i)
+        or i == string.find(str, "[\225-\236][\128-\191][\128-\191]", i)
+        or i == string.find(str,        "\237[\128-\159][\128-\191]", i)
+        or i == string.find(str, "[\238-\239][\128-\191][\128-\191]", i) then i = i + 3
+    elseif i == string.find(str,        "\240[\144-\191][\128-\191][\128-\191]", i)
+        or i == string.find(str, "[\241-\243][\128-\191][\128-\191][\128-\191]", i)
+        or i == string.find(str,        "\244[\128-\143][\128-\191][\128-\191]", i) then i = i + 4
+    else
+      return false, i
+    end
+  end
+
+  return true
+end
+
 local function setChar(x, y, char, fg, bg)
     if x >= 0 and y >= 0 and x < width and y < height then
         grid[posY] = grid[posY] or {}
@@ -119,10 +139,18 @@ function term.getPos()
 end
 
 function term.setForeground(r, g, b)
+    if type(r) == "table" then
+        fgColor = r
+        return    
+    end
     fgColor = { r, g, b }
 end
 
 function term.setBackground(r, g, b)
+    if type(r) == "table" then
+        fgColor = r
+        return    
+    end
     bgColor = { r, g, b }
 end
 
@@ -136,14 +164,13 @@ end
 
 function term.write(...)
     local chunks = {}
-    for k, v in ipairs({ ... }) do
+    for k, v in ipairs({...}) do
         chunks[#chunks + 1] = tostring(v)
     end
 
     local text = table.concat(chunks, " ")
 
-    for _, char in utf8.codes(text) do
-
+    local function iterate(char)
         if char == 10 then
             posY = posY + 1
             if posY >= height then
@@ -158,133 +185,22 @@ function term.write(...)
         end
 
         if posX >= width then
-            posX = 0;
+            posX = 0
             posY = posY + 1
         end
     end
-end
 
-function term.print(...)
-    if posX >= width then
-        term.scroll(-1)
-    end
-    local chunks = {}
-    for k, v in ipairs({ ... }) do
-        chunks[#chunks + 1] = tostring(v)
-    end
-
-    local text = table.concat(chunks, " ")
-
-    term.write(text, "\n")
-end
-
-function term.read(sReplace, tHistory)
-    local bExit = false
-    local content = ""
-    local startx = posX
-    local starty = posY
-    local nPos = 0
-    local tblSelection = 0
-    
-    local blink = true
-
-    local function redraw(extra)
-        extra = extra or 0
-        screen.drawRectangle(startx * fontWidth, starty * fontHeight, fontWidth * (#content + extra), fontHeight, table.unpack(bgColor))
-        posX = startx
-        if sReplace then
-            term.write(string.rep(utf8.sub(sReplace, 1, 1), utf8.len(content)))
-        else
-            term.write(content)
+    if utf8.isValid(text) then
+        for _, char in utf8.codes(text) do
+            iterate(char)
+        end
+    else
+        for char in string.gmatch(text, "(.)") do
+            iterate(char)
         end
     end
-
-    while not bExit do
-        local ev = { event.pull() }
-
-        if ev[1] == "char" then
-            content = utf8.sub(content, 1, nPos) .. ev[2] .. utf8.sub(content, nPos + 1)
-            nPos = nPos + 1
-
-            redraw()
-        elseif ev[1] == "key_down" then
-            local key = ev[3]
-            if key == "return" then
-                blink = false
-                redraw()
-                break
-            elseif key == "backspace" then
-                -- backspace
-                if nPos > 0 then
-                    content = utf8.sub(content, 1, nPos - 1) .. utf8.sub(content, nPos + 1)
-                    nPos = nPos - 1
-                    blink = false
-                    redraw(1)
-                end
-            elseif key == "left" then
-                if nPos >= 1 then
-                    blink = false
-                    nPos = nPos - 1
-                end
-            elseif key == "right" then
-                if nPos < #content then
-                    blink = false
-                    nPos = nPos + 1
-                end
-            elseif key == "up" then
-                if tHistory then
-                    if tblSelection == 0 then
-                        tblSelection = #tHistory
-                    elseif tblSelection > 1 then
-                        tblSelection = tblSelection - 1
-                    end
-
-                    if not tHistory[tblSelection] then
-                        content = "";
-                    end
-
-                    local oldLength = utf8.len(content)
-                    content = tHistory[tblSelection] or ""
-                    nPos = utf8.len(content)
-                    blink = false
-                    redraw(oldLength - utf8.len(content));
-                end
-            elseif key == "down" then
-                if tHistory then
-                    if tblSelection ~= 0 then
-                        if tblSelection <= #tHistory then
-                            tblSelection = tblSelection + 1
-                        end
-                        if tblSelection > #tHistory then
-                            tblSelection = 0
-                        end
-
-                        local oldLength = utf8.len(content)
-                        content = tHistory[tblSelection] or ""
-                        nPos = utf8.len(content)
-                        blink = false
-                        redraw(oldLength - utf8.len(content));
-                    end
-                end
-            elseif key == "home" then
-                blink = false
-                nPos = 0
-            elseif key == "end" then
-                blink = false
-                nPos = #content
-            elseif key == "delete" then
-                if nPos < #content then
-                    blink = false
-                    content = utf8.sub(content, 1, nPos) .. utf8.sub(content, nPos + 2)
-                    redraw(1)
-                end
-            end
-        end
-    end
-
-    term.write("\n")
-    return content
 end
+
 
 function term.clear()
     screen.clear()

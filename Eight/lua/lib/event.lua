@@ -1,5 +1,14 @@
 local expect = require("expect")
 
+local function inTable(tbl, el)
+    for k, v in ipairs(tbl) do
+        if v == el then
+            return true
+        end
+    end
+    return false
+end
+
 local eventsQueue = {}
 
 local function push(...)

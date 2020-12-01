@@ -34,6 +34,17 @@ function fs.joinPath(...)
     return fs.getAbsolutePath(table.concat(set, "/"))
 end
 
+function fs.getName(path)
+    expect(1, path, "string")
+    path = fs.getAbsolutePath(path)
+    return string.match(path, "^.+/(.+)$")
+end
+
+function fs.getDirectory(path)
+    expect(1, path, "string")
+    return fs.getAbsolutePath(string.match(path, "^.+/"))
+end
+
 function fs.readFile(path, binary)
     expect(1, path, "string")
     expect(2, path, "boolean", "nil")

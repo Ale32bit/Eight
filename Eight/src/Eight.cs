@@ -127,8 +127,8 @@ namespace Eight {
                             keyName = keyName.Replace(" ", "_");
 
                             state.PushString(_e.key.state == SDL_PRESSED ? "key_down" : "key_up");
-                            state.PushInteger((long) _e.key.keysym.sym);
                             state.PushString(keyName);
+                            state.PushInteger((long) _e.key.keysym.sym);
                             state.PushBoolean(_e.key.repeat != 0);
 
                             Resume(4);
@@ -246,8 +246,8 @@ namespace Eight {
                                                 case Lua.LuaType.String:
                                                     if (value is byte[] v)
                                                         state.PushBuffer(v);
-                                                    else if (value is string s) state.PushString(s);
-
+                                                    else if (value is string s)
+                                                        state.PushString(s);
                                                     break;
                                                 case Lua.LuaType.UserData:
                                                     state.PushLightUserData((IntPtr) value);

@@ -1,5 +1,6 @@
 print("Booting Eight...")
 
+cprint = print
 local fs = require("filesystem")
 local screen = require("screen")
 
@@ -7,11 +8,11 @@ function _G.loadfile(filename, mode, env)
     local f = fs.open(filename, "r");
     local content = f:read("*a")
     f:close()
-    return load(content, "=" .. filename, mode, env or _ENV)
+    return load(content, "@" .. filename, mode, env or _ENV)
 end
 
 function _G.dofile(filename)
-    local func, err = loadfile(filename)
+    local func, err = loadfile(filename, nil, _G)
     if func then
         return func()
     else
@@ -24,21 +25,8 @@ for _, file in ipairs(fs.list("boot")) do
     dofile("boot/" .. file)
 end
 
-local function inTable(tbl, el)
-    for k, v in ipairs(tbl) do
-        if v == el then
-            return true
-        end
-    end
-    return false
-end
-
 local event = require("event")
 local term = require("term")
-local cprint = print
-_G.cprint = cprint
-_G.print = term.print
-_G.write = term.write
 
 local function panic(err)
     err = err or "Panic"
@@ -101,6 +89,6 @@ event.push("_eight_init")
 resume();
 
 while true do
-    event.push(coroutine.yield())
+    event.__eventsQueue[#event.__eventsQueue+1] = {coroutine.yield()}
     resume()
 end
