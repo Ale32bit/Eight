@@ -63,18 +63,19 @@ local initThread = coroutine.create(func)
 local filter
 local function resume()
     for i = 1, #event.__eventsQueue do
-        local event = event.__eventsQueue[i]
+        local ev = event.__eventsQueue[i]
         if filter == nil or filter == event[1] then
             if coroutine.status(initThread) == "dead" then
                 return false
             end
-            local ok, par = coroutine.resume(initThread, table.unpack(event))
+            local ok, par = coroutine.resume(initThread, table.unpack(ev))
             if ok then
                 filter = par
-                table.remove(event, 1)
+                local eventName = ev[1]
+                table.remove(ev, 1)
                 for _, v in pairs(event.__listeners) do
-                    if v.eventName == event[1] then
-                        v.callback(table.sort(event))
+                    if v.event == eventName then
+                        v.callback(table.unpack(ev))
                     end
                 end
             else

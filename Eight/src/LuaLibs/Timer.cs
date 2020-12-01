@@ -91,7 +91,7 @@ namespace Eight.LuaLibs {
                 },
                 new() {
                     Type = LuaType.Number,
-                    Value = timerId,
+                    Value = (double) timerId,
                 }
             };
 

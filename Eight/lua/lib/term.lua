@@ -14,8 +14,12 @@ local bgColor = { 0, 0, 0 }
 
 local posX = 0
 local posY = 0
+
+local blinkDelay = 500
 local isBlinking = false
 local timerBlinkId
+
+local spaceCode = string.byte(" ")
 
 local initiated = false
 
@@ -107,6 +111,21 @@ local function redraw()
     term.setPos(cx, cy)
 end
 
+local function redrawChar(x, y)
+    local cx, cy = term.getPos()
+    
+    local row = grid[y]
+    if row then
+        local char = row[x]
+        if char then
+            posX, posY = x, y
+            drawChar(char[1] or spaceCode, char[2] or fgColor, char[3] or bgColor, true)
+        end
+    end
+    
+    posX, posY = cx, cy
+end
+
 function term.setSize(w, h, s)
     local ow, oh, os = screen.getSize()
 
@@ -134,8 +153,11 @@ function term.getSize()
 end
 
 function term.setPos(x, y)
+    local oldX, oldY = posX, posY
     posX = x
     posY = y
+    
+    redrawChar(oldX, oldY)
 end
 
 function term.getPos()
@@ -268,13 +290,19 @@ function term.init()
             s
     )
     
-    timerBlinkId = timer.start(500)
+    timerBlinkId = timer.start(blinkDelay)
+    local blink = false
     event.on("timer", function(timerId)
         if timerId == timerBlinkId then
             if isBlinking then
-                
+                local cx, cy = term.getPos()
+                redrawChar(cx, cy)
+                blink = not blink
+                if blink then
+                    screen.drawRectangle(cx * fontWidth + 1 , cy * fontHeight + 1, 1, fontHeight - 2, table.unpack(fgColor))
+                end
             end
-            timerBlinkId = timer.start(500)
+            timerBlinkId = timer.start(blinkDelay)
         end
     end)
     

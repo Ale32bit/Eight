@@ -1,4 +1,5 @@
 local expect = require("expect")
+local event = {}
 
 local function inTable(tbl, el)
     for k, v in ipairs(tbl) do
@@ -9,14 +10,14 @@ local function inTable(tbl, el)
     return false
 end
 
-local eventsQueue = {}
-local listeners = {}
+event.__eventsQueue = {}
+event.__listeners = {}
 
-local function push(...)
-    eventsQueue[#eventsQueue + 1] = { ... }
+function event.push(...)
+    event.__eventsQueue[#event.__eventsQueue + 1] = { ... }
 end
 
-local function pull(...)
+function event.pull(...)
     local filters = {...}
     if #filters > 0 then
         local ev = {}
@@ -29,13 +30,13 @@ local function pull(...)
     end
 end
 
-local function on(eventName, callback)
+function event.on(eventName, callback)
     expect(1, eventName, "string")
     expect(2, callback, "function")
     
-    local id = #listeners + 1
+    local id = #event.__listeners + 1
     
-    listeners[id] = {
+    event.__listeners[id] = {
         event = eventName,
         callback = callback,
     }
@@ -43,15 +44,10 @@ local function on(eventName, callback)
     return id
 end
 
-local function removeListener(id)
+function event.removeListener(id)
     expect(1, id, "number")
     
-    listeners[id] = nil
+    event.__listeners[id] = nil
 end
 
-return {
-    push = push,
-    pull = pull,
-    __eventsQueue = eventsQueue,
-    __listeners = listeners
-}
+return event
