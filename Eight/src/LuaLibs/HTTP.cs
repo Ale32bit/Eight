@@ -11,7 +11,7 @@ namespace Eight.LuaLibs {
         public static LuaRegister[] HTTP_Lib = {
             new() {
                 function = Request,
-                name = "request"
+                name = "requestAsync"
             },
             new()
         };

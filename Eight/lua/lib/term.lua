@@ -1,5 +1,7 @@
 local screen = require("screen");
 local font = require("fonts.tewi")
+local event = require("event")
+local timer = require("timer")
 local grid = {}
 local term = {}
 
@@ -12,6 +14,8 @@ local bgColor = { 0, 0, 0 }
 
 local posX = 0
 local posY = 0
+local isBlinking = false
+local timerBlinkId
 
 local initiated = false
 
@@ -242,6 +246,14 @@ function term.scroll(n)
     redraw()
 end
 
+function term.setBlinking(blink)
+    isBlinking = not not blink
+end
+
+function term.getBlinking()
+    return isBlinking
+end
+
 function term.init()
     if initiated then
         return
@@ -255,6 +267,17 @@ function term.init()
             math.floor(h / fontHeight),
             s
     )
+    
+    timerBlinkId = timer.start(500)
+    event.on("timer", function(timerId)
+        if timerId == timerBlinkId then
+            if isBlinking then
+                
+            end
+            timerBlinkId = timer.start(500)
+        end
+    end)
+    
 end
 
 return term

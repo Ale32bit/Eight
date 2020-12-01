@@ -118,7 +118,7 @@ function _G.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
     expect(3, _fnComplete, "function", "nil")
     expect(4, _sDefault, "string", "nil")
 
-    --term.setCursorBlink(true)
+    term.setBlinking(true)
 
     local sLine
     if type(_sDefault) == "string" then
@@ -381,7 +381,7 @@ function _G.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
     end
 
     local _, cy = term.getPos()
-    --term.setCursorBlink(false)
+    term.setBlinking(false)
     term.setPos(w + 1, cy)
     print()
 

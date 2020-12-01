@@ -9,6 +9,9 @@ print("Eight", os.version())
 term.setForeground(colors.white)
 
 while true do
+    term.setForeground(colors.yellow)
+    write("> ")
+    term.setForeground(colors.white)
     local input = read()
 end
 

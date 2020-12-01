@@ -10,6 +10,7 @@ local function inTable(tbl, el)
 end
 
 local eventsQueue = {}
+local listeners = {}
 
 local function push(...)
     eventsQueue[#eventsQueue + 1] = { ... }
@@ -28,8 +29,29 @@ local function pull(...)
     end
 end
 
+local function on(eventName, callback)
+    expect(1, eventName, "string")
+    expect(2, callback, "function")
+    
+    local id = #listeners + 1
+    
+    listeners[id] = {
+        event = eventName,
+        callback = callback,
+    }
+    
+    return id
+end
+
+local function removeListener(id)
+    expect(1, id, "number")
+    
+    listeners[id] = nil
+end
+
 return {
     push = push,
     pull = pull,
     __eventsQueue = eventsQueue,
+    __listeners = listeners
 }

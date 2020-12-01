@@ -71,6 +71,12 @@ local function resume()
             local ok, par = coroutine.resume(initThread, table.unpack(event))
             if ok then
                 filter = par
+                table.remove(event, 1)
+                for _, v in pairs(event.__listeners) do
+                    if v.eventName == event[1] then
+                        v.callback(table.sort(event))
+                    end
+                end
             else
                 panic(par)
                 return false
