@@ -8,9 +8,20 @@
       <e p="Eight" t="IncludeRecursive">
         <e p="bin" t="ExcludeRecursive" />
         <e p="Eight.csproj" t="IncludeRecursive" />
+        <e p="icon.ico" t="Include" />
         <e p="lua" t="Include">
           <e p="bin" t="Include">
+            <e p="cat.lua" t="Include" />
+            <e p="cd.lua" t="Include" />
+            <e p="clear.lua" t="Include" />
+            <e p="echo.lua" t="Include" />
+            <e p="hello.lua" t="Include" />
             <e p="ls.lua" t="Include" />
+            <e p="lua.lua" t="Include" />
+            <e p="mv.lua" t="Include" />
+            <e p="rm.lua" t="Include" />
+            <e p="sleep.lua" t="Include" />
+            <e p="wget.lua" t="Include" />
           </e>
           <e p="bios.lua" t="Include" />
           <e p="boot" t="Include">
@@ -20,9 +31,11 @@
             <e p="03_http.lua" t="Include" />
             <e p="99_globals.lua" t="Include" />
           </e>
-          <e p="font.ttf" t="Include" />
           <e p="fonts" t="Include">
             <e p="tewi.lua" t="Include" />
+          </e>
+          <e p="home" t="Include">
+            <e p=".ignoreme" t="Include" />
           </e>
           <e p="init.lua" t="Include" />
           <e p="lib" t="Include">

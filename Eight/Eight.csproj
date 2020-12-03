@@ -44,4 +44,9 @@
 
     <Import Project="..\Libraries\Libraries.projitems" Label="Shared" />
 
+    <PropertyGroup>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
+    </PropertyGroup>
+
+
 </Project>

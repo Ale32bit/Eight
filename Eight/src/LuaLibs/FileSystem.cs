@@ -32,6 +32,10 @@ namespace Eight.LuaLibs {
                 name = "getType",
                 function = GetType
             },
+            new() {
+                name = "move",
+                function = Move,
+            },
             new() // NULL
         };
 
@@ -70,7 +74,7 @@ namespace Eight.LuaLibs {
             var state = KeraLua.Lua.FromIntPtr(luaState);
             var error = "Unknown error";
             var ok = true;
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
             var dirPath = state.ToString(1);
@@ -103,7 +107,7 @@ namespace Eight.LuaLibs {
 
         public static int List(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
             var path = state.ToString(1);
@@ -134,7 +138,7 @@ namespace Eight.LuaLibs {
 
         public static int GetType(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
             var path = state.ToString(1);
@@ -160,7 +164,7 @@ namespace Eight.LuaLibs {
 
         public static int Delete(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
             var path = state.ToString(1);
@@ -203,7 +207,7 @@ namespace Eight.LuaLibs {
 
         public static int Exists(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
             var path = state.ToString(1);
@@ -212,6 +216,51 @@ namespace Eight.LuaLibs {
             state.PushBoolean(PathExists(resolvedPath));
 
             return 1;
+        }
+
+        public static int Move(IntPtr luaState) {
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.ArgumentCheck(state.IsString(2), 2, "expected string");
+            state.ArgumentCheck(state.IsBoolean(3) || state.IsNoneOrNil(3), 3, "expected boolean, nil");
+
+            var source = state.ToString(1);
+            var destination = state.ToString(2);
+            var overwrite = state.ToBoolean(3) || false;
+
+            var resolvedSource = Resolve(source);
+            var resolvedDestination = Resolve(destination);
+
+            if (File.Exists(resolvedSource)) {
+                // If it's a file
+                if (File.Exists(resolvedDestination) && !overwrite) {
+                    state.PushBoolean(false);
+                    state.PushString("Destination path already exists");
+                }
+                else {
+                    File.Move(resolvedSource, resolvedDestination, overwrite);
+                    state.PushBoolean(true);
+                    state.PushNil();
+                }
+            }
+            else if (Directory.Exists(resolvedSource)) {
+                if (File.Exists(resolvedDestination)) {
+                    state.PushBoolean(false);
+                    state.PushString("Destination path is a file");
+                }
+                else {
+                    Directory.Move(resolvedSource, resolvedDestination);
+                    state.PushBoolean(true);
+                    state.PushNil();
+                }
+            }
+            else {
+                state.PushBoolean(false);
+                state.PushString("Path not found");
+            }
+
+            return 2;
         }
 
         private static bool PathExists(string path) {

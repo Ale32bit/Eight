@@ -25,13 +25,16 @@ function fs.getAbsolutePath(path)
         return result
     end
 end
+fs.resolve = fs.getAbsolutePath
 
-function fs.joinPath(...)
-    local set = table.pack(...)
-    for index, value in ipairs(set) do
-        expect(index, value, "string")
+function fs.joinPath(base, path)
+    expect(1, base, "string")
+    expect(2, path, "string")
+    if path:sub(1, 1) == "/" then
+        return fs.getAbsolutePath(path)
+    else
+        return fs.getAbsolutePath(base .. "/" .. path)
     end
-    return fs.getAbsolutePath(table.concat(set, "/"))
 end
 
 function fs.getName(path)
@@ -47,7 +50,7 @@ end
 
 function fs.readFile(path, binary)
     expect(1, path, "string")
-    expect(2, path, "boolean", "nil")
+    expect(2, binary, "boolean", "nil")
     
     local f = fs.open(path, binary and "rb" or "r")
     local content = f:read("*a")
