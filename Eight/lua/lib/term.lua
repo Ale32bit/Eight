@@ -70,6 +70,10 @@ local function drawChar(c, fg, bg, noset)
     fg = fg or fgColor
     bg = bg or bgColor
     underline = underline or false
+    
+    if not (posX >= 0 and posX < width and posY >= 0 and posY < height) then
+        return
+    end
 
     local deltaX, deltaY = posX * fontWidth, posY * fontHeight
 
@@ -278,29 +282,21 @@ end
 
 function term.scroll(n)
     expect(1, n, "number")
+    
+    if n == 0 then
+        return
+    end
+    
+    n = -n
+    
     local copy = {}
-    for k, v in pairs(grid) do
-        copy[k + 1] = v
+    
+    for i = 0, height - 1 do
+        local row = grid[i + n] or {}
+        copy[i] = row
     end
-
-    if n < 0 then
-        for i = 1, math.abs(n) do
-            table.remove(copy, 1)
-            table.insert(copy, #copy, {})
-        end
-    end
-
-    if n > 0 then
-        for i = 1, math.abs(n) do
-            table.insert(copy, 1, {})
-            table.remove(copy, #copy)
-        end
-    end
-
-    grid = {}
-    for k, v in pairs(copy) do
-        grid[k - 1] = v
-    end
+    
+    grid = copy
 
     clear(false)
     redraw()
