@@ -42,7 +42,7 @@ namespace Eight.Logic {
             // Destroy dem libtards with shapiro
 
             LuaState.PushNil();
-            LuaState.PushString("debug");
+            LuaState.SetGlobal("debug");
 
             LuaState.PushNil();
             LuaState.SetGlobal("io");

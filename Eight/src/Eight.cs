@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -14,12 +13,12 @@ using Timer = System.Timers.Timer;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 0.0.4";
+        public const string Version = "Alpha 0.0.5";
 
         public const int DefaultWidth = 200;
         public const int DefaultHeight = 150;
         public const int DefaultScale = 2;
-        public const int DefaultTickrate = 50;
+        public const int DefaultTickrate = 60;
 
         public static readonly string BaseDir = Directory.GetCurrentDirectory();
         public static readonly string LuaDir = Path.Combine(BaseDir, "lua");
@@ -45,7 +44,7 @@ namespace Eight {
 
         public static void Main(string[] args) {
             Args = args;
-            
+
             Console.WriteLine($"Eight {Version}");
             Directory.SetCurrentDirectory(LuaDir);
 
@@ -113,7 +112,7 @@ namespace Eight {
             foreach (var arg in Args) {
                 state.PushString(arg);
             }
-            
+
             Resume(Args.Length);
 
             while (!_quit) {
@@ -238,13 +237,13 @@ namespace Eight {
                                                     state.PushNil();
                                                     break;
                                                 case Lua.LuaType.Boolean:
-                                                    state.PushBoolean((bool) value);
+                                                    state.PushBoolean(Convert.ToBoolean(value));
                                                     break;
                                                 case Lua.LuaType.LightUserData:
                                                     state.PushLightUserData((IntPtr) value);
                                                     break;
                                                 case Lua.LuaType.Number:
-                                                    state.PushNumber((double) value);
+                                                    state.PushNumber(Convert.ToDouble(value));
                                                     break;
                                                 case Lua.LuaType.String:
                                                     if (value is byte[] v)
@@ -277,19 +276,13 @@ namespace Eight {
 
         private static void TickEmitter() {
             while (!_quit) {
-                if (OutOfSync) {
-                    SDL.DrawCanvas();
-                }
-                else {
-                    var tickEvent = new SDL_Event {
-                        type = SDL_USEREVENT,
-                        user = {
-                            code = 0
-                        }
-                    };
-                    SDL_PushEvent(ref tickEvent);
-                }
-
+                var tickEvent = new SDL_Event {
+                    type = SDL_USEREVENT,
+                    user = {
+                        code = 0
+                    }
+                };
+                SDL_PushEvent(ref tickEvent);
                 Thread.Sleep(Ticktime);
             }
         }

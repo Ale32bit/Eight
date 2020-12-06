@@ -3,7 +3,7 @@
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <PackageVersion>0.0.3-alpha</PackageVersion>
+        <PackageVersion>0.0.5-alpha</PackageVersion>
         <Title>Eight</Title>
         <Authors>AlexDevs</Authors>
         <LangVersion>9</LangVersion>
@@ -11,7 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KeraLua" Version="1.2.10" />
+        <PackageReference Include="KeraLua" Version="1.2.11" />
         <PackageReference Include="SDL2-CS" Version="2.0.0" />
     </ItemGroup>
 

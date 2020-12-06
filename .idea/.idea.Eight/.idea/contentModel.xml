@@ -19,6 +19,7 @@
             <e p="ls.lua" t="Include" />
             <e p="lua.lua" t="Include" />
             <e p="mv.lua" t="Include" />
+            <e p="pwd.lua" t="Include" />
             <e p="rm.lua" t="Include" />
             <e p="sleep.lua" t="Include" />
             <e p="wget.lua" t="Include" />
@@ -46,7 +47,7 @@
           </e>
         </e>
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="net5.0" t="Include">
               <e p="Eight.AssemblyInfo.cs" t="Include" />
             </e>

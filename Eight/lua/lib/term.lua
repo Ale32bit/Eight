@@ -27,6 +27,9 @@ local initiated = false
 
 if not utf8.sub then
     function utf8.sub(s, i, j)
+        expect(1, s, "string")
+        expect(2, i, "number")
+        expect(3, j, "number", "nil")
         return string.sub(s, utf8.offset(s, i), j and (utf8.offset(s, j + 1) - 1) or #s)
     end
 end
@@ -51,6 +54,22 @@ local function isValidUtf8(str)
   return true
 end
 
+local function sub(s, i, j)
+    if isValidUtf8(s) then
+        return utf8.sub(s, i, j)
+    else
+        return string.sub(s, i, j)
+    end
+end
+
+local function len(s)
+    if isValidUtf8(s) then
+        return utf8.len(s)
+    else
+        return #s
+    end
+end
+
 local function setChar(x, y, char, fg, bg)
     if x >= 0 and y >= 0 and x < width and y < height then
         grid[posY] = grid[posY] or {}
@@ -69,7 +88,6 @@ local function drawChar(c, fg, bg, noset)
     local char = font[c] or font[string.byte("?")] or { {} }
     fg = fg or fgColor
     bg = bg or bgColor
-    underline = underline or false
     
     if not (posX >= 0 and posX < width and posY >= 0 and posY < height) then
         return
@@ -288,7 +306,6 @@ function term.scroll(n)
     end
     
     n = -n
-    
     local copy = {}
     
     for i = 0, height - 1 do
@@ -326,7 +343,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
         sLine = ""
     end
     local nHistoryPos
-    local nPos, nScroll = utf8.len(sLine), 0
+    local nPos, nScroll = len(sLine), 0
     if _sReplaceChar then
         _sReplaceChar = string.sub(_sReplaceChar, 1, 1)
     end
@@ -334,7 +351,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
     local tCompletions
     local nCompletion
     local function recomplete()
-        if _fnComplete and nPos == utf8.len(sLine) then
+        if _fnComplete and nPos == len(sLine) then
             tCompletions = _fnComplete(sLine)
             if tCompletions and #tCompletions > 0 then
                 nCompletion = 1
@@ -369,9 +386,9 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
         term.setPos(sx, cy)
         local sReplace = _bClear and " " or _sReplaceChar
         if sReplace then
-            term.write(string.rep(utf8.sub(sReplace, 1, 1), math.max(utf8.len(sLine) - nScroll, 0)))
+            term.write(string.rep(sub(sReplace, 1, 1), math.max(len(sLine) - nScroll, 0)))
         else
-            term.write(utf8.sub(sLine, nScroll + 1))
+            term.write(sub(sLine, nScroll + 1))
         end
 
         if nCompletion then
@@ -412,7 +429,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
             -- Find the common prefix of all the other suggestions which start with the same letter as the current one
             local sCompletion = tCompletions[nCompletion]
             sLine = sLine .. sCompletion
-            nPos = utf8.len(sLine)
+            nPos = len(sLine)
 
             -- Redraw
             recomplete()
@@ -424,7 +441,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
         if sEvent == "char" then
             -- Typed key
             clear()
-            sLine = utf8.sub(sLine, 1, nPos) .. param .. utf8.sub(sLine, nPos + 1)
+            sLine = sub(sLine, 1, nPos) .. param .. sub(sLine, nPos + 1)
             nPos = nPos + 1
             recomplete()
             redraw()
@@ -458,7 +475,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
 
             elseif param == "right" then
                 -- Right
-                if nPos < utf8.len(sLine) then
+                if nPos < len(sLine) then
                     -- Move right
                     clear()
                     nPos = nPos + 1
@@ -509,7 +526,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     end
                     if nHistoryPos then
                         sLine = _tHistory[nHistoryPos]
-                        nPos, nScroll = utf8.len(sLine), 0
+                        nPos, nScroll = len(sLine), 0
                     else
                         sLine = ""
                         nPos, nScroll = 0, 0
@@ -523,7 +540,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                 -- Backspace
                 if nPos > 0 then
                     clear()
-                    sLine = utf8.sub(sLine, 1, nPos - 1) .. utf8.sub(sLine, nPos + 1)
+                    sLine = sub(sLine, 1, nPos - 1) .. sub(sLine, nPos + 1)
                     nPos = nPos - 1
                     if nScroll > 0 then nScroll = nScroll - 1 end
                     recomplete()
@@ -541,18 +558,18 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
 
             elseif param == "delete" then
                 -- Delete
-                if nPos < utf8.len(sLine) then
+                if nPos < len(sLine) then
                     clear()
-                    sLine = utf8.sub(sLine, 1, nPos) .. utf8.sub(sLine, nPos + 2)
+                    sLine = sub(sLine, 1, nPos) .. sub(sLine, nPos + 2)
                     recomplete()
                     redraw()
                 end
 
             elseif param == "end" then
                 -- End
-                if nPos < utf8.len(sLine) then
+                if nPos < len(sLine) then
                     clear()
-                    nPos = utf8.len(sLine)
+                    nPos = len(sLine)
                     recomplete()
                     redraw()
                 end
@@ -567,7 +584,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
             local _, cy = term.getPos()
             if param1 >= sx and param1 <= w and param2 == cy then
                 -- Ensure we don't scroll beyond the current line
-                nPos = math.min(math.max(nScroll + param1 - sx, 0), utf8.len(sLine))
+                nPos = math.min(math.max(nScroll + param1 - sx, 0), len(sLine))
                 redraw()
             end
 

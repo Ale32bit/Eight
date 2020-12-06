@@ -7,7 +7,7 @@ local expect = require("expect")
 
 local shell = {}
 
-local currentDirectory = "/home"
+local currentDirectory = "/"
 local binPath = "?.lua;?;/bin/?.lua;/bin/?"
 
 local function tokenise(...)
@@ -108,6 +108,8 @@ end
 local w, h, s = term.getSize()
 term.setSize(w * 2, h * 2, s)
 
+shell.setWorkingDirectory("/home")
+
 term.setPos(0,0)
 term.setForeground(0x21, 0x96, 0xf3)
 print("Eight", os.version())
@@ -120,7 +122,7 @@ while true do
         cwd = "~"
     end
     term.setForeground(colors.yellow)
-    write(cwd .. "$ ")
+    write("[" .. cwd .. "]$ ")
     term.setForeground(colors.white)
     local input = term.read(nil, history)
     

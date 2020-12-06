@@ -87,7 +87,7 @@ namespace Eight.LuaLibs {
 
         public static int SetSize(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
             state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
@@ -97,6 +97,27 @@ namespace Eight.LuaLibs {
             var s = (int) state.ToNumber(3);
 
             SDL.SetSize(w, h, s);
+
+            Utils.LuaParameter[] ev = {
+                new() {
+                    Type = LuaType.String,
+                    Value = "screen_resize"
+                },
+                new() {
+                    Type = LuaType.Number,
+                    Value = w,
+                },
+                new() {
+                    Type = LuaType.Number,
+                    Value = h,
+                },
+                new() {
+                    Type = LuaType.Number,
+                    Value = s,
+                }
+            };
+
+            Eight.PushEvent(ev);
 
             return 0;
         }
@@ -113,7 +134,7 @@ namespace Eight.LuaLibs {
 
         public static int SetTickrate(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
 
             var tickrate = (int) state.ToNumber(1);
@@ -137,7 +158,7 @@ namespace Eight.LuaLibs {
 
         public static int DrawRectangle(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
             state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
@@ -161,13 +182,26 @@ namespace Eight.LuaLibs {
 
         public static int SetTitle(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
-            
+
             var title = state.ToString(1);
-            
+
             SDL_SetWindowTitle(SDL.Window, title);
-            
+
+            Utils.LuaParameter[] ev = {
+                new() {
+                    Type = LuaType.String,
+                    Value = "screen_title"
+                },
+                new() {
+                    Type = LuaType.String,
+                    Value = title,
+                }
+            };
+
+            Eight.PushEvent(ev);
+
             return 0;
         }
 
@@ -179,7 +213,7 @@ namespace Eight.LuaLibs {
 
         public static int LoadFont(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            
+
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
 

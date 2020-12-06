@@ -21,6 +21,11 @@ namespace Eight.LuaLibs {
         }
 
         public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
+
+            if (x < 0 && y < 0 && x >= Eight.WindowWidth && y >= Eight.WindowHeight) {
+                return;
+            }
+            
             var pixel = new SDL_Rect {
                 x = x,
                 y = y,

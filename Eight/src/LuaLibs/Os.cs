@@ -8,7 +8,8 @@ namespace Eight.LuaLibs {
         public static string[] Whitelist = {
             "time",
             "difftime",
-            "clock"
+            "clock",
+            "date"
         };
 
 
@@ -23,8 +24,8 @@ namespace Eight.LuaLibs {
             });
 
             Os_lib.Add(new State.LuaRegister {
-                name = "quit",
-                function = Quit
+                name = "exit",
+                function = Exit
             });
 
             foreach (var name in Whitelist) {
@@ -59,7 +60,7 @@ namespace Eight.LuaLibs {
             return 1;
         }
 
-        public static int Quit(IntPtr state) {
+        public static int Exit(IntPtr state) {
             Eight.Quit();
             return 0;
         }

@@ -3,6 +3,12 @@ local fs = require("filesystem")
 _G.package.cpath = ""
 _G.package.path = "?;?.lua;?/init.lua;lib/?.lua;lib/?/init.lua;libs/?.lua;libs/?/init.lua"
 
+-- Removing dangerous functions
+-- Todo: find a safer way
+package.loaded.os = os
+package.loaded.io = nil
+package.loaded.debug = nil
+
 local function preload()
     return function(name)
         if package.preload[name] then
