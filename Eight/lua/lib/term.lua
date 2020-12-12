@@ -140,11 +140,9 @@ local function redrawChar(x, y)
     
     local row = grid[y]
     if row then
-        local char = row[x]
-        if char then
-            posX, posY = x, y
-            drawChar(char[1] or spaceCode, char[2] or fgColor, char[3] or bgColor, true)
-        end
+        local char = row[x] or {}
+        posX, posY = x, y
+        drawChar(char[1] or spaceCode, char[2] or fgColor, char[3] or bgColor, true)
     end
     
     posX, posY = cx, cy
@@ -163,6 +161,10 @@ local function clear(resetGrid)
             end
         end
     end
+end
+
+local function drawCursor()
+    screen.drawRectangle(posX * fontWidth + 1 , posY * fontHeight + 1, 1, fontHeight - 2, table.unpack(fgColor))
 end
 
 function term.setSize(w, h, s)
@@ -197,6 +199,7 @@ function term.setPos(x, y)
     posY = y
     
     redrawChar(oldX, oldY)
+    drawCursor()
 end
 
 function term.getPos()
@@ -626,7 +629,7 @@ function term.init()
                 redrawChar(posX, posY)
                 blink = not blink
                 if blink then
-                    screen.drawRectangle(posX * fontWidth + 1 , posY * fontHeight + 1, 1, fontHeight - 2, table.unpack(fgColor))
+                    drawCursor()
                 end
             end
             timerBlinkId = timer.start(blinkDelay)
