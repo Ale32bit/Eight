@@ -46,6 +46,11 @@ namespace Eight {
             Args = args;
 
             Console.WriteLine($"Eight {Version}");
+
+            if(!Directory.Exists(LuaDir)) {
+                Directory.CreateDirectory(LuaDir);
+            }
+
             Directory.SetCurrentDirectory(LuaDir);
 
             Init();

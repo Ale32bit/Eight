@@ -4,6 +4,12 @@ cprint = print
 local fs = require("filesystem")
 local screen = require("screen")
 
+-- Removing dangerous functions
+-- Todo: find a safer way
+package.loaded.os = os
+package.loaded.io = nil
+package.loaded.debug = nil
+
 function _G.loadfile(filename, mode, env)
     local f = fs.open(filename, "r");
     local content = f:read("*a")

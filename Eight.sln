@@ -1,31 +1,35 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eight", "Eight\Eight.csproj", "{6FE973FD-A5B1-45EE-8726-D7C6F526071F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eight", "Eight.csproj", "{214160E9-7FFB-40F2-8AF0-C8D71AF19382}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Libraries", "Libraries\Libraries.shproj", "{4B758B34-4CD9-404F-8562-42642345A3A4}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Libraries", "Libraries\Libraries.shproj", "{210EA60E-98EB-448E-967C-4403A320CA4C}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Lua", "Lua\Lua.shproj", "{BCC93A53-BCC0-4413-B72A-F137ADE1A909}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Libraries\Libraries.projitems*{4b758b34-4cd9-404f-8562-42642345a3a4}*SharedItemsImports = 13
-		Libraries\Libraries.projitems*{6fe973fd-a5b1-45ee-8726-d7c6f526071f}*SharedItemsImports = 5
+		Libraries\Libraries.projitems*{210ea60e-98eb-448e-967c-4403a320ca4c}*SharedItemsImports = 13
+		Libraries\Libraries.projitems*{214160e9-7ffb-40f2-8af0-c8d71af19382}*SharedItemsImports = 5
+		Lua\Lua.projitems*{214160e9-7ffb-40f2-8af0-c8d71af19382}*SharedItemsImports = 5
+		Lua\Lua.projitems*{bcc93a53-bcc0-4413-b72a-f137ade1a909}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6FE973FD-A5B1-45EE-8726-D7C6F526071F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{214160E9-7FFB-40F2-8AF0-C8D71AF19382}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{214160E9-7FFB-40F2-8AF0-C8D71AF19382}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{214160E9-7FFB-40F2-8AF0-C8D71AF19382}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{214160E9-7FFB-40F2-8AF0-C8D71AF19382}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {C6DD6BBE-6DE1-4F50-9A14-2B12F0BCEC7D}
+		SolutionGuid = {4B175FCB-0F29-47E4-85C5-AD3DE33970E2}
 	EndGlobalSection
 EndGlobal

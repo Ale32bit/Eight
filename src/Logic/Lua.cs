@@ -22,7 +22,7 @@ namespace Eight.Logic {
 
             State = LuaState.NewThread();
 
-            var status = State.LoadFile("bios.lua");
+            var status = State.LoadFile("../bios.lua");
             if (status != LuaStatus.OK) {
                 var error = State.ToString(-1);
                 Console.WriteLine("Lua Load Exception: {0}", error);
