@@ -239,9 +239,15 @@ namespace Eight.LuaLibs {
                     state.PushString("Destination path already exists");
                 }
                 else {
-                    File.Move(resolvedSource, resolvedDestination, overwrite);
-                    state.PushBoolean(true);
-                    state.PushNil();
+                    try {
+                        File.Move(resolvedSource, resolvedDestination, overwrite);
+                        state.PushBoolean(true);
+                        state.PushNil();
+                    } catch(Exception e) {
+                        Console.WriteLine(e);
+                        state.PushBoolean(false);
+                        state.PushString("Internal error");
+                    }
                 }
             }
             else if (Directory.Exists(resolvedSource)) {

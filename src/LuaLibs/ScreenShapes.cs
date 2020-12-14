@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Eight.Logic;
 using static SDL2.SDL;
@@ -8,6 +7,8 @@ using static SDL2.SDL_ttf;
 namespace Eight.LuaLibs {
     public class ScreenShapes {
         public static void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
+            if (Eight.IsQuit) return;
+
             var rect = new SDL_Rect {
                 x = x,
                 y = y,
@@ -21,6 +22,7 @@ namespace Eight.LuaLibs {
         }
 
         public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
+            if (Eight.IsQuit) return;
 
             if (x < 0 && y < 0 && x >= Eight.WindowWidth && y >= Eight.WindowHeight) {
                 return;

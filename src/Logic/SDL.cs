@@ -52,7 +52,7 @@ namespace Eight.Logic {
 
         public static void CreateCanvas() {
             if (Surface != IntPtr.Zero) {
-                SDL_FreeSurface(Surface);
+                SDL_FreeSurface(Surface); 
                 Surface = IntPtr.Zero;
             }
 

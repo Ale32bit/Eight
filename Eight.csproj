@@ -15,16 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Lua\**" />
-    <EmbeddedResource Remove="Lua\**" />
-    <None Remove="Lua\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="LICENSE" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="LICENSE">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

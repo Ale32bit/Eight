@@ -39,7 +39,7 @@ namespace Eight {
 
         public static List<Utils.LuaParameter[]> UserEventQueue = new();
 
-        private static bool _quit;
+        public static bool IsQuit;
         private static SDL_Event _e;
 
         public static void Main(string[] args) {
@@ -71,7 +71,7 @@ namespace Eight {
                 return false;
             }
 
-            _quit = false;
+            IsQuit = false;
 
             Parallel.Invoke(EventLoop, TickEmitter);
 
@@ -96,7 +96,7 @@ namespace Eight {
             OutOfSync = false;
 
             syncTimer.Stop();
-            if (!ok) _quit = true;
+            if (!ok) IsQuit = true;
         }
 
         // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
@@ -120,8 +120,8 @@ namespace Eight {
 
             Resume(Args.Length);
 
-            while (!_quit) {
-                while (!_quit && SDL_PollEvent(out _e) != 0) {
+            while (!IsQuit) {
+                while (!IsQuit && SDL_PollEvent(out _e) != 0) {
                     switch (_e.type) {
                         case SDL_QUIT:
                             Quit();
@@ -280,7 +280,7 @@ namespace Eight {
         }
 
         private static void TickEmitter() {
-            while (!_quit) {
+            while (!IsQuit) {
                 var tickEvent = new SDL_Event {
                     type = SDL_USEREVENT,
                     user = {
@@ -309,7 +309,7 @@ namespace Eight {
 
         public static void Quit() {
             Console.WriteLine("Quitting");
-            _quit = true;
+            IsQuit = true;
 
             Logic.Lua.Quit();
             SDL.Quit();
