@@ -47,7 +47,7 @@ namespace Eight {
 
             Console.WriteLine($"Eight {Version}");
 
-            if(!Directory.Exists(LuaDir)) {
+            if (!Directory.Exists(LuaDir)) {
                 Directory.CreateDirectory(LuaDir);
             }
 
@@ -73,7 +73,7 @@ namespace Eight {
 
             IsQuit = false;
 
-            Parallel.Invoke(EventLoop, TickEmitter);
+            EventLoop();
 
             return true;
         }
@@ -120,6 +120,11 @@ namespace Eight {
 
             Resume(Args.Length);
 
+            double pfreq = (double)SDL_GetPerformanceFrequency();
+            double ptime = 0;
+            ulong last = SDL_GetPerformanceCounter();
+            ulong now = last;
+
             while (!IsQuit) {
                 while (!IsQuit && SDL_PollEvent(out _e) != 0) {
                     switch (_e.type) {
@@ -135,7 +140,7 @@ namespace Eight {
 
                             state.PushString(_e.key.state == SDL_PRESSED ? "key_down" : "key_up");
                             state.PushString(keyName);
-                            state.PushInteger((long) _e.key.keysym.sym);
+                            state.PushInteger((long)_e.key.keysym.sym);
                             state.PushBoolean(_e.key.repeat != 0);
 
                             Resume(4);
@@ -180,8 +185,7 @@ namespace Eight {
                             if (_e.button.state == SDL_PRESSED) {
                                 if (!pressedMouseButtons.Contains(_e.button.button))
                                     pressedMouseButtons.Add(_e.button.button);
-                            }
-                            else {
+                            } else {
                                 if (pressedMouseButtons.Contains(_e.button.button))
                                     pressedMouseButtons.Remove(_e.button.button);
                             }
@@ -221,16 +225,11 @@ namespace Eight {
                             break;
                         case SDL_USEREVENT:
                             switch (_e.user.code) {
-                                case 0:
-                                    SDL.DrawCanvas();
-                                    state.PushString("tick");
-                                    Resume(1);
-                                    break;
                                 case -1:
                                     // I don't really trust this code
                                     // It will probably give problems in the future
                                     try {
-                                        var index = (int) _e.user.data1;
+                                        var index = (int)_e.user.data1;
                                         var parameters = UserEventQueue[index];
 
                                         for (var i = 0; i < parameters.Length; i++) {
@@ -245,7 +244,7 @@ namespace Eight {
                                                     state.PushBoolean(Convert.ToBoolean(value));
                                                     break;
                                                 case Lua.LuaType.LightUserData:
-                                                    state.PushLightUserData((IntPtr) value);
+                                                    state.PushLightUserData((IntPtr)value);
                                                     break;
                                                 case Lua.LuaType.Number:
                                                     state.PushNumber(Convert.ToDouble(value));
@@ -257,14 +256,13 @@ namespace Eight {
                                                         state.PushString(s);
                                                     break;
                                                 case Lua.LuaType.UserData:
-                                                    state.PushLightUserData((IntPtr) value);
+                                                    state.PushLightUserData((IntPtr)value);
                                                     break;
                                             }
                                         }
 
                                         Resume(parameters.Length);
-                                    }
-                                    catch (Exception e) {
+                                    } catch (Exception e) {
                                         Console.WriteLine(e);
                                     }
 
@@ -274,21 +272,22 @@ namespace Eight {
                             break;
                     }
                 }
-                
-                SDL_Delay(1);
-            }
-        }
 
-        private static void TickEmitter() {
-            while (!IsQuit) {
-                var tickEvent = new SDL_Event {
-                    type = SDL_USEREVENT,
-                    user = {
-                        code = 0
+                if (ptime * 1000 >= Ticktime) {
+                    while (ptime >= Ticktime)
+                        ptime -= Ticktime;
+                    if (!IsQuit) {
+                        if (state.Status == Lua.LuaStatus.Yield) {
+                            SDL.DrawCanvas();
+                            state.PushString("tick");
+                            Resume(1);
+                        }
                     }
-                };
-                SDL_PushEvent(ref tickEvent);
-                Thread.Sleep(Ticktime);
+                }
+                SDL_Delay(1);
+                now = SDL_GetPerformanceCounter();
+                ptime += (now - last) / pfreq;
+                last = now;
             }
         }
 

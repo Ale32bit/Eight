@@ -40,7 +40,7 @@ namespace Eight.Logic {
 
             Console.WriteLine("Creating renderer...");
             Renderer = SDL_CreateRenderer(Window, -1,
-                SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+                SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
             if (Renderer == IntPtr.Zero) {
                 Console.WriteLine("SDL_CreateRenderer Error: {0}", SDL_GetError());
                 SDL_Quit();
