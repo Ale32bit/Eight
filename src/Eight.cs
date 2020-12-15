@@ -15,8 +15,8 @@ namespace Eight {
     public static class Eight {
         public const string Version = "Alpha 0.0.5";
 
-        public const int DefaultWidth = 200;
-        public const int DefaultHeight = 150;
+        public const int DefaultWidth = 396;
+        public const int DefaultHeight = 288;
         public const int DefaultScale = 2;
         public const int DefaultTickrate = 60;
 

@@ -35,6 +35,13 @@ namespace Eight.Logic {
                 return false;
             }
 
+            var icon = SDL2.SDL_image.IMG_Load("../icon.png");
+            if (icon != IntPtr.Zero) {
+                SDL_SetWindowIcon(Window, icon);
+            } else {
+                Console.WriteLine("Failed loading icon.png");
+            }
+
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
             SDL_SetRenderDrawBlendMode(Surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
@@ -72,6 +79,8 @@ namespace Eight.Logic {
                 Eight.WindowWidth * Eight.WindowScale,
                 Eight.WindowHeight * Eight.WindowScale
             );
+
+            SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
             CreateCanvas();
         }

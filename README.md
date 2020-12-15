@@ -5,7 +5,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
-# Eight
+![Eight](eight.png)
 Eight is a sandboxed environment for playing safely with Lua and its drawable canvas.
 
 [contributors-shield]: https://img.shields.io/github/contributors/Ale32bit/Eight.svg?style=flat-square

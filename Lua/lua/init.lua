@@ -137,9 +137,6 @@ function shell.run(...)
     return false
 end
 
-local w, h, s = term.getSize()
-term.setSize(w * 2, h * 2, s)
-
 shell.setWorkingDirectory("/home")
 
 term.setPos(0,0)

@@ -12,5 +12,17 @@
     <Content Include="$(MSBuildThisFileDirectory)**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="$(MSBuildThisFileDirectory)LICENSE.jpeg.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)LICENSE.png.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)LICENSE.tiff.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)LICENSE.webp.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)libjpeg-9.dll" />
+    <None Include="$(MSBuildThisFileDirectory)libpng16-16.dll" />
+    <None Include="$(MSBuildThisFileDirectory)libtiff-5.dll" />
+    <None Include="$(MSBuildThisFileDirectory)libwebp-7.dll" />
+    <None Include="$(MSBuildThisFileDirectory)SDL2_image.dll" />
   </ItemGroup>
 </Project>

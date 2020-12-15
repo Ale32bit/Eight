@@ -10,4 +10,11 @@
   <PropertyGroup />
   <Import Project="Libraries.projitems" Label="Shared" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\CodeSharing\Microsoft.CodeSharing.CSharp.targets" />
+  <ItemGroup>
+    <Content Remove="libjpeg-9.dll" />
+    <Content Remove="libpng16-16.dll" />
+    <Content Remove="libtiff-5.dll" />
+    <Content Remove="libwebp-7.dll" />
+    <Content Remove="SDL2_image.dll" />
+  </ItemGroup>
 </Project>
