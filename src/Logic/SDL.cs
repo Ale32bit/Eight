@@ -43,7 +43,8 @@ namespace Eight.Logic {
             }
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-            SDL_SetRenderDrawBlendMode(Surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
+
+            SDL_SetRenderDrawBlendMode(Renderer, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
             Console.WriteLine("Creating renderer...");
             Renderer = SDL_CreateRenderer(Window, -1,
@@ -82,6 +83,8 @@ namespace Eight.Logic {
 
             SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
+            SDL_RenderSetScale(Renderer, Eight.WindowScale, Eight.WindowScale);
+
             CreateCanvas();
         }
 
@@ -102,16 +105,8 @@ namespace Eight.Logic {
             UpdateWindow();
         }
 
-        public static void DrawCanvas() {
-            var sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
-
-            SDL_RenderClear(Renderer);
-
-            SDL_RenderCopy(Renderer, sTexture, IntPtr.Zero, IntPtr.Zero);
-
+        public static void Render() {
             SDL_RenderPresent(Renderer);
-
-            SDL_DestroyTexture(sTexture);
         }
 
         public static void Quit() {

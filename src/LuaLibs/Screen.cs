@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using KeraLua;
 using SDL2;
 using static SDL2.SDL;
@@ -11,6 +13,10 @@ namespace Eight.LuaLibs {
             new() {
                 name = "setPixel",
                 function = SetPixel
+            },
+            new() {
+                name = "setPixels",
+                function = SetPixels,
             },
             new() {
                 name = "setSize",
@@ -35,6 +41,10 @@ namespace Eight.LuaLibs {
             new() {
                 name = "drawRectangle",
                 function = DrawRectangle
+            },
+            new() {
+                name = "drawRectangles",
+
             },
             new() {
                 name = "setTitle",
@@ -75,13 +85,62 @@ namespace Eight.LuaLibs {
             state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
             state.ArgumentCheck(state.IsNumber(5), 5, "expected number");
 
-            var x = (int) state.ToNumber(1);
-            var y = (int) state.ToNumber(2);
-            var r = (byte) state.ToNumber(3);
-            var g = (byte) state.ToNumber(4);
-            var b = (byte) state.ToNumber(5);
+            var x = (int)state.ToNumber(1);
+            var y = (int)state.ToNumber(2);
+            var r = (byte)state.ToNumber(3);
+            var g = (byte)state.ToNumber(4);
+            var b = (byte)state.ToNumber(5);
 
             ScreenShapes.DrawPixel(x, y, r, g, b);
+            return 0;
+        }
+
+        public static int SetPixels(IntPtr luaState) {
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsTable(1), 1, "expected table");
+            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
+            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
+            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
+
+            var r = (byte)state.ToNumber(2);
+            var g = (byte)state.ToNumber(3);
+            var b = (byte)state.ToNumber(4);
+
+            int len = state.RawLen(-1);
+            List<int> rawCoords = new();
+
+            List<Utils.Coords> coords = new();
+
+            int index = 1;
+
+            if (state.IsTable(1)) {
+                state.PushNil();
+
+                // This is needed for it to even get the first value
+
+                while (state.Next(index)) {
+                    int coord = (int) state.ToInteger(-1);
+                    state.Pop(1);
+
+                    rawCoords.Add(coord);
+                }
+            }
+
+            for (int i = 0; i < rawCoords.Count; i += 2) {
+                int x = rawCoords[i];
+                if (i+1 < rawCoords.Count) {
+                    int y = rawCoords[i + 1];
+
+                    coords.Add(new() {
+                        x = x,
+                        y = y,
+                    });
+                }
+            }
+
+            ScreenShapes.DrawPixels(coords.ToArray(), r, g, b);
+
             return 0;
         }
 
@@ -92,9 +151,9 @@ namespace Eight.LuaLibs {
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
             state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
 
-            var w = (int) state.ToNumber(1);
-            var h = (int) state.ToNumber(2);
-            var s = (int) state.ToNumber(3);
+            var w = (int)state.ToNumber(1);
+            var h = (int)state.ToNumber(2);
+            var s = (int)state.ToNumber(3);
 
             SDL.SetSize(w, h, s);
 
@@ -137,7 +196,7 @@ namespace Eight.LuaLibs {
 
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
 
-            var tickrate = (int) state.ToNumber(1);
+            var tickrate = (int)state.ToNumber(1);
             Eight.SetTickrate(tickrate);
             return 0;
         }
@@ -167,13 +226,13 @@ namespace Eight.LuaLibs {
             state.ArgumentCheck(state.IsNumber(6), 6, "expected number");
             state.ArgumentCheck(state.IsNumber(7), 7, "expected number");
 
-            var x = (int) state.ToNumber(1);
-            var y = (int) state.ToNumber(2);
-            var w = (int) state.ToNumber(3);
-            var h = (int) state.ToNumber(4);
-            var r = (byte) state.ToNumber(5);
-            var g = (byte) state.ToNumber(6);
-            var b = (byte) state.ToNumber(7);
+            var x = (int)state.ToNumber(1);
+            var y = (int)state.ToNumber(2);
+            var w = (int)state.ToNumber(3);
+            var h = (int)state.ToNumber(4);
+            var r = (byte)state.ToNumber(5);
+            var g = (byte)state.ToNumber(6);
+            var b = (byte)state.ToNumber(7);
 
             ScreenShapes.DrawRectangle(x, y, w, h, r, g, b);
 
@@ -218,7 +277,7 @@ namespace Eight.LuaLibs {
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
 
             var path = state.ToString(1);
-            var size = (int) state.ToInteger(2);
+            var size = (int)state.ToInteger(2);
 
             var resolvedPath = FileSystem.Resolve(path);
 
@@ -243,11 +302,11 @@ namespace Eight.LuaLibs {
 
             var font = state.ToUserData(1);
             var text = state.ToString(2);
-            var x = (int) state.ToInteger(3);
-            var y = (int) state.ToInteger(4);
-            var r = (byte) state.ToInteger(5);
-            var g = (byte) state.ToInteger(6);
-            var b = (byte) state.ToInteger(7);
+            var x = (int)state.ToInteger(3);
+            var y = (int)state.ToInteger(4);
+            var r = (byte)state.ToInteger(5);
+            var g = (byte)state.ToInteger(6);
+            var b = (byte)state.ToInteger(7);
 
             var surface = ScreenShapes.DrawText(font, text, x, y, r, g, b);
 

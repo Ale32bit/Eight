@@ -6,6 +6,7 @@ using static SDL2.SDL_ttf;
 
 namespace Eight.LuaLibs {
     public class ScreenShapes {
+
         public static void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
             if (Eight.IsQuit) return;
 
@@ -16,9 +17,34 @@ namespace Eight.LuaLibs {
                 h = h
             };
 
-            var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
+            SDL_SetRenderDrawColor(SDL.Renderer, r, g, b, 255);
+            SDL_RenderFillRect(SDL.Renderer, ref rect);
 
-            SDL_FillRect(SDL.Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));
+            /*var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
+
+            SDL_FillRect(SDL.Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));*/
+        }
+
+        public static void DrawRectangles(Utils.Coords[] coords, byte r, byte g, byte b) {
+            if (Eight.IsQuit) return;
+
+            SDL_Rect[] rects = new SDL_Rect[coords.Length];
+
+            for (int i = 0; i < coords.Length; i++) {
+                rects[i] = new SDL_Rect {
+                    x = coords[i].x,
+                    y = coords[i].y,
+                    w = coords[i].w ?? 1,
+                    h = coords[i].h ?? 1,
+                };
+            }
+
+            SDL_SetRenderDrawColor(SDL.Renderer, r, g, b, 255);
+            SDL_RenderFillRects(SDL.Renderer, rects, rects.Length);
+
+            /*var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
+
+            SDL_FillRects(SDL.Surface, rects, rects.Length, SDL_MapRGB(sur.format, r, g, b));*/
         }
 
         public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
@@ -27,8 +53,11 @@ namespace Eight.LuaLibs {
             if (x < 0 && y < 0 && x >= Eight.WindowWidth && y >= Eight.WindowHeight) {
                 return;
             }
-            
-            var pixel = new SDL_Rect {
+
+            SDL_SetRenderDrawColor(SDL.Renderer, r, g, b, 255);
+            SDL_RenderDrawPoint(SDL.Renderer, x, y);
+
+            /*var pixel = new SDL_Rect {
                 x = x,
                 y = y,
                 w = 1,
@@ -37,7 +66,27 @@ namespace Eight.LuaLibs {
 
             var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
 
-            SDL_FillRect(SDL.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
+            SDL_FillRect(SDL.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));*/
+        }
+
+        public static void DrawPixels(Utils.Coords[] coords, byte r, byte g, byte b) {
+            if (Eight.IsQuit) return;
+
+            SDL_Point[] points = new SDL_Point[coords.Length];
+
+            for (int i = 0; i < coords.Length; i++) {
+                points[i] = new SDL_Point {
+                    x = coords[i].x,
+                    y = coords[i].y,
+                };
+            }
+
+            SDL_SetRenderDrawColor(SDL.Renderer, r, g, b, 255);
+            SDL_RenderDrawPoints(SDL.Renderer, points, points.Length);
+
+            /*var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
+
+            SDL_FillRects(SDL.Surface, rects, rects.Length, SDL_MapRGB(sur.format, r, g, b));*/
         }
 
         public static SDL_Surface DrawText(IntPtr font, string text, int x, int y, byte r, byte g, byte b) {
@@ -49,7 +98,7 @@ namespace Eight.LuaLibs {
             var textSurface = TTF_RenderUTF8_Solid(font, text, color);
 
             var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
-            
+
             var textRectangle = new SDL_Rect {
                 x = x,
                 y = y,

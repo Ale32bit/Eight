@@ -17,5 +17,12 @@ namespace Eight {
             public LuaType Type;
             public object Value;
         }
+
+        public struct Coords {
+            public int x;
+            public int y;
+            public int? w;
+            public int? h;
+        }
     }
 }
