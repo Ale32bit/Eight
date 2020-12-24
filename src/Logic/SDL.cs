@@ -43,7 +43,7 @@ namespace Eight.Logic {
             }
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-            SDL_SetRenderDrawBlendMode(Surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
+            SDL_SetRenderDrawBlendMode(Renderer, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
             Console.WriteLine("Creating renderer...");
             Renderer = SDL_CreateRenderer(Window, -1,
