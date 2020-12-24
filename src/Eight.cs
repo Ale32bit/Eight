@@ -278,7 +278,7 @@ namespace Eight {
                         ptime -= Ticktime;
                     if (!IsQuit) {
                         if (state.Status == Lua.LuaStatus.Yield) {
-                            SDL.Render();
+                            SDL.DrawCanvas();
                             state.PushString("tick");
                             Resume(1);
                         }
