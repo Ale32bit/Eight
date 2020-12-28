@@ -3,7 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <StartupObject>Eight.Eight</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -15,12 +17,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="app.manifest" />
+    <None Remove="Assets\tewi.ttf" />
     <None Remove="eight.png" />
     <None Remove="icon.ico" />
     <None Remove="icon.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="app.manifest">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\tewi.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="eight.png" />
     <Content Include="icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -47,5 +57,9 @@
   <Import Project="Libraries\Libraries.projitems" Label="Shared" />
 
   <Import Project="Lua\Lua.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <Content Remove="src\LuaLibs\ScreenText.cs" />
+  </ItemGroup>
 
 </Project>

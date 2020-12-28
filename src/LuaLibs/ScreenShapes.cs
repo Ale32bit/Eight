@@ -7,7 +7,7 @@ using static SDL2.SDL_ttf;
 namespace Eight.LuaLibs {
     public class ScreenShapes {
         public static void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
-            if (Eight.IsQuit) return;
+            if (Eight.IsQuitting) return;
 
             var rect = new SDL_Rect {
                 x = x,
@@ -19,12 +19,14 @@ namespace Eight.LuaLibs {
             var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
 
             SDL_FillRect(SDL.Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));
+
+            SDL.Dirty = true;
         }
 
         public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
-            if (Eight.IsQuit) return;
+            if (Eight.IsQuitting) return;
 
-            if (x < 0 && y < 0 && x >= Eight.WindowWidth && y >= Eight.WindowHeight) {
+            if (x < 0 && y < 0 && x >= Eight.RealWidth && y >= Eight.RealHeight) {
                 return;
             }
             
@@ -38,6 +40,8 @@ namespace Eight.LuaLibs {
             var sur = Marshal.PtrToStructure<SDL_Surface>(SDL.Surface);
 
             SDL_FillRect(SDL.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
+
+            SDL.Dirty = true;
         }
 
         public static SDL_Surface DrawText(IntPtr font, string text, int x, int y, byte r, byte g, byte b) {
@@ -60,6 +64,8 @@ namespace Eight.LuaLibs {
             SDL_BlitSurface(textSurface, IntPtr.Zero, SDL.Surface, ref textRectangle);
 
             SDL_FreeSurface(textSurface);
+
+            SDL.Dirty = true;
 
             return tx;
         }

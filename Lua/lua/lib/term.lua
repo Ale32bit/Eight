@@ -26,10 +26,11 @@ local spaceCode = string.byte(" ")
 local initiated = false
 
 if not utf8.sub then
-    function utf8.sub(s, i, j)
+    function sub(s, i, j)
         expect(1, s, "string")
         expect(2, i, "number")
         expect(3, j, "number", "nil")
+        cprint(s, i, utf8.offset(s, i))
         return string.sub(s, utf8.offset(s, i), j and (utf8.offset(s, j + 1) - 1) or #s)
     end
 end
@@ -88,7 +89,10 @@ local function drawChar(c, fg, bg, noset)
     local char = font[c] or font[string.byte("?")] or { {} }
     fg = fg or fgColor
     bg = bg or bgColor
-    
+
+    screen.setForeground(table.unpack(fg))
+    screen.setBackground(table.unpack(bg))
+
     if not (posX >= 0 and posX < width and posY >= 0 and posY < height) then
         return
     end
@@ -98,7 +102,7 @@ local function drawChar(c, fg, bg, noset)
     local charWidth = #char[1]
     deltaX = deltaX + math.ceil((fontWidth / 2) - (charWidth / 2))
 
-    screen.drawRectangle(
+    --[[screen.drawRectangle(
             posX * fontWidth,
             posY * fontHeight,
             fontWidth,
@@ -112,16 +116,19 @@ local function drawChar(c, fg, bg, noset)
                 screen.setPixel(deltaX + x, deltaY + y - 1, table.unpack(fg))
             end
         end
-    end
+    end]]
+
+    screen.setChar(utf8.char(c), posX, posY)
 
     if not noset then
-        setChar(posX, posY, c, fg, bg)
+        --setChar(posX, posY, c, fg, bg)
     end
     posX = posX + 1
 
 end
 
 local function redraw()
+--[[
     local cx, cy = term.getPos()
     for y, row in pairs(grid) do
         for x, char in pairs(row) do
@@ -132,7 +139,7 @@ local function redraw()
         end
     end
 
-    term.setPos(cx, cy)
+    term.setPos(cx, cy)]]
 end
 
 local function redrawChar(x, y)
@@ -151,7 +158,6 @@ end
 local function clear(resetGrid)
     screen.clear()
     local w, h = screen.getSize()
-    screen.drawRectangle(0, 0, w, h, table.unpack(bgColor))
     if resetGrid then
         grid = {}
         for y = 1, h do
@@ -177,7 +183,7 @@ function term.setSize(w, h, s)
     w = math.floor(w)
     h = math.floor(h)
 
-    screen.setSize(w * fontWidth, h * fontHeight, s or os)
+    screen.setSize(w, h, s or os)
 
     width = w
     height = h
@@ -220,9 +226,10 @@ function term.setForeground(r, g, b)
         fgColor = {
              r[1], r[2], r[3]
         }
-        return    
+    else
+        fgColor = { r, g, b }
     end
-    fgColor = { r, g, b }
+    screen.setForeground(table.unpack(fgColor))
 end
 
 function term.setBackground(r, g, b)
@@ -239,9 +246,11 @@ function term.setBackground(r, g, b)
         bgColor = {
             r[1], r[2], r[3]
         }
-        return    
+    else
+        bgColor = { r, g, b }
     end
-    bgColor = { r, g, b }
+
+    screen.setBackground(table.unpack(bgColor))
 end
 
 function term.getForeground()
@@ -307,7 +316,9 @@ function term.scroll(n)
     if n == 0 then
         return
     end
-    
+
+    screen.scroll(n);
+    if true then return end
     n = -n
     local copy = {}
     
@@ -615,11 +626,7 @@ function term.init()
 
     local w, h, s = screen.getSize()
 
-    term.setSize(
-            math.floor(w / fontWidth),
-            math.floor(h / fontHeight),
-            s
-    )
+    term.setSize(w,h,s)
     
     timerBlinkId = timer.start(blinkDelay)
     local blink = false

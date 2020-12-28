@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using Eight.Logic;
 using static SDL2.SDL;
@@ -15,13 +13,24 @@ namespace Eight {
     public static class Eight {
         public const string Version = "Alpha 0.0.5";
 
-        public const int DefaultWidth = 396;
-        public const int DefaultHeight = 288;
+        public const int DefaultWidth = 66;
+        public const int DefaultHeight = 24;
         public const int DefaultScale = 2;
         public const int DefaultTickrate = 60;
 
+        public const int CellWidth = 6;
+        public const int CellHeight = 12;
+
         public static readonly string BaseDir = Directory.GetCurrentDirectory();
         public static readonly string LuaDir = Path.Combine(BaseDir, "lua");
+
+        public static int RealWidth {
+            get { return WindowWidth * CellWidth; }
+        }
+
+        public static int RealHeight {
+            get { return WindowHeight * CellHeight; }
+        }
 
         public static int WindowWidth;
         public static int WindowHeight;
@@ -39,7 +48,7 @@ namespace Eight {
 
         public static List<Utils.LuaParameter[]> UserEventQueue = new();
 
-        public static bool IsQuit;
+        public static bool IsQuitting;
         private static SDL_Event _e;
 
         public static void Main(string[] args) {
@@ -71,7 +80,7 @@ namespace Eight {
                 return false;
             }
 
-            IsQuit = false;
+            IsQuitting = false;
 
             EventLoop();
 
@@ -96,7 +105,7 @@ namespace Eight {
             OutOfSync = false;
 
             syncTimer.Stop();
-            if (!ok) IsQuit = true;
+            if (!ok) IsQuitting = true;
         }
 
         // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
@@ -125,8 +134,8 @@ namespace Eight {
             ulong last = SDL_GetPerformanceCounter();
             ulong now = last;
 
-            while (!IsQuit) {
-                while (!IsQuit && SDL_PollEvent(out _e) != 0) {
+            while (!IsQuitting) {
+                while (!IsQuitting && SDL_PollEvent(out _e) != 0) {
                     switch (_e.type) {
                         case SDL_QUIT:
                             Quit();
@@ -276,9 +285,9 @@ namespace Eight {
                 if (ptime * 1000 >= Ticktime) {
                     while (ptime >= Ticktime)
                         ptime -= Ticktime;
-                    if (!IsQuit) {
+                    if (!IsQuitting) {
                         if (state.Status == Lua.LuaStatus.Yield) {
-                            SDL.DrawCanvas();
+                            SDL.RenderScreen();
                             state.PushString("tick");
                             Resume(1);
                         }
@@ -308,7 +317,7 @@ namespace Eight {
 
         public static void Quit() {
             Console.WriteLine("Quitting");
-            IsQuit = true;
+            IsQuitting = true;
 
             Logic.Lua.Quit();
             SDL.Quit();

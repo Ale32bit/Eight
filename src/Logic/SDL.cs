@@ -1,12 +1,19 @@
 using System;
 using static SDL2.SDL;
 using static SDL2.SDL_ttf;
+using static SDL2.SDL_image;
 
 namespace Eight.Logic {
     public class SDL {
         public static IntPtr Window = IntPtr.Zero;
         public static IntPtr Renderer = IntPtr.Zero;
         public static IntPtr Surface = IntPtr.Zero;
+
+        public static bool Dirty = true;
+
+        public static ulong[] TextGrid;
+
+        public static IntPtr TextFont;
 
         public static bool Init() {
             Console.WriteLine("Initializing SDL...");
@@ -20,13 +27,14 @@ namespace Eight.Logic {
             }
 
             TTF_Init();
+            IMG_Init(IMG_InitFlags.IMG_INIT_PNG);
 
-            ResetSize();
+            ResetScreenSize();
 
             Console.WriteLine("Creating window...");
             Window = SDL_CreateWindow("Eight " + Eight.Version, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                Eight.WindowWidth * Eight.WindowScale,
-                Eight.WindowHeight * Eight.WindowScale,
+                Eight.RealWidth * Eight.WindowScale,
+                Eight.RealHeight * Eight.WindowScale,
                 SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI);
 
             if (Window == IntPtr.Zero) {
@@ -35,11 +43,11 @@ namespace Eight.Logic {
                 return false;
             }
 
-            var icon = SDL2.SDL_image.IMG_Load("../icon.png");
+            var icon = IMG_Load("../icon.png");
             if (icon != IntPtr.Zero) {
                 SDL_SetWindowIcon(Window, icon);
             } else {
-                Console.WriteLine("Failed loading icon.png");
+                Console.WriteLine("Failed to load icon.png");
             }
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -54,55 +62,63 @@ namespace Eight.Logic {
                 return false;
             }
 
+            TextFont = TTF_OpenFont("../Assets/tewi.ttf", 11);
+
+            if (TextFont == IntPtr.Zero) throw new Exception(SDL_GetError());
+
             return true;
         }
 
-        public static void CreateCanvas() {
+        public static void CreateScreen() {
             if (Surface != IntPtr.Zero) {
-                SDL_FreeSurface(Surface); 
+                SDL_FreeSurface(Surface);
                 Surface = IntPtr.Zero;
             }
 
-            Surface = SDL_CreateRGBSurface(0, Eight.WindowWidth,
-                Eight.WindowHeight, 32,
+            Surface = SDL_CreateRGBSurface(0, Eight.RealWidth,
+                Eight.RealHeight, 32,
                 0xff000000,
                 0x00ff0000,
                 0x0000ff00,
                 0x000000ff);
-            if (Surface != IntPtr.Zero) return;
-            Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
-            Eight.Quit();
+
+            if (Surface == IntPtr.Zero) {
+                Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
+                Eight.Quit();
+            }
+
+            TextGrid = new ulong[Eight.WindowWidth * Eight.WindowHeight];
+
+            Dirty = true;
         }
 
-        private static void UpdateWindow() {
+        private static void UpdateScreen() {
             SDL_SetWindowSize(Window,
-                Eight.WindowWidth * Eight.WindowScale,
-                Eight.WindowHeight * Eight.WindowScale
+                Eight.RealWidth * Eight.WindowScale,
+                Eight.RealHeight * Eight.WindowScale
             );
 
             SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-            CreateCanvas();
+            CreateScreen();
         }
 
 
-        public static void SetSize(int width, int height, int scale) {
+        public static void SetScreenSize(int width, int height, int scale) {
             Eight.WindowWidth = width;
             Eight.WindowHeight = height;
             Eight.WindowScale = scale;
 
-            UpdateWindow();
+            UpdateScreen();
         }
 
-        public static void ResetSize() {
-            Eight.WindowWidth = Eight.DefaultWidth;
-            Eight.WindowHeight = Eight.DefaultHeight;
-            Eight.WindowScale = Eight.DefaultScale;
-
-            UpdateWindow();
+        public static void ResetScreenSize() {
+            SetScreenSize(Eight.DefaultWidth, Eight.DefaultHeight, Eight.DefaultScale);
         }
 
-        public static void DrawCanvas() {
+        public static void RenderScreen() {
+            if (!Dirty) return;
+            
             var sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
 
             SDL_RenderClear(Renderer);
@@ -112,6 +128,8 @@ namespace Eight.Logic {
             SDL_RenderPresent(Renderer);
 
             SDL_DestroyTexture(sTexture);
+
+            Dirty = false;
         }
 
         public static void Quit() {
@@ -122,6 +140,7 @@ namespace Eight.Logic {
             SDL_DestroyWindow(Window);
             SDL_Quit();
             TTF_Quit();
+            IMG_Quit();
         }
     }
 }
