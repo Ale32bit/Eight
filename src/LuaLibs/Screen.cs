@@ -62,12 +62,24 @@ namespace Eight.LuaLibs {
                 function = ScreenText.SetChar,
             },
             new() {
+                name = "getChar",
+                function = ScreenText.GetChar,
+            },
+            new() {
                 name = "setForeground",
                 function = ScreenText.SetForeground,
             },
             new() {
                 name = "setBackground",
                 function = ScreenText.SetBackground,
+            },
+            new() {
+                name = "getForeground",
+                function = ScreenText.GetForeground,
+            },
+            new() {
+                name = "getBackground",
+                function = ScreenText.GetBackground,
             },
             new() {
                 name = "scroll",

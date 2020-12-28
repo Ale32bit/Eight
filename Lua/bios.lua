@@ -39,9 +39,8 @@ local function panic(err)
     cprint(err)
     local ok, err = pcall(function()
         if term then
-            local w, h, s = term.getSize()
-            local screenWidth, screenHeight = screen.getSize()
-            term.setSize(w, h, s)
+            local w, h, s = screen.getSize()
+            local screenWidth, screenHeight = screen.getRealSize()
 
             screen.drawRectangle(0, 0, screenWidth, screenHeight, 0, 0, 0xff)
 

@@ -11,7 +11,7 @@ using Timer = System.Timers.Timer;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 0.0.5";
+        public const string Version = "Alpha 1.0.0";
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;

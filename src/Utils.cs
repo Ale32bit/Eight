@@ -22,6 +22,8 @@ namespace Eight {
             int fg = (int)(p >> 16) & 0xffffff;
             int bg = (int)(p >> 40) & 0xffffff;
 
+            if (c == 0) c = ' ';
+
             TextPoint point = new() {
                 Char = c,
                 Foreground = fg,

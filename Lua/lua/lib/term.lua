@@ -1,18 +1,10 @@
 local screen = require("screen");
-local font = require("fonts.tewi")
 local event = require("event")
 local timer = require("timer")
 local expect = require("expect") 
+local colors = require("colors")
 
-local grid = {}
 local term = {}
-
-local fontWidth = font._width or 0
-local fontHeight = font._height or 0
-local width, height, scale = 0, 0, 1
-
-local fgColor = { 0xff, 0xff, 0xff }
-local bgColor = { 0, 0, 0 }
 
 local posX = 0
 local posY = 0
@@ -20,8 +12,6 @@ local posY = 0
 local blinkDelay = 500
 local isBlinking = false
 local timerBlinkId
-
-local spaceCode = string.byte(" ")
 
 local initiated = false
 
@@ -71,106 +61,49 @@ local function len(s)
     end
 end
 
-local function setChar(x, y, char, fg, bg)
-    if x >= 0 and y >= 0 and x < width and y < height then
-        grid[posY] = grid[posY] or {}
-        grid[posY][posX] = {
-            char, fg, bg
-        }
-    end
-end
-
-local function getChar(x, y)
-    grid[posY] = grid[posY] or {}
-    return grid[posY][posX]
-end
-
-local function drawChar(c, fg, bg, noset)
-    local char = font[c] or font[string.byte("?")] or { {} }
-    fg = fg or fgColor
-    bg = bg or bgColor
-
-    screen.setForeground(table.unpack(fg))
-    screen.setBackground(table.unpack(bg))
-
-    if not (posX >= 0 and posX < width and posY >= 0 and posY < height) then
-        return
-    end
-
-    local deltaX, deltaY = posX * fontWidth, posY * fontHeight
-
-    local charWidth = #char[1]
-    deltaX = deltaX + math.ceil((fontWidth / 2) - (charWidth / 2))
-
-    --[[screen.drawRectangle(
-            posX * fontWidth,
-            posY * fontHeight,
-            fontWidth,
-            fontHeight,
-            table.unpack(bg)
-    )
-
-    for y = 1, #char do
-        for x = 1, #char[y] do
-            if char[y][x] == 1 then
-                screen.setPixel(deltaX + x, deltaY + y - 1, table.unpack(fg))
-            end
-        end
-    end]]
-
-    screen.setChar(utf8.char(c), posX, posY)
-
-    if not noset then
-        --setChar(posX, posY, c, fg, bg)
-    end
+local function writeChar(c)
+    screen.setChar(c or " ", math.tointeger(posX), math.tointeger(posY))
     posX = posX + 1
-
-end
-
-local function redraw()
---[[
-    local cx, cy = term.getPos()
-    for y, row in pairs(grid) do
-        for x, char in pairs(row) do
-            term.setPos(x, y)
-            if char[1] then
-                drawChar(char[1], char[2] or fgColor, char[3] or bgColor, true)
-            end
-        end
-    end
-
-    term.setPos(cx, cy)]]
 end
 
 local function redrawChar(x, y)
-    local cx, cy = term.getPos()
-    
-    local row = grid[y]
-    if row then
-        local char = row[x] or {}
-        posX, posY = x, y
-        drawChar(char[1] or spaceCode, char[2] or fgColor, char[3] or bgColor, true)
+    local w, h, s = term.getSize()
+    if(x < 0 or y < 0 or x >= w or y >= h) then
+        return
     end
-    
-    posX, posY = cx, cy
+    local ofg, obg = screen.getForeground(), screen.getBackground()
+
+    local c, fg, bg = screen.getChar(x, y)
+
+    screen.setForeground(fg)
+    screen.setBackground(bg)
+    screen.setChar(c, x, y)
+    screen.setForeground(ofg)
+    screen.setBackground(obg)
 end
 
-local function clear(resetGrid)
+local function clear()
     screen.clear()
+end
+
+local function getCellSize()
     local w, h = screen.getSize()
-    if resetGrid then
-        grid = {}
-        for y = 1, h do
-            grid[y] = {}
-            for x = 1, w do
-                grid[y][x] = {}
-            end
-        end
-    end
+    local rw, rh = screen.getRealSize()
+    local cw, ch = rw / w, rh / h
+
+    return cw, ch
+end
+
+local function getRealPos(x, y)
+    local cw, ch = getCellSize()
+
+    return cw * x, ch * y
 end
 
 local function drawCursor()
-    screen.drawRectangle(posX * fontWidth + 1 , posY * fontHeight + 1, 1, fontHeight - 2, table.unpack(fgColor))
+    local rw, rh = screen.getRealSize()
+    local cw, ch = getCellSize()
+    screen.drawRectangle(posX * cw, posY * ch + 1, 1, ch - 2, colors.toRGB(screen.getForeground()))
 end
 
 function term.setSize(w, h, s)
@@ -185,15 +118,11 @@ function term.setSize(w, h, s)
 
     screen.setSize(w, h, s or os)
 
-    width = w
-    height = h
-    scale = s or os
-
     clear(true)
 end
 
 function term.getSize()
-    return width, height, scale
+    return screen.getSize()
 end
 
 function term.setPos(x, y)
@@ -213,55 +142,40 @@ function term.getPos()
 end
 
 function term.setForeground(r, g, b)
-    expect(1, r, "number", "table")
+    expect(1, r, "number", "integer")
     expect(1, g, "number", "nil")
     expect(1, b, "number", "nil")
-    
-    if type(r) == "table" then
-        for i = 1, 3 do
-            if type(r[i]) ~= "number" then
-                error(("bad argument #1[%d] (expected %s, got %s)"):format(i, "number", type(r[i])), 3)
-            end
-        end
-        fgColor = {
-             r[1], r[2], r[3]
-        }
-    else
-        fgColor = { r, g, b }
+
+    if g and b then
+        r = colors.toHex(r, g, b)
     end
-    screen.setForeground(table.unpack(fgColor))
+    
+    screen.setForeground(r)
 end
 
 function term.setBackground(r, g, b)
-    expect(1, r, "number", "table")
+    expect(1, r, "number", "integer")
     expect(1, g, "number", "nil")
     expect(1, b, "number", "nil")
-    
-    if type(r) == "table" then
-        for i = 1, 3 do
-            if type(r[i]) ~= "number" then
-                error(("bad argument #1[%d] (expected %s, got %s)"):format(i, "number", type(r[i])), 3)
-            end
-        end
-        bgColor = {
-            r[1], r[2], r[3]
-        }
-    else
-        bgColor = { r, g, b }
-    end
 
-    screen.setBackground(table.unpack(bgColor))
+    if g and b then
+        r = colors.toHex(r, g, b)
+    end
+    
+    screen.setBackground(r)
 end
 
 function term.getForeground()
-    return table.unpack(fgColor)
+    return screen.getForeground()
 end
 
 function term.getBackground()
-    return table.unpack(bgColor)
+    return screen.getBackground()
 end
 
 function term.write(...)
+    local width, height = term.getSize()
+
     local chunks = {}
     for k, v in ipairs({...}) do
         chunks[#chunks + 1] = tostring(v)
@@ -270,17 +184,17 @@ function term.write(...)
     local text = table.concat(chunks, " ")
 
     local function iterate(char)
-        if char == 10 then
+        if char == "\n" then
             posY = posY + 1
             if posY >= height then
                 term.scroll(-1)
                 posY = height - 1
             end
             posX = 0
-        elseif char == 9 then
+        elseif char == "\t" then
             posX = posX + 2
-        elseif char ~= 13 then
-            drawChar(char)
+        elseif char ~= "\13" then
+            writeChar(char)
         end
 
         if posX >= width then
@@ -291,7 +205,7 @@ function term.write(...)
 
     if isValidUtf8(text) then
         for _, char in utf8.codes(text) do
-            iterate(char)
+            iterate(utf8.char(char))
         end
     else
         for char in string.gmatch(text, "(.)") do
@@ -306,31 +220,15 @@ function term.clear()
 end
 
 function term.clearLine()
-    local w, h = screen.getSize()
-    screen.drawRectangle(0, posY * fontHeight, w, fontWidth, table.unpack(bgColor))
+    for i = 0, w do
+        screen.setChar(" ", i, posY)
+    end
 end
 
 function term.scroll(n)
     expect(1, n, "number")
-    
-    if n == 0 then
-        return
-    end
 
     screen.scroll(n);
-    if true then return end
-    n = -n
-    local copy = {}
-    
-    for i = 0, height - 1 do
-        local row = grid[i + n] or {}
-        copy[i] = row
-    end
-    
-    grid = copy
-
-    clear(false)
-    redraw()
 end
 
 function term.setBlinking(blink)
@@ -623,10 +521,6 @@ function term.init()
         return
     end
     initiated = true
-
-    local w, h, s = screen.getSize()
-
-    term.setSize(w,h,s)
     
     timerBlinkId = timer.start(blinkDelay)
     local blink = false

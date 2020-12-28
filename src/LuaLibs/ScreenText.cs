@@ -14,8 +14,8 @@ namespace Eight.LuaLibs {
             var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected char");
-            state.ArgumentCheck(state.IsInteger(2), 2, "expected integer");
-            state.ArgumentCheck(state.IsInteger(3), 3, "expected integer");
+            state.ArgumentCheck(state.IsInteger(2) || state.IsNumber(2), 2, "expected integer");
+            state.ArgumentCheck(state.IsInteger(3) || state.IsNumber(3), 3, "expected integer");
 
             var c = state.ToString(1);
             var x = (int)state.ToInteger(2);
@@ -37,11 +37,13 @@ namespace Eight.LuaLibs {
         public static int SetForeground(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            var r = state.ToNumber(1);
-            var g = state.ToNumber(2);
-            var b = state.ToNumber(3);
+            state.ArgumentCheck(state.IsInteger(1) || state.IsNumber(1), 1, "expected integer");
 
-            var color = Color.FromArgb(0, (int)r, (int)g, (int)b);
+            var c = state.ToInteger(1);
+
+            c &= 0xffffff;
+
+            var color = Color.FromArgb((int)c);
 
             ForegroundColor = color.ToArgb();
 
@@ -51,47 +53,62 @@ namespace Eight.LuaLibs {
         public static int SetBackground(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            var r = state.ToNumber(1);
-            var g = state.ToNumber(2);
-            var b = state.ToNumber(3);
+            state.ArgumentCheck(state.IsInteger(1) || state.IsNumber(1), 1, "expected integer");
 
-            var color = Color.FromArgb(0, (int)r, (int)g, (int)b);
+            var c = state.ToInteger(1);
+
+            c &= 0xffffff;
+
+            var color = Color.FromArgb((int)c);
 
             BackgroundColor = color.ToArgb();
 
             return 0;
         }
 
+        public static int GetForeground(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.PushInteger(ForegroundColor);
+
+            return 1;
+        }
+
+        public static int GetBackground(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.PushInteger(BackgroundColor);
+
+            return 1;
+        }
+
         public static int Scroll(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsInteger(1), 1, "integer expected");
-
+            state.ArgumentCheck(state.IsInteger(1), 1, "expected integer");
             var n = state.ToInteger(1);
 
             if (n == 0) return 0;
-
             if (n <= -Eight.WindowHeight || n >= Eight.WindowHeight)
                 return Clear(luaState);
 
             ulong[] newGrid = new ulong[Logic.SDL.TextGrid.Length];
 
             long m = Math.Abs(n) * Eight.WindowWidth;
-
             if (n < 0) { // text goes up, left shift
                 Array.Copy(Logic.SDL.TextGrid, m, newGrid, 0, Logic.SDL.TextGrid.Length - m);
             } else { // text goes down, right shift
                 Array.Copy(Logic.SDL.TextGrid, 0, newGrid, m, Logic.SDL.TextGrid.Length - m);
             }
 
-            //Logic.SDL.TextGrid = newGrid;
-            for(int i = 0; i < Logic.SDL.TextGrid.Length; i++) {
+            Logic.SDL.TextGrid = newGrid;
+            /*for (int i = 0; i < Logic.SDL.TextGrid.Length; i++) {
                 Logic.SDL.TextGrid[i] = newGrid[i];
-            }
+            }*/
 
             Redraw();
-
             Logic.SDL.Dirty = true;
+
             return 0;
         }
 
@@ -133,6 +150,27 @@ namespace Eight.LuaLibs {
 
             DrawChar(c, x, y, ForegroundColor, BackgroundColor);
         }
+
+        public static int GetChar(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsNumber(1), 1, "expected integer"); // because integers still fail 
+            state.ArgumentCheck(state.IsNumber(2), 2, "expected integer");
+
+            var x = (int)state.ToInteger(1);
+            var y = (int)state.ToInteger(2);
+
+            if (x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight) return 0;
+
+            var point = Utils.ToTextPoint(Logic.SDL.TextGrid[x + y * Eight.WindowWidth]);
+
+            state.PushString(point.Char.ToString());
+            state.PushInteger(point.Foreground);
+            state.PushInteger(point.Background);
+
+            return 3;
+        }
+
 
         public static void DrawChar(char c, int x, int y, int fg, int bg) {
             if (Eight.IsQuitting) return;
