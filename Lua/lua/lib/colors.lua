@@ -1,3 +1,6 @@
+-- Colors library
+-- Contains 16 common colors + some useful functions
+
 local colors = {
     white = 0xf0f0f0,
     orange = 0xf2b233,

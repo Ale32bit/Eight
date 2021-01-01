@@ -1,6 +1,8 @@
+-- Global common functions
+
+local screen = require("screen")
 local term = require("term")
 local colors = require("colors")
-local event = require("event")
 local expect = require("expect")
 
 if not utf8.sub then
@@ -107,7 +109,8 @@ function print(...)
 end
 
 function printError(...)
-    local oldColour = term.getForeground()
+    local oldColour = screen.getForeground()
     term.setForeground(colors.red)
     print(...)
+    screen.setForeground(oldColour)
 end

@@ -1,3 +1,5 @@
+-- Expect library, for argument checking
+
 local function contains(tbl, val)
     for k,v in ipairs(tbl) do
         if v == val then

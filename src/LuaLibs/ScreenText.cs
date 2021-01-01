@@ -207,7 +207,7 @@ namespace Eight.LuaLibs {
                 x = (x * Eight.CellWidth),
                 y = (y * Eight.CellHeight),
                 w = tx.w,
-                h = tx.h
+                h = tx.h-1
             };
 
             var sur = Marshal.PtrToStructure<SDL_Surface>(Logic.SDL.Surface);

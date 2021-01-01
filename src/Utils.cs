@@ -34,12 +34,12 @@ namespace Eight {
             return point;
         }
 
-         /* "also
-          * your struct
-          * eats too much memory
-          * even if it's temporary"
-          * ~byte-chan™
-          */
+        /* "also
+         * your struct
+         * eats too much memory
+         * even if it's temporary"
+         * ~byte-chan™
+         */
         public struct TextPoint {
             public char Char;
             public int Foreground;

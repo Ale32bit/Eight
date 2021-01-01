@@ -1,14 +1,14 @@
 #nullable enable
+using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using KeraLua;
 using static Eight.Utils;
 using Lua = Eight.Logic.Lua;
 
 namespace Eight.LuaLibs {
     public static class HTTP {
-        public static LuaRegister[] HTTP_Lib = {
+        public static LuaRegister[] AudioLib = {
             new() {
                 function = Request,
                 name = "requestAsync"
@@ -24,7 +24,7 @@ namespace Eight.LuaLibs {
 
         public static int OpenLib(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            state.NewLib(HTTP_Lib);
+            state.NewLib(AudioLib);
             return 1;
         }
 
@@ -69,8 +69,7 @@ namespace Eight.LuaLibs {
                 Request(uri, body, headers, method, id);
                 state.PushBoolean(true);
                 state.PushString(id);
-            }
-            else {
+            } else {
                 state.PushBoolean(false);
                 state.PushString("Malformed URI");
             }
@@ -97,8 +96,7 @@ namespace Eight.LuaLibs {
                 var response = await Http.SendAsync(message);
 
                 ProcessHttpResponse(response, rnd);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 LuaParameter[] parameters = {
                     new() {
                         Type = LuaType.String,

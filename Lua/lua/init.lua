@@ -1,164 +1,75 @@
-local term = require("term")
+-- INIT
+
+local args = {...}
 local screen = require("screen")
-local event = require("event")
-local colors = require("colors")
 local fs = require("filesystem")
-local expect = require("expect")
 
-local shell = {}
-
-local currentDirectory = "/"
-local binPath = "?.lua;?;/bin/?.lua;/bin/?"
-
-local function tokenise(...)
-    local sLine = table.concat({ ... }, " ")
-    local tWords = {}
-    local bQuoted = false
-    for match in string.gmatch(sLine .. "\"", "(.-)\"") do
-        if bQuoted then
-            table.insert(tWords, match)
-        else
-            for m in string.gmatch(match, "[^ \t]+") do
-                table.insert(tWords, m)
-            end
-        end
-        bQuoted = not bQuoted
-    end
-    return tWords
+-- Boot
+for _, file in ipairs(fs.list("boot")) do
+    dofile("boot/" .. file)
 end
 
-local function makeEnv(programName, ...)
-    local arg = {...}
-    arg[0] = programName
-    local tEnv = {
-        arg = arg,
-        shell = shell,
-    }
-    setmetatable(tEnv, {__index = _ENV})
-    
-    return tEnv
-end
+local event = require("event")
+local term = require("term")
 
-function shell.parse(...)
-  local params = table.pack(...)
-  local args = {}
-  local options = {}
-  local doneWithOptions = false
-  for i = 1, params.n do
-    local param = params[i]
-    if not doneWithOptions and type(param) == "string" then
-      if param == "--" then
-        doneWithOptions = true -- stop processing options at `--`
-      elseif param:sub(1, 2) == "--" then
-        local key, value = param:match("%-%-(.-)=(.*)")
-        if not key then
-          key, value = param:sub(3), true
-        end
-        options[key] = value
-      elseif param:sub(1, 1) == "-" and param ~= "-" then
-        for j = 2, utf8.len(param) do
-          options[utf8.sub(param, j, j)] = true
-        end
-      else
-        table.insert(args, param)
-      end
-    else
-      table.insert(args, param)
-    end
-  end
-  return args, options
-end
-
-function shell.getWorkingDirectory()
-    return currentDirectory
-end
-
-function shell.setWorkingDirectory(path)
-    expect(1, path, "string")
-    
-    local newPath = fs.resolve(path)
-    if fs.exists(newPath) and fs.getType(newPath) == "directory" then
-        currentDirectory = newPath
-    else
-        error("Directory not found", 2)
+-- not really the fanciest way
+local function init()
+    while true do
+        dofile("/bin/shell.lua")
     end
 end
 
-function shell.resolveProgram(programName)
-    for pattern in string.gmatch(binPath, "[^;]+") do
-        local sPath = string.gsub(pattern, "%?", programName)
-        local resolved = fs.joinPath(currentDirectory, sPath)
-        
-        if fs.exists(resolved) and fs.getType(resolved) == "file" then
-            return resolved
-        end
-    end
-    return false
-end
+local initThread = coroutine.create(init)
 
-function shell.execute(programName, ...)
-    local resolved = shell.resolveProgram(programName)
-    
-    for i = 1, select("#", ...) do
-        expect(i + 1, select(i, ...), "string")
-    end
-    
-    if resolved then
-        local env = makeEnv(programName, ...)
-
-        local fileContent = fs.readFile(resolved, true)
-
-        local func, err = loadfile(resolved, "bt", env)
-        if func then
-            local ok, err = pcall(func, ...)
-            if ok then
-                return true
-            else
-                printError(err)
+local filter
+local function resume()
+    for i = 1, #event.__eventsQueue do
+        local ev = event.__eventsQueue[i]
+        if filter == nil or filter == event[1] then
+            if coroutine.status(initThread) == "dead" then
                 return false
             end
-        else
-            printError(err)
-            return false
+            local ok, par = coroutine.resume(initThread, table.unpack(ev))
+            if ok then
+                filter = par
+                local eventName = ev[1]
+                table.remove(ev, 1)
+                for _, v in pairs(event.__listeners) do
+                    if v.event == eventName then
+                        v.callback(table.unpack(ev))
+                    end
+                end
+            else
+                error(par, 0)
+                return false
+            end
         end
-    else
-        printError("No such program")
-        return false
     end
+
+    event.__eventsQueue = {}
+    
+    return true
 end
 
+screen.setForeground(0xffffff)
+screen.setBackground(0x000000)
+screen.clear()
 
-function shell.run(...)
-    local tWords = tokenise(...)
-    local sCommand = tWords[1]
-    if sCommand then
-        return shell.execute(sCommand, table.unpack(tWords, 2))
-    end
-    return false
-end
+term.init()
 
-shell.setWorkingDirectory("/home")
+term.clear()
+term.setPos(0, 0)
 
-term.setPos(0,0)
 term.setForeground(0x21, 0x96, 0xf3)
 print("Eight", os.version())
-term.setForeground(colors.white)
+term.setForeground(0xffffff)
 
-local history = {}
+event.push("_eight_init")
+resume();
+
 while true do
-    local cwd = shell.getWorkingDirectory()
-    if cwd == "/home" then
-        cwd = "~"
+    event.__eventsQueue[#event.__eventsQueue+1] = {coroutine.yield()}
+    if not resume() then
+        os.exit(0, true)
     end
-    term.setForeground(colors.yellow)
-    write("[" .. cwd .. "]$ ")
-    term.setForeground(colors.white)
-    local input = term.read(nil, history)
-    
-    if input:match("%S") and history[#history] ~= input then
-        table.insert(history, input)
-    end
-    
-    shell.run(input)
 end
-

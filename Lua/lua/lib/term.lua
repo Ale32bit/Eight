@@ -1,7 +1,9 @@
-local screen = require("screen");
+-- Terminal library, for text mode related functions
+
+local screen = require("screen")
 local event = require("event")
 local timer = require("timer")
-local expect = require("expect") 
+local expect = require("expect")
 local colors = require("colors")
 
 local term = {}
@@ -26,23 +28,31 @@ if not utf8.sub then
 end
 
 local function isValidUtf8(str)
-  local i, len = 1, #str
-  while i <= len do
-    if     i == string.find(str, "[%z\1-\127]", i) then i = i + 1
-    elseif i == string.find(str, "[\194-\223][\128-\191]", i) then i = i + 2
-    elseif i == string.find(str,        "\224[\160-\191][\128-\191]", i)
-        or i == string.find(str, "[\225-\236][\128-\191][\128-\191]", i)
-        or i == string.find(str,        "\237[\128-\159][\128-\191]", i)
-        or i == string.find(str, "[\238-\239][\128-\191][\128-\191]", i) then i = i + 3
-    elseif i == string.find(str,        "\240[\144-\191][\128-\191][\128-\191]", i)
-        or i == string.find(str, "[\241-\243][\128-\191][\128-\191][\128-\191]", i)
-        or i == string.find(str,        "\244[\128-\143][\128-\191][\128-\191]", i) then i = i + 4
-    else
-      return false, i
+    local i, len = 1, #str
+    while i <= len do
+        if i == string.find(str, "[%z\1-\127]", i) then
+            i = i + 1
+        elseif i == string.find(str, "[\194-\223][\128-\191]", i) then
+            i = i + 2
+        elseif
+            i == string.find(str, "\224[\160-\191][\128-\191]", i) or
+                i == string.find(str, "[\225-\236][\128-\191][\128-\191]", i) or
+                i == string.find(str, "\237[\128-\159][\128-\191]", i) or
+                i == string.find(str, "[\238-\239][\128-\191][\128-\191]", i)
+         then
+            i = i + 3
+        elseif
+            i == string.find(str, "\240[\144-\191][\128-\191][\128-\191]", i) or
+                i == string.find(str, "[\241-\243][\128-\191][\128-\191][\128-\191]", i) or
+                i == string.find(str, "\244[\128-\143][\128-\191][\128-\191]", i)
+         then
+            i = i + 4
+        else
+            return false, i
+        end
     end
-  end
 
-  return true
+    return true
 end
 
 local function sub(s, i, j)
@@ -67,8 +77,8 @@ local function writeChar(c)
 end
 
 local function redrawChar(x, y)
-    local w, h, s = term.getSize()
-    if(x < 0 or y < 0 or x >= w or y >= h) then
+    local w, h = term.getSize()
+    if (x < 0 or y < 0 or x >= w or y >= h) then
         return
     end
     local ofg, obg = screen.getForeground(), screen.getBackground()
@@ -128,11 +138,11 @@ end
 function term.setPos(x, y)
     expect(1, x, "number")
     expect(2, y, "number")
-    
+
     local oldX, oldY = posX, posY
     posX = x
     posY = y
-    
+
     redrawChar(oldX, oldY)
     drawCursor()
 end
@@ -149,7 +159,7 @@ function term.setForeground(r, g, b)
     if g and b then
         r = colors.toHex(r, g, b)
     end
-    
+
     screen.setForeground(r)
 end
 
@@ -161,7 +171,7 @@ function term.setBackground(r, g, b)
     if g and b then
         r = colors.toHex(r, g, b)
     end
-    
+
     screen.setBackground(r)
 end
 
@@ -214,12 +224,12 @@ function term.write(...)
     end
 end
 
-
 function term.clear()
-    clear(true)
+    clear()
 end
 
 function term.clearLine()
+    local w = term.getSize()
     for i = 0, w do
         screen.setChar(" ", i, posY)
     end
@@ -228,7 +238,7 @@ end
 function term.scroll(n)
     expect(1, n, "number")
 
-    screen.scroll(n);
+    screen.scroll(n)
 end
 
 function term.setBlinking(blink)
@@ -357,7 +367,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
             nPos = nPos + 1
             recomplete()
             redraw()
-
         elseif sEvent == "paste" then
             -- Pasted text
             clear()
@@ -365,7 +374,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
             nPos = nPos + #param
             recomplete()
             redraw()
-
         elseif sEvent == "key_down" then
             if param == "return" then
                 -- Enter
@@ -375,7 +383,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     redraw()
                 end
                 break
-
             elseif param == "left" then
                 -- Left
                 if nPos > 0 then
@@ -384,7 +391,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     recomplete()
                     redraw()
                 end
-
             elseif param == "right" then
                 -- Right
                 if nPos < len(sLine) then
@@ -397,7 +403,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     -- Accept autocomplete
                     acceptCompletion()
                 end
-
             elseif param == "up" or param == "down" then
                 -- Up or down
                 if nCompletion then
@@ -415,7 +420,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                         end
                     end
                     redraw()
-
                 elseif _tHistory then
                     -- Cycle history
                     clear()
@@ -445,20 +449,19 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     end
                     uncomplete()
                     redraw()
-
                 end
-
             elseif param == "backspace" then
                 -- Backspace
                 if nPos > 0 then
                     clear()
                     sLine = sub(sLine, 1, nPos - 1) .. sub(sLine, nPos + 1)
                     nPos = nPos - 1
-                    if nScroll > 0 then nScroll = nScroll - 1 end
+                    if nScroll > 0 then
+                        nScroll = nScroll - 1
+                    end
                     recomplete()
                     redraw()
                 end
-
             elseif param == "home" then
                 -- Home
                 if nPos > 0 then
@@ -467,7 +470,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     recomplete()
                     redraw()
                 end
-
             elseif param == "delete" then
                 -- Delete
                 if nPos < len(sLine) then
@@ -476,7 +478,6 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     recomplete()
                     redraw()
                 end
-
             elseif param == "end" then
                 -- End
                 if nPos < len(sLine) then
@@ -485,13 +486,10 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                     recomplete()
                     redraw()
                 end
-
             elseif param == "tab" then
                 -- Tab (accept autocomplete)
                 acceptCompletion()
-
             end
-
         elseif sEvent == "mouse_click" or sEvent == "mouse_drag" and param == 1 then
             local _, cy = term.getPos()
             if param1 >= sx and param1 <= w and param2 == cy then
@@ -499,12 +497,10 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
                 nPos = math.min(math.max(nScroll + param1 - sx, 0), len(sLine))
                 redraw()
             end
-
         elseif sEvent == "term_resize" then
             -- Terminal resized
             w = term.getSize()
             redraw()
-
         end
     end
 
@@ -521,22 +517,24 @@ function term.init()
         return
     end
     initiated = true
-    
+
     timerBlinkId = timer.start(blinkDelay)
     local blink = false
-    event.on("timer", function(timerId)
-        if timerId == timerBlinkId then
-            if isBlinking then
-                redrawChar(posX, posY)
-                blink = not blink
-                if blink then
-                    drawCursor()
+    event.on(
+        "timer",
+        function(timerId)
+            if timerId == timerBlinkId then
+                if isBlinking then
+                    redrawChar(posX, posY)
+                    blink = not blink
+                    if blink then
+                        drawCursor()
+                    end
                 end
+                timerBlinkId = timer.start(blinkDelay)
             end
-            timerBlinkId = timer.start(blinkDelay)
         end
-    end)
-    
+    )
 end
 
 return term

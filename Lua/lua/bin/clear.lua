@@ -1,5 +1,5 @@
 local term = require("term")
-term.setBackground(0, 0, 0)
-term.setForeground(0xff, 0xff, 0xff)
+term.setBackground(0)
+term.setForeground(0xffffff)
 term.clear()
 term.setPos(0,0)

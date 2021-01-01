@@ -1,13 +1,13 @@
+using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using KeraLua;
 using Lua = Eight.Logic.Lua;
 
 namespace Eight.LuaLibs {
     public class FileSystem {
-        public static LuaRegister[] Fs_lib = {
+        public static LuaRegister[] FileSystemLib = {
             new() {
                 name = "open",
                 function = Open
@@ -47,7 +47,7 @@ namespace Eight.LuaLibs {
 
         private static int OpenLib(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            state.NewLib(Fs_lib);
+            state.NewLib(FileSystemLib);
             return 1;
         }
 
@@ -83,12 +83,10 @@ namespace Eight.LuaLibs {
             if (PathExists(resolvedPath)) {
                 ok = false;
                 error = "File already exists";
-            }
-            else {
+            } else {
                 try {
                     Directory.CreateDirectory(resolvedPath);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Console.WriteLine(e);
                     ok = false;
                     error = "Internal error";
@@ -127,8 +125,7 @@ namespace Eight.LuaLibs {
                 }
 
                 state.PushNil();
-            }
-            else {
+            } else {
                 state.PushNil();
                 state.PushString("Path does not exist");
             }
@@ -153,8 +150,7 @@ namespace Eight.LuaLibs {
                     state.PushString("unknown");
 
                 state.PushNil();
-            }
-            else {
+            } else {
                 state.PushNil();
                 state.PushString("Path not found");
             }
@@ -181,14 +177,12 @@ namespace Eight.LuaLibs {
                     if (Directory.Exists(resolvedPath)) // if it's path
                         Directory.Delete(resolvedPath, recursive);
                     else if (File.Exists(resolvedPath)) File.Delete(resolvedPath);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Console.WriteLine(e);
                     ok = false;
                     error = "Internal error";
                 }
-            }
-            else {
+            } else {
                 ok = false;
                 error = "File or directory not found";
             }
@@ -196,8 +190,7 @@ namespace Eight.LuaLibs {
             if (ok) {
                 state.PushBoolean(true);
                 state.PushNil();
-            }
-            else {
+            } else {
                 state.PushBoolean(false);
                 state.PushString(error);
             }
@@ -237,31 +230,27 @@ namespace Eight.LuaLibs {
                 if (File.Exists(resolvedDestination) && !overwrite) {
                     state.PushBoolean(false);
                     state.PushString("Destination path already exists");
-                }
-                else {
+                } else {
                     try {
                         File.Move(resolvedSource, resolvedDestination, overwrite);
                         state.PushBoolean(true);
                         state.PushNil();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         Console.WriteLine(e);
                         state.PushBoolean(false);
                         state.PushString("Internal error");
                     }
                 }
-            }
-            else if (Directory.Exists(resolvedSource)) {
+            } else if (Directory.Exists(resolvedSource)) {
                 if (File.Exists(resolvedDestination)) {
                     state.PushBoolean(false);
                     state.PushString("Destination path is a file");
-                }
-                else {
+                } else {
                     Directory.Move(resolvedSource, resolvedDestination);
                     state.PushBoolean(true);
                     state.PushNil();
                 }
-            }
-            else {
+            } else {
                 state.PushBoolean(false);
                 state.PushString("Path not found");
             }
@@ -269,7 +258,7 @@ namespace Eight.LuaLibs {
             return 2;
         }
 
-        private static bool PathExists(string path) {
+        public static bool PathExists(string path) {
             return File.Exists(path) || Directory.Exists(path);
         }
 

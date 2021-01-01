@@ -1,3 +1,5 @@
+-- Extended HTTP Library
+
 local http = require("http")
 local event = require("event")
 local expect = require("expect")

@@ -1,3 +1,5 @@
+-- Extended FileSystem Library
+
 local fs = require("filesystem")
 local expect = require("expect")
 
@@ -51,7 +53,7 @@ end
 function fs.readFile(path, binary)
     expect(1, path, "string")
     expect(2, binary, "boolean", "nil")
-    
+
     local f = fs.open(path, binary and "rb" or "r")
     local content = f:read("*a")
     f:close()
@@ -62,7 +64,7 @@ function fs.writeFile(path, content, binary)
     expect(1, path, "string")
     expect(2, content, "string")
     expect(3, binary, "boolean", "nil")
-    
+
     local f = fs.open(path, binary and "wb" or "w")
     f:write(content)
     f:close()
@@ -72,7 +74,7 @@ function fs.appendFile(path, content, binary)
     expect(1, path, "string")
     expect(2, content, "string")
     expect(3, binary, "boolean", "nil")
-    
+
     local f = fs.open(path, binary and "ab" or "a")
     f:write(content)
     f:close()

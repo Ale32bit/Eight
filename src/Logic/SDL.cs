@@ -1,7 +1,7 @@
 using System;
 using static SDL2.SDL;
-using static SDL2.SDL_ttf;
 using static SDL2.SDL_image;
+using static SDL2.SDL_ttf;
 
 namespace Eight.Logic {
     public class SDL {
@@ -118,7 +118,7 @@ namespace Eight.Logic {
 
         public static void RenderScreen() {
             if (!Dirty) return;
-            
+
             var sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
 
             SDL_RenderClear(Renderer);

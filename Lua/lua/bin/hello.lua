@@ -1,9 +1,9 @@
 local term = require("term")
-local currentFg = {term.getForeground()}
+local currentFg = term.getForeground()
 
-local r, g, b = math.random(0, 255), math.random(0, 255), math.random(0, 255)
+local c = math.random(0, 256^3-1)
 
-term.setForeground(r, g, b)
+term.setForeground(c)
 
 print("Hello, World!")
 

@@ -1,14 +1,13 @@
-using System;
-using System.Drawing;
 using KeraLua;
 using SDL2;
+using System;
 using static SDL2.SDL;
 using Lua = Eight.Logic.Lua;
 using SDL = Eight.Logic.SDL;
 
 namespace Eight.LuaLibs {
     public class Screen {
-        public static LuaRegister[] Screen_lib = {
+        public static LuaRegister[] ScreenLib = {
             new() {
                 name = "setPixel",
                 function = SetPixel
@@ -94,7 +93,7 @@ namespace Eight.LuaLibs {
 
         private static int OpenLib(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
-            state.NewLib(Screen_lib);
+            state.NewLib(ScreenLib);
 
             return 1;
         }

@@ -1,1 +1,1 @@
-os.exit()
+shell.exit()

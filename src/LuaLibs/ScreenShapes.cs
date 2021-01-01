@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Eight.Logic;
+using System;
 using System.Runtime.InteropServices;
-using Eight.Logic;
 using static SDL2.SDL;
 using static SDL2.SDL_ttf;
 
@@ -29,7 +29,7 @@ namespace Eight.LuaLibs {
             if (x < 0 && y < 0 && x >= Eight.RealWidth && y >= Eight.RealHeight) {
                 return;
             }
-            
+
             var pixel = new SDL_Rect {
                 x = x,
                 y = y,
@@ -53,7 +53,7 @@ namespace Eight.LuaLibs {
             var textSurface = TTF_RenderUTF8_Solid(font, text, color);
 
             var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
-            
+
             var textRectangle = new SDL_Rect {
                 x = x,
                 y = y,

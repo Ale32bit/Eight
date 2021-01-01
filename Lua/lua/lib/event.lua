@@ -1,3 +1,6 @@
+-- Event library
+-- Handles events
+
 local expect = require("expect")
 local event = {}
 

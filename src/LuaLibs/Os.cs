@@ -1,6 +1,6 @@
+using Eight.Logic;
 using System;
 using System.Collections.Generic;
-using Eight.Logic;
 using State = KeraLua;
 
 namespace Eight.LuaLibs {
@@ -13,17 +13,17 @@ namespace Eight.LuaLibs {
         };
 
 
-        public static List<State.LuaRegister> Os_lib = new();
+        public static List<State.LuaRegister> OSLib = new();
 
         public static void Setup() {
             var LuaState = Lua.LuaState;
 
-            Os_lib.Add(new State.LuaRegister {
+            OSLib.Add(new State.LuaRegister {
                 name = "version",
                 function = Version
             });
 
-            Os_lib.Add(new State.LuaRegister {
+            OSLib.Add(new State.LuaRegister {
                 name = "exit",
                 function = Exit
             });
@@ -33,7 +33,7 @@ namespace Eight.LuaLibs {
                 var funcType = LuaState.GetField(-1, name);
                 if (funcType != State.LuaType.Function) continue;
                 var func = LuaState.ToCFunction(-1);
-                Os_lib.Add(new State.LuaRegister {
+                OSLib.Add(new State.LuaRegister {
                     name = name,
                     function = func
                 });
@@ -42,9 +42,9 @@ namespace Eight.LuaLibs {
             LuaState.PushNil();
             LuaState.SetGlobal("os");
 
-            LuaState.CreateTable(0, Os_lib.Count);
+            LuaState.CreateTable(0, OSLib.Count);
 
-            foreach (var reg in Os_lib) {
+            foreach (var reg in OSLib) {
                 LuaState.PushCFunction(reg.function);
                 LuaState.SetField(-2, reg.name);
             }
