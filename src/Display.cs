@@ -12,6 +12,7 @@ namespace Eight {
         public static bool Dirty = true;
 
         public static ulong[] TextGrid;
+        public static byte[] TextFlags;
 
         public static EBF TextFont;
 
@@ -87,6 +88,7 @@ namespace Eight {
             }
 
             TextGrid = new ulong[Eight.WindowWidth * Eight.WindowHeight];
+            TextFlags = new byte[Eight.WindowWidth * Eight.WindowHeight];
 
             Dirty = true;
         }

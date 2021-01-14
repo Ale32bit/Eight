@@ -17,15 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="App.config" />
-    <None Remove="app.manifest" />
-    <None Remove="Assets\font.ebf" />
-    <None Remove="eight.png" />
-    <None Remove="icon.ico" />
-    <None Remove="icon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="App.config" />
     <Content Include="app.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -43,29 +34,6 @@
     <Content Include="LICENSE">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="src\EBF.cs" />
-  </ItemGroup>
-
-  <Import Project="Lua\Lua.projitems" Label="Shared" />
-
-  <ItemGroup>
-    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.jpeg.txt" />
-    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.png.txt" />
-    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.tiff.txt" />
-    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.webp.txt" />
-    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\README.txt" />
-    <Content Remove="src\Display.cs" />
-    <Content Remove="src\EBF.cs" />
-    <Content Remove="src\Module\Audio.cs" />
-    <Content Remove="src\Module\ScreenText.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libjpeg-9.dll" />
-    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libpng16-16.dll" />
-    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libtiff-5.dll" />
-    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libwebp-7.dll" />
-    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\SDL2_image.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -73,5 +41,7 @@
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.53" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
   </ItemGroup>
+
+  <Import Project="Lua\Lua.projitems" Label="Shared" />
 
 </Project>

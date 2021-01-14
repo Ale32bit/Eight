@@ -5,12 +5,12 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eight", "Eight.csproj", "{214160E9-7FFB-40F2-8AF0-C8D71AF19382}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Lua", "Lua\Lua.shproj", "{BCC93A53-BCC0-4413-B72A-F137ADE1A909}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Lua", "Lua\Lua.shproj", "{AA2392B4-11D0-4988-8EBF-D8179EFFF927}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Lua\Lua.projitems*{214160e9-7ffb-40f2-8af0-c8d71af19382}*SharedItemsImports = 5
-		Lua\Lua.projitems*{bcc93a53-bcc0-4413-b72a-f137ade1a909}*SharedItemsImports = 13
+		Lua\Lua.projitems*{aa2392b4-11d0-4988-8ebf-d8179efff927}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
