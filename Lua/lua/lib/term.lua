@@ -72,7 +72,7 @@ local function len(s)
 end
 
 local function writeChar(c)
-    screen.setChar(c or " ", math.tointeger(posX), math.tointeger(posY))
+    screen.setChar(c or " ", math.floor(posX), math.floor(posY))
     posX = posX + 1
 end
 

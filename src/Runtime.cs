@@ -1,6 +1,7 @@
 using Eight.Module;
 using KeraLua;
 using System;
+using System.IO;
 using System.Text;
 
 namespace Eight {
@@ -22,8 +23,15 @@ namespace Eight {
 
             State = LuaState.NewThread();
 
-            var status = State.LoadFile("../bios.lua");
-            if (status != LuaStatus.OK) {
+            if ( !File.Exists("../bios.lua") ) {
+                Console.WriteLine("Could not find bios.lua");
+                return false;
+            }
+
+            var biosContent = File.ReadAllText("../bios.lua");
+
+            var status = State.LoadString(biosContent, "@BIOS");
+            if ( status != LuaStatus.OK ) {
                 var error = State.ToString(-1);
                 Console.WriteLine("Lua Load Exception: {0}", error);
                 return false;
@@ -67,11 +75,11 @@ namespace Eight {
         }
 
         public static bool Resume(int n = 0) {
-            if (_quit) return false;
+            if ( _quit ) return false;
             var status = State.Resume(null, n, out var nres);
-            if (status == LuaStatus.OK || status == LuaStatus.Yield) {
+            if ( status == LuaStatus.OK || status == LuaStatus.Yield ) {
                 State.Pop(nres);
-                if (status != LuaStatus.OK) return true;
+                if ( status != LuaStatus.OK ) return true;
                 Console.WriteLine(State.ToString(-1));
                 return false;
             }
@@ -81,7 +89,7 @@ namespace Eight {
             var traceback = State.ToString(-1) ?? "Unknown Trace";
 
             string nr;
-            switch (status) {
+            switch ( status ) {
                 case LuaStatus.ErrRun:
                     nr = "Runtime Error";
                     break;

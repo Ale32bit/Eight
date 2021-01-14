@@ -179,33 +179,10 @@ namespace Eight.Module {
             if (x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight) return;
 
             Color fgc = Color.FromArgb(fg);
-            SDL_Color foreground = new() {
-                r = fgc.R,
-                g = fgc.G,
-                b = fgc.B,
-            };
 
             Color bgc = Color.FromArgb(bg);
 
-            /*var glyph = Display.GetGlyph(c, Display.Tewi);
-            var textSurface = Display.BitmapToSurface(glyph);*/
-
-            /*var textSurface = TTF_RenderUTF8_Solid(Display.TextFont, c.ToString(), foreground);
-
-            if (textSurface == IntPtr.Zero) {
-                return;
-            }*/
-
-
-            //var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
-
-            /*var textRectangle = new SDL_Rect {
-                x = (x * Eight.CellWidth) -2/*+ (int)Math.Floor((double)(Eight.CellWidth - tx.w) / 2),
-                y = (y * Eight.CellHeight) /*- 1,
-                w = Eight.CellWidth,
-                h = Eight.CellHeight
-            };*/
-
+            if ( c >= Display.TextFont.CharList.Length ) c = '?';
             var matrix = Display.TextFont.CharList[c];
             if ( matrix == null ) matrix = Display.TextFont.CharList['?'];
             
@@ -220,22 +197,14 @@ namespace Eight.Module {
 
             SDL_FillRect(Display.Surface, ref bgRectangle, SDL_MapRGB(sur.format, bgc.R, bgc.G, bgc.B));
 
-            //SDL_BlitSurface(textSurface, IntPtr.Zero, Display.Surface, ref textRectangle);
-
-            //SDL_FreeSurface(textSurface);
-
-            //var pixels = new SDL_Rect[matrix.Length];
-
-            //int i = 0;
-            for(int gy = 0; gy < matrix.GetLength(0); gy++ ) {
+            int deltaX = (Eight.CellWidth - matrix.GetLength(1)) / 2;
+            for (int gy = 0; gy < matrix.GetLength(0); gy++ ) {
                 for(int gx = 0; gx < matrix.GetLength(1); gx++) {
                     if ( matrix[gy, gx] ) {
-                        ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth), gy + (y * Eight.CellHeight), fgc.R, fgc.G, fgc.B);
+                        ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth) + deltaX, gy + (y * Eight.CellHeight), fgc.R, fgc.G, fgc.B);
                     }
                 }
             }
-
-            //SDL_FillRects(Display.Surface, pixels, pixels.Length, SDL_MapRGB(sur.format, fgc.R, fgc.G, fgc.B));
 
             Display.Dirty = true;
         }

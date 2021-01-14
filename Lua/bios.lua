@@ -24,6 +24,8 @@ local function log(msg, offset)
         if c == "\n" then
             cY = cY + 1
             cX = 0
+        elseif c == "\t" then
+            cX = cX + 2
         else
             screen.setChar(c, cX + offset, cY)
             cX = cX + 1
