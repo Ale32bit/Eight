@@ -1,10 +1,10 @@
-using Eight.LuaLibs;
+using Eight.Module;
 using KeraLua;
 using System;
 using System.Text;
 
-namespace Eight.Logic {
-    public static class Lua {
+namespace Eight {
+    public static class Runtime {
         public static KeraLua.Lua LuaState;
         public static KeraLua.Lua State;
 
@@ -37,6 +37,11 @@ namespace Eight.Logic {
             LuaState.GetGlobal("io");
             LuaState.GetField(-1, "open");
             LuaState.SetField((int)LuaRegistry.Index, "_io_open");
+            LuaState.Pop(1);
+
+            LuaState.GetGlobal("io");
+            LuaState.GetField(-1, "lines");
+            LuaState.SetField((int)LuaRegistry.Index, "_io_lines");
             LuaState.Pop(1);
 
             // Destroy dem libtards with shapiro

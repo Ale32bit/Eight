@@ -2,10 +2,8 @@ using KeraLua;
 using SDL2;
 using System;
 using static SDL2.SDL;
-using Lua = Eight.Logic.Lua;
-using SDL = Eight.Logic.SDL;
 
-namespace Eight.LuaLibs {
+namespace Eight.Module {
     public class Screen {
         public static LuaRegister[] ScreenLib = {
             new() {
@@ -49,14 +47,6 @@ namespace Eight.LuaLibs {
                 function = GetTitle
             },
             new() {
-                name = "loadFont",
-                function = LoadFont
-            },
-            new() {
-                name = "drawText",
-                function = DrawText,
-            },
-            new() {
                 name = "setChar",
                 function = ScreenText.SetChar,
             },
@@ -88,18 +78,18 @@ namespace Eight.LuaLibs {
         };
 
         public static void Setup() {
-            Lua.LuaState.RequireF("screen", OpenLib, false);
+            Runtime.LuaState.RequireF("screen", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             state.NewLib(ScreenLib);
 
             return 1;
         }
 
         public static int SetPixel(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
@@ -118,7 +108,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int SetSize(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
@@ -128,7 +118,7 @@ namespace Eight.LuaLibs {
             var h = (int)state.ToNumber(2);
             var s = (int)state.ToNumber(3);
 
-            SDL.SetScreenSize(w, h, s);
+            Display.SetScreenSize(w, h, s);
 
             Utils.LuaParameter[] ev = {
                 new() {
@@ -155,7 +145,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int GetSize(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.PushNumber(Eight.WindowWidth);
             state.PushNumber(Eight.WindowHeight);
@@ -165,7 +155,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int GetRealSize(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.PushNumber(Eight.RealWidth);
             state.PushNumber(Eight.RealHeight);
@@ -175,7 +165,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int SetTickrate(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
 
@@ -185,7 +175,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int GetTickrate(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.PushInteger(Eight.Tickrate);
 
@@ -193,7 +183,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int DrawRectangle(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
             state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
@@ -217,13 +207,13 @@ namespace Eight.LuaLibs {
         }
 
         public static int SetTitle(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
             var title = state.ToString(1);
 
-            SDL_SetWindowTitle(SDL.Window, title);
+            SDL_SetWindowTitle(Display.Window, title);
 
             Utils.LuaParameter[] ev = {
                 new() {
@@ -242,60 +232,8 @@ namespace Eight.LuaLibs {
         }
 
         public static int GetTitle(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
-            state.PushString(SDL_GetWindowTitle(SDL.Window));
-            return 1;
-        }
-
-        public static int LoadFont(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
-
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-
-            var path = state.ToString(1);
-            var size = (int)state.ToInteger(2);
-
-            var resolvedPath = FileSystem.Resolve(path);
-
-            var font = ScreenShapes.LoadFont(resolvedPath, size);
-            var height = SDL_ttf.TTF_FontHeight(font);
-
-            state.NewTable();
-
-            state.PushString("font");
-            state.PushLightUserData(font);
-            state.SetTable(-3);
-
-            state.PushString("height");
-            state.PushInteger(height);
-            state.SetTable(-3);
-
-            return 1;
-        }
-
-        public static int DrawText(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
-
-            var font = state.ToUserData(1);
-            var text = state.ToString(2);
-            var x = (int)state.ToInteger(3);
-            var y = (int)state.ToInteger(4);
-            var r = (byte)state.ToInteger(5);
-            var g = (byte)state.ToInteger(6);
-            var b = (byte)state.ToInteger(7);
-
-            var surface = ScreenShapes.DrawText(font, text, x, y, r, g, b);
-
-            state.NewTable();
-
-            state.PushString("width");
-            state.PushInteger(surface.w);
-            state.SetTable(-3);
-            state.PushString("height");
-            state.PushInteger(surface.h);
-            state.SetTable(-3);
-
+            var state = Lua.FromIntPtr(luaState);
+            state.PushString(SDL_GetWindowTitle(Display.Window));
             return 1;
         }
     }

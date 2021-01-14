@@ -1,8 +1,8 @@
 ﻿// WORK IN PROGRESS
 
 using System;
-using static SDL2.SDL;
-namespace Eight.LuaLibs {
+
+namespace Eight.Module {
     class Audio {
         public static KeraLua.LuaRegister[] AudioLib = {
             /*new() {
@@ -17,7 +17,7 @@ namespace Eight.LuaLibs {
         };
 
         public static void Setup() {
-            Logic.Lua.LuaState.RequireF("audio", OpenLib, false);
+            Runtime.LuaState.RequireF("audio", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {

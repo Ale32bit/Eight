@@ -1,10 +1,10 @@
 using System;
 using static SDL2.SDL;
-using static SDL2.SDL_image;
-using static SDL2.SDL_ttf;
+using System.Drawing;
+//using static SDL2.SDL_ttf;
 
-namespace Eight.Logic {
-    public class SDL {
+namespace Eight {
+    public class Display {
         public static IntPtr Window = IntPtr.Zero;
         public static IntPtr Renderer = IntPtr.Zero;
         public static IntPtr Surface = IntPtr.Zero;
@@ -13,7 +13,7 @@ namespace Eight.Logic {
 
         public static ulong[] TextGrid;
 
-        public static IntPtr TextFont;
+        public static EBF TextFont;
 
         public static bool Init() {
             Console.WriteLine("Initializing SDL...");
@@ -25,9 +25,6 @@ namespace Eight.Logic {
                 SDL_Quit();
                 return false;
             }
-
-            TTF_Init();
-            IMG_Init(IMG_InitFlags.IMG_INIT_PNG);
 
             ResetScreenSize();
 
@@ -43,12 +40,9 @@ namespace Eight.Logic {
                 return false;
             }
 
-            var icon = IMG_Load("../icon.png");
-            if (icon != IntPtr.Zero) {
-                SDL_SetWindowIcon(Window, icon);
-            } else {
-                Console.WriteLine("Failed to load icon.png");
-            }
+            var icon = LoadImage("../icon.png");
+
+            SDL_SetWindowIcon(Window, icon);
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
             SDL_SetRenderDrawBlendMode(Renderer, SDL_BlendMode.SDL_BLENDMODE_NONE);
@@ -62,9 +56,14 @@ namespace Eight.Logic {
                 return false;
             }
 
-            TextFont = TTF_OpenFont("../Assets/tewi.ttf", 11);
-
-            if (TextFont == IntPtr.Zero) throw new Exception(SDL_GetError());
+            Console.WriteLine("Loading EBF font...");
+            try {
+                TextFont = new EBF("../Assets/font.ebf");
+            } catch(System.IO.FileNotFoundException e) {
+                Console.WriteLine("Could not find font.ebf");
+                Console.WriteLine(e);
+                return false;
+            }
 
             return true;
         }
@@ -139,8 +138,36 @@ namespace Eight.Logic {
             SDL_DestroyRenderer(Renderer);
             SDL_DestroyWindow(Window);
             SDL_Quit();
-            TTF_Quit();
-            IMG_Quit();
         }
+
+        public static IntPtr BitmapToSurface(Bitmap bmp) {
+            var r = new Rectangle(0, 0, bmp.Width, bmp.Height);
+            var cvt = bmp.Clone(r, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            bmp.Dispose();
+            var dat = cvt.LockBits(r, System.Drawing.Imaging.ImageLockMode.ReadOnly, cvt.PixelFormat);
+            var w = dat.Width;
+            var h = dat.Height;
+            var stride = dat.Stride;
+            IntPtr surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+            unsafe { // hic sunt dracones
+                var s = (SDL_Surface*)surface;
+                var pitch = s->pitch;
+                var dst = (byte*)s->pixels;
+                var src = (byte*)dat.Scan0;
+                for ( int y = 0; y < h; y++ ) {
+                    Buffer.MemoryCopy(src, dst, w * 4, w * 4);
+                    src += stride;
+                    dst += pitch;
+                }
+            }
+            cvt.UnlockBits(dat);
+            cvt.Dispose();
+            return surface;
+        }
+
+        public static IntPtr LoadImage(string path) {
+            return BitmapToSurface(new(path));
+        }
+
     }
 }

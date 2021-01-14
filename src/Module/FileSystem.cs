@@ -3,14 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Lua = Eight.Logic.Lua;
 
-namespace Eight.LuaLibs {
+namespace Eight.Module {
     public class FileSystem {
         public static LuaRegister[] FileSystemLib = {
             new() {
                 name = "open",
                 function = Open
+            },
+            new() {
+                name = "lines",
+                function = Lines,
             },
             new() {
                 name = "makeDir",
@@ -42,7 +45,7 @@ namespace Eight.LuaLibs {
         public static void Setup() {
             Console.WriteLine("Working in {0}", Directory.GetCurrentDirectory());
 
-            Lua.LuaState.RequireF("filesystem", OpenLib, false);
+            Runtime.LuaState.RequireF("filesystem", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {
@@ -70,6 +73,22 @@ namespace Eight.LuaLibs {
             return 1;
         }
 
+        public static int Lines(IntPtr luaState) {
+            var state = KeraLua.Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+
+            var path = state.ToString(1);
+
+            var resolvedPath = Resolve(path);
+
+            state.GetField(LuaRegistry.Index, "_io_lines");
+            state.PushString(resolvedPath);
+            state.Call(1, 1);
+
+            return 1;
+        }
+
         public static int MakeDir(IntPtr luaState) {
             var state = KeraLua.Lua.FromIntPtr(luaState);
             var error = "Unknown error";
@@ -80,13 +99,13 @@ namespace Eight.LuaLibs {
             var dirPath = state.ToString(1);
             var resolvedPath = Resolve(dirPath);
 
-            if (PathExists(resolvedPath)) {
+            if ( PathExists(resolvedPath) ) {
                 ok = false;
                 error = "File already exists";
             } else {
                 try {
                     Directory.CreateDirectory(resolvedPath);
-                } catch (Exception e) {
+                } catch ( Exception e ) {
                     Console.WriteLine(e);
                     ok = false;
                     error = "Internal error";
@@ -95,10 +114,11 @@ namespace Eight.LuaLibs {
 
             state.PushBoolean(ok);
 
-            if (ok)
+            if ( ok ) {
                 state.PushNil();
-            else
+            } else {
                 state.PushString(error);
+            }
 
             return 2;
         }
@@ -111,7 +131,7 @@ namespace Eight.LuaLibs {
             var path = state.ToString(1);
             var resolvedPath = Resolve(path);
 
-            if (PathExists(resolvedPath)) {
+            if ( PathExists(resolvedPath) ) {
                 var dirs = new List<string>(Directory.GetDirectories(resolvedPath));
                 var files = new List<string>(Directory.GetFiles(resolvedPath));
                 var allFiles = dirs.Concat(files).ToArray();
@@ -119,7 +139,7 @@ namespace Eight.LuaLibs {
                 Array.Sort(allFiles);
 
                 state.NewTable();
-                for (var i = 1; i <= allFiles.Length; i++) {
+                for ( var i = 1; i <= allFiles.Length; i++ ) {
                     state.PushString(Path.GetFileName(allFiles[i - 1]));
                     state.RawSetInteger(-2, i);
                 }
@@ -141,13 +161,14 @@ namespace Eight.LuaLibs {
             var path = state.ToString(1);
             var resolvedPath = Resolve(path);
 
-            if (PathExists(resolvedPath)) {
-                if (Directory.Exists(resolvedPath))
+            if ( PathExists(resolvedPath) ) {
+                if ( Directory.Exists(resolvedPath) ) {
                     state.PushString("directory");
-                else if (File.Exists(resolvedPath))
+                } else if ( File.Exists(resolvedPath) ) {
                     state.PushString("file");
-                else
+                } else {
                     state.PushString("unknown");
+                }
 
                 state.PushNil();
             } else {
@@ -165,19 +186,24 @@ namespace Eight.LuaLibs {
 
             var path = state.ToString(1);
             var recursive = false;
-            if (state.IsBoolean(2)) recursive = state.ToBoolean(2);
+            if ( state.IsBoolean(2) ) {
+                recursive = state.ToBoolean(2);
+            }
 
             var resolvedPath = Resolve(path);
 
             var ok = true;
             var error = "Unknown error";
 
-            if (PathExists(resolvedPath)) {
+            if ( PathExists(resolvedPath) ) {
                 try {
-                    if (Directory.Exists(resolvedPath)) // if it's path
+                    if ( Directory.Exists(resolvedPath) ) // if it's path
+{
                         Directory.Delete(resolvedPath, recursive);
-                    else if (File.Exists(resolvedPath)) File.Delete(resolvedPath);
-                } catch (Exception e) {
+                    } else if ( File.Exists(resolvedPath) ) {
+                        File.Delete(resolvedPath);
+                    }
+                } catch ( Exception e ) {
                     Console.WriteLine(e);
                     ok = false;
                     error = "Internal error";
@@ -187,7 +213,7 @@ namespace Eight.LuaLibs {
                 error = "File or directory not found";
             }
 
-            if (ok) {
+            if ( ok ) {
                 state.PushBoolean(true);
                 state.PushNil();
             } else {
@@ -199,7 +225,7 @@ namespace Eight.LuaLibs {
         }
 
         public static int Exists(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
@@ -225,9 +251,9 @@ namespace Eight.LuaLibs {
             var resolvedSource = Resolve(source);
             var resolvedDestination = Resolve(destination);
 
-            if (File.Exists(resolvedSource)) {
+            if ( File.Exists(resolvedSource) ) {
                 // If it's a file
-                if (File.Exists(resolvedDestination) && !overwrite) {
+                if ( File.Exists(resolvedDestination) && !overwrite ) {
                     state.PushBoolean(false);
                     state.PushString("Destination path already exists");
                 } else {
@@ -235,14 +261,14 @@ namespace Eight.LuaLibs {
                         File.Move(resolvedSource, resolvedDestination, overwrite);
                         state.PushBoolean(true);
                         state.PushNil();
-                    } catch (Exception e) {
+                    } catch ( Exception e ) {
                         Console.WriteLine(e);
                         state.PushBoolean(false);
                         state.PushString("Internal error");
                     }
                 }
-            } else if (Directory.Exists(resolvedSource)) {
-                if (File.Exists(resolvedDestination)) {
+            } else if ( Directory.Exists(resolvedSource) ) {
+                if ( File.Exists(resolvedDestination) ) {
                     state.PushBoolean(false);
                     state.PushString("Destination path is a file");
                 } else {

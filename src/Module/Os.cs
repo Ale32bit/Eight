@@ -1,9 +1,8 @@
-using Eight.Logic;
 using System;
 using System.Collections.Generic;
 using State = KeraLua;
 
-namespace Eight.LuaLibs {
+namespace Eight.Module {
     public static class Os {
         public static string[] Whitelist = {
             "time",
@@ -12,11 +11,10 @@ namespace Eight.LuaLibs {
             "date"
         };
 
-
         public static List<State.LuaRegister> OSLib = new();
 
         public static void Setup() {
-            var LuaState = Lua.LuaState;
+            var LuaState = Runtime.LuaState;
 
             OSLib.Add(new State.LuaRegister {
                 name = "version",

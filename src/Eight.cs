@@ -1,4 +1,3 @@
-using Eight.Logic;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,7 +5,7 @@ using System.Linq;
 using System.Timers;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
-using Lua = KeraLua;
+using KeraLua;
 using Timer = System.Timers.Timer;
 
 namespace Eight {
@@ -71,12 +70,12 @@ namespace Eight {
         public static bool Init() {
             SetTickrate(DefaultTickrate);
 
-            if (!Logic.Lua.Init()) {
+            if (!Runtime.Init()) {
                 Console.WriteLine("Lua could not be initialized!");
                 return false;
             }
 
-            if (!SDL.Init()) {
+            if (!Display.Init()) {
                 Console.WriteLine("SDL2 could not be initialized!");
                 return false;
             }
@@ -102,7 +101,7 @@ namespace Eight {
 
             syncTimer.Elapsed += SyncTimerHandler;
 
-            var ok = Logic.Lua.Resume(n);
+            var ok = Runtime.Resume(n);
             OutOfSync = false;
 
             syncTimer.Stop();
@@ -122,7 +121,7 @@ namespace Eight {
             var oldY = -1;
             var pressedMouseButtons = new List<byte>();
 
-            using var state = Logic.Lua.State;
+            using var state = Runtime.State;
 
             foreach (var arg in Args) {
                 state.PushString(arg);
@@ -246,26 +245,26 @@ namespace Eight {
                                             var type = parameters[i].Type;
                                             var value = parameters[i].Value;
 
-                                            switch (type) {
-                                                case Lua.LuaType.Nil:
+                                            switch ( type ) {
+                                                case LuaType.Nil:
                                                     state.PushNil();
                                                     break;
-                                                case Lua.LuaType.Boolean:
+                                                case LuaType.Boolean:
                                                     state.PushBoolean(Convert.ToBoolean(value));
                                                     break;
-                                                case Lua.LuaType.LightUserData:
+                                                case LuaType.LightUserData:
                                                     state.PushLightUserData((IntPtr)value);
                                                     break;
-                                                case Lua.LuaType.Number:
+                                                case LuaType.Number:
                                                     state.PushNumber(Convert.ToDouble(value));
                                                     break;
-                                                case Lua.LuaType.String:
-                                                    if (value is byte[] v)
+                                                case LuaType.String:
+                                                    if ( value is byte[] v)
                                                         state.PushBuffer(v);
-                                                    else if (value is string s)
+                                                    else if ( value is string s)
                                                         state.PushString(s);
                                                     break;
-                                                case Lua.LuaType.UserData:
+                                                case LuaType.UserData:
                                                     state.PushLightUserData((IntPtr)value);
                                                     break;
                                             }
@@ -287,8 +286,8 @@ namespace Eight {
                     while (ptime >= Ticktime)
                         ptime -= Ticktime;
                     if (!IsQuitting) {
-                        if (state.Status == Lua.LuaStatus.Yield) {
-                            SDL.RenderScreen();
+                        if ( state.Status == LuaStatus.Yield) {
+                            Display.RenderScreen();
                             state.PushString("tick");
                             Resume(1);
                         }
@@ -320,8 +319,8 @@ namespace Eight {
             Console.WriteLine("Quitting");
             IsQuitting = true;
 
-            Logic.Lua.Quit();
-            SDL.Quit();
+            Runtime.Quit();
+            Display.Quit();
         }
     }
 }

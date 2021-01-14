@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -19,7 +19,7 @@
   <ItemGroup>
     <None Remove="App.config" />
     <None Remove="app.manifest" />
-    <None Remove="Assets\tewi.ttf" />
+    <None Remove="Assets\font.ebf" />
     <None Remove="eight.png" />
     <None Remove="icon.ico" />
     <None Remove="icon.png" />
@@ -30,7 +30,7 @@
     <Content Include="app.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\tewi.ttf">
+    <Content Include="Assets\font.ebf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="eight.png" />
@@ -43,27 +43,35 @@
     <Content Include="LICENSE">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="src\LuaLibs\Audio.cs" />
+    <Content Include="src\EBF.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="KeraLua" Version="1.2.11" />
-    <PackageReference Include="SDL2-CS" Version="2.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="SDL2-CS">
-      <HintPath>Libraries\SDL2-CS.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <Import Project="Libraries\Libraries.projitems" Label="Shared" />
 
   <Import Project="Lua\Lua.projitems" Label="Shared" />
 
   <ItemGroup>
-    <Content Remove="src\LuaLibs\Audio.cs" />
-    <Content Remove="src\LuaLibs\ScreenText.cs" />
+    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.jpeg.txt" />
+    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.png.txt" />
+    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.tiff.txt" />
+    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\LICENSE.webp.txt" />
+    <Content Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\README.txt" />
+    <Content Remove="src\Display.cs" />
+    <Content Remove="src\EBF.cs" />
+    <Content Remove="src\Module\Audio.cs" />
+    <Content Remove="src\Module\ScreenText.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libjpeg-9.dll" />
+    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libpng16-16.dll" />
+    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libtiff-5.dll" />
+    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\libwebp-7.dll" />
+    <None Remove="C:\Users\alepr\Source\Repos\Eight\Libraries\SDL2_image.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="KeraLua" Version="1.2.11" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.53" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

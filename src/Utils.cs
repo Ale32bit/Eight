@@ -47,7 +47,6 @@ namespace Eight {
             public ulong Source;
         }
 
-
         public struct LuaParameter {
             public LuaType Type;
             public object Value;

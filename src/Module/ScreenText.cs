@@ -1,11 +1,12 @@
 ﻿using KeraLua;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using static SDL2.SDL;
-using static SDL2.SDL_ttf;
+//using static SDL2.SDL_ttf;
 
-namespace Eight.LuaLibs {
+namespace Eight.Module {
     class ScreenText {
         public static int ForegroundColor = 0xffffff;
         public static int BackgroundColor = 0x000000;
@@ -92,22 +93,22 @@ namespace Eight.LuaLibs {
             if (n <= -Eight.WindowHeight || n >= Eight.WindowHeight)
                 return Clear(luaState);
 
-            ulong[] newGrid = new ulong[Logic.SDL.TextGrid.Length];
+            ulong[] newGrid = new ulong[Display.TextGrid.Length];
 
             long m = Math.Abs(n) * Eight.WindowWidth;
             if (n < 0) { // text goes up, left shift
-                Array.Copy(Logic.SDL.TextGrid, m, newGrid, 0, Logic.SDL.TextGrid.Length - m);
+                Array.Copy(Display.TextGrid, m, newGrid, 0, Display.TextGrid.Length - m);
             } else { // text goes down, right shift
-                Array.Copy(Logic.SDL.TextGrid, 0, newGrid, m, Logic.SDL.TextGrid.Length - m);
+                Array.Copy(Display.TextGrid, 0, newGrid, m, Display.TextGrid.Length - m);
             }
 
-            Logic.SDL.TextGrid = newGrid;
-            /*for (int i = 0; i < Logic.SDL.TextGrid.Length; i++) {
-                Logic.SDL.TextGrid[i] = newGrid[i];
+            Display.TextGrid = newGrid;
+            /*for (int i = 0; i < Display.TextGrid.Length; i++) {
+                Display.TextGrid[i] = newGrid[i];
             }*/
 
             Redraw();
-            Logic.SDL.Dirty = true;
+            Display.Dirty = true;
 
             return 0;
         }
@@ -124,16 +125,16 @@ namespace Eight.LuaLibs {
             ScreenShapes.DrawRectangle(0, 0, Eight.RealWidth, Eight.RealHeight, bg.R, bg.G, bg.B);
 
             if (resetGrid)
-                Logic.SDL.TextGrid = new ulong[Logic.SDL.TextGrid.Length];
+                Display.TextGrid = new ulong[Display.TextGrid.Length];
 
-            Logic.SDL.Dirty = true;
+            Display.Dirty = true;
         }
 
         public static void Redraw() {
             ClearScreen(false);
             for (int y = 0; y < Eight.WindowHeight; y++) {
                 for (int x = 0; x < Eight.WindowWidth; x++) {
-                    var point = Logic.SDL.TextGrid[x + y * Eight.WindowWidth];
+                    var point = Display.TextGrid[x + y * Eight.WindowWidth];
                     var tp = Utils.ToTextPoint(point);
 
                     DrawChar(tp.Char, x, y, tp.Foreground, tp.Background);
@@ -146,7 +147,7 @@ namespace Eight.LuaLibs {
 
             var point = Utils.ToULong(c, ForegroundColor, BackgroundColor);
 
-            Logic.SDL.TextGrid[x + y * Eight.WindowWidth] = point;
+            Display.TextGrid[x + y * Eight.WindowWidth] = point;
 
             DrawChar(c, x, y, ForegroundColor, BackgroundColor);
         }
@@ -162,7 +163,7 @@ namespace Eight.LuaLibs {
 
             if (x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight) return 0;
 
-            var point = Utils.ToTextPoint(Logic.SDL.TextGrid[x + y * Eight.WindowWidth]);
+            var point = Utils.ToTextPoint(Display.TextGrid[x + y * Eight.WindowWidth]);
 
             state.PushString(point.Char.ToString());
             state.PushInteger(point.Foreground);
@@ -186,39 +187,57 @@ namespace Eight.LuaLibs {
 
             Color bgc = Color.FromArgb(bg);
 
-            var textSurface = TTF_RenderUTF8_Solid(Logic.SDL.TextFont, c.ToString(), foreground);
+            /*var glyph = Display.GetGlyph(c, Display.Tewi);
+            var textSurface = Display.BitmapToSurface(glyph);*/
+
+            /*var textSurface = TTF_RenderUTF8_Solid(Display.TextFont, c.ToString(), foreground);
 
             if (textSurface == IntPtr.Zero) {
                 return;
-            }
+            }*/
 
-            var fontHeight = TTF_FontHeight(Logic.SDL.TextFont);
 
-            var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
+            //var tx = Marshal.PtrToStructure<SDL_Surface>(textSurface);
 
-            var textRectangle = new SDL_Rect {
-                x = (x * Eight.CellWidth) + (int)Math.Floor((double)(Eight.CellWidth - tx.w) / 2),
-                y = (y * Eight.CellHeight) - 1,
-                w = tx.w,
-                h = tx.h
-            };
+            /*var textRectangle = new SDL_Rect {
+                x = (x * Eight.CellWidth) -2/*+ (int)Math.Floor((double)(Eight.CellWidth - tx.w) / 2),
+                y = (y * Eight.CellHeight) /*- 1,
+                w = Eight.CellWidth,
+                h = Eight.CellHeight
+            };*/
 
+            var matrix = Display.TextFont.CharList[c];
+            if ( matrix == null ) matrix = Display.TextFont.CharList['?'];
+            
             var bgRectangle = new SDL_Rect {
                 x = (x * Eight.CellWidth),
                 y = (y * Eight.CellHeight),
-                w = tx.w,
-                h = tx.h-1
+                w = Eight.CellWidth,
+                h = Eight.CellHeight,
             };
 
-            var sur = Marshal.PtrToStructure<SDL_Surface>(Logic.SDL.Surface);
+            var sur = Marshal.PtrToStructure<SDL_Surface>(Display.Surface);
 
-            SDL_FillRect(Logic.SDL.Surface, ref bgRectangle, SDL_MapRGB(sur.format, bgc.R, bgc.G, bgc.B));
+            SDL_FillRect(Display.Surface, ref bgRectangle, SDL_MapRGB(sur.format, bgc.R, bgc.G, bgc.B));
 
-            SDL_BlitSurface(textSurface, IntPtr.Zero, Logic.SDL.Surface, ref textRectangle);
+            //SDL_BlitSurface(textSurface, IntPtr.Zero, Display.Surface, ref textRectangle);
 
-            SDL_FreeSurface(textSurface);
+            //SDL_FreeSurface(textSurface);
 
-            Logic.SDL.Dirty = true;
+            //var pixels = new SDL_Rect[matrix.Length];
+
+            //int i = 0;
+            for(int gy = 0; gy < matrix.GetLength(0); gy++ ) {
+                for(int gx = 0; gx < matrix.GetLength(1); gx++) {
+                    if ( matrix[gy, gx] ) {
+                        ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth), gy + (y * Eight.CellHeight), fgc.R, fgc.G, fgc.B);
+                    }
+                }
+            }
+
+            //SDL_FillRects(Display.Surface, pixels, pixels.Length, SDL_MapRGB(sur.format, fgc.R, fgc.G, fgc.B));
+
+            Display.Dirty = true;
         }
 
     }

@@ -4,9 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using static Eight.Utils;
-using Lua = Eight.Logic.Lua;
 
-namespace Eight.LuaLibs {
+namespace Eight.Module {
     public static class HTTP {
         public static LuaRegister[] AudioLib = {
             new() {
@@ -19,7 +18,7 @@ namespace Eight.LuaLibs {
         public static HttpClient Http = new();
 
         public static void Setup() {
-            Lua.LuaState.RequireF("http", OpenLib, false);
+            Runtime.LuaState.RequireF("http", OpenLib, false);
         }
 
         public static int OpenLib(IntPtr luaState) {

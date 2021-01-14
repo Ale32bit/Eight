@@ -2,9 +2,8 @@ using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.Timers;
-using Lua = Eight.Logic.Lua;
 
-namespace Eight.LuaLibs {
+namespace Eight.Module {
     public static class Timer {
         private static readonly Dictionary<double, System.Timers.Timer> _timers = new();
 
@@ -21,7 +20,7 @@ namespace Eight.LuaLibs {
         };
 
         public static void Setup() {
-            Lua.LuaState.RequireF("timer", Open, false);
+            Runtime.LuaState.RequireF("timer", Open, false);
         }
 
         private static int Open(IntPtr luaState) {
