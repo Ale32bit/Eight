@@ -14,6 +14,9 @@ namespace Eight {
         public static ulong[] TextGrid;
         public static byte[] TextFlags;
 
+        private static int BlinkFlagDelay = 500; // ms
+        private static int BlinkFlagLastUpdate = 0;
+
         public static EBF TextFont;
 
         public static bool Init() {
@@ -21,7 +24,7 @@ namespace Eight {
 
             SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 
-            if (SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+            if ( SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0 ) {
                 Console.WriteLine("SDL_Init Error: {0}", SDL_GetError());
                 SDL_Quit();
                 return false;
@@ -35,7 +38,7 @@ namespace Eight {
                 Eight.RealHeight * Eight.WindowScale,
                 SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI);
 
-            if (Window == IntPtr.Zero) {
+            if ( Window == IntPtr.Zero ) {
                 Console.WriteLine("SDL_CreateWindow Error: {0}", SDL_GetError());
                 SDL_Quit();
                 return false;
@@ -51,7 +54,7 @@ namespace Eight {
             Console.WriteLine("Creating renderer...");
             Renderer = SDL_CreateRenderer(Window, -1,
                 SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
-            if (Renderer == IntPtr.Zero) {
+            if ( Renderer == IntPtr.Zero ) {
                 Console.WriteLine("SDL_CreateRenderer Error: {0}", SDL_GetError());
                 SDL_Quit();
                 return false;
@@ -60,7 +63,7 @@ namespace Eight {
             Console.WriteLine("Loading EBF font...");
             try {
                 TextFont = new EBF("../Assets/font.ebf");
-            } catch(System.IO.FileNotFoundException e) {
+            } catch ( System.IO.FileNotFoundException e ) {
                 Console.WriteLine("Could not find font.ebf");
                 Console.WriteLine(e);
                 return false;
@@ -70,7 +73,7 @@ namespace Eight {
         }
 
         public static void CreateScreen() {
-            if (Surface != IntPtr.Zero) {
+            if ( Surface != IntPtr.Zero ) {
                 SDL_FreeSurface(Surface);
                 Surface = IntPtr.Zero;
             }
@@ -82,7 +85,7 @@ namespace Eight {
                 0x0000ff00,
                 0x000000ff);
 
-            if (Surface == IntPtr.Zero) {
+            if ( Surface == IntPtr.Zero ) {
                 Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
                 Eight.Quit();
             }
@@ -118,7 +121,7 @@ namespace Eight {
         }
 
         public static void RenderScreen() {
-            if (!Dirty) return;
+            if ( !Dirty ) return;
 
             var sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
 
@@ -133,8 +136,24 @@ namespace Eight {
             Dirty = false;
         }
 
+        public static void Update() {
+            if ( BlinkFlagLastUpdate >= BlinkFlagDelay ) {
+                for ( int i = 0; i < TextFlags.Length; i++ ) {
+                    var flags = (Utils.TextFlag)TextFlags[i];
+                    if ( flags.HasFlag(Utils.TextFlag.Blinking) ) {
+                        TextFlags[i] ^= (byte)Utils.TextFlag.Reversed;
+
+                        Module.ScreenText.RedrawChar(i);
+                    }
+                }
+                BlinkFlagLastUpdate = 0;
+            }
+
+            BlinkFlagLastUpdate += Eight.Ticktime;
+        }
+
         public static void Quit() {
-            if (Surface != IntPtr.Zero)
+            if ( Surface != IntPtr.Zero )
                 SDL_FreeSurface(Surface);
 
             SDL_DestroyRenderer(Renderer);

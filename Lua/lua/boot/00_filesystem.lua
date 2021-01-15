@@ -54,6 +54,10 @@ function fs.readFile(path, binary)
     expect(1, path, "string")
     expect(2, binary, "boolean", "nil")
 
+    if not fs.exists(path) then
+        error("File not found", 2)
+    end
+
     local f = fs.open(path, binary and "rb" or "r")
     local content = f:read("*a")
     f:close()

@@ -94,4 +94,9 @@
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)lua\usr\share\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)lua\lib\emg.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

@@ -129,7 +129,7 @@ namespace Eight {
 
             Resume(Args.Length);
 
-            double pfreq = (double)SDL_GetPerformanceFrequency();
+            double pfreq = SDL_GetPerformanceFrequency();
             double ptime = 0;
             ulong last = SDL_GetPerformanceCounter();
             ulong now = last;
@@ -282,11 +282,11 @@ namespace Eight {
                     }
                 }
 
-                if (ptime * 1000 >= Ticktime) {
-                    while (ptime >= Ticktime)
-                        ptime -= Ticktime;
+                if ((ptime * 1000) >= Ticktime) {
+                    ptime = 0;
                     if (!IsQuitting) {
                         if ( state.Status == LuaStatus.Yield) {
+                            Display.Update();
                             Display.RenderScreen();
                             state.PushString("tick");
                             Resume(1);

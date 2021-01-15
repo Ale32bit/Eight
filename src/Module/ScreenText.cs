@@ -17,6 +17,7 @@ namespace Eight.Module {
             state.ArgumentCheck(state.IsString(1), 1, "expected char");
             state.ArgumentCheck(state.IsInteger(2) || state.IsNumber(2), 2, "expected integer");
             state.ArgumentCheck(state.IsInteger(3) || state.IsNumber(3), 3, "expected integer");
+            state.ArgumentCheck(state.IsInteger(4) || state.IsNumber(4) || state.IsNoneOrNil(4), 4, "expected integer, nil");
 
             var c = state.ToString(1);
             var x = (int)state.ToInteger(2);
@@ -24,13 +25,13 @@ namespace Eight.Module {
 
             char ch;
 
-            if (c.Length > 0) {
+            if ( c.Length > 0 ) {
                 ch = c.ToCharArray()[0];
             } else {
                 ch = ' ';
             }
 
-            SetChar(ch, x, y);
+            SetChar(ch, x, y, (!state.IsNoneOrNil(4) ? (Utils.TextFlag)state.ToInteger(4) : 0));
 
             return 0;
         }
@@ -89,20 +90,24 @@ namespace Eight.Module {
             state.ArgumentCheck(state.IsInteger(1), 1, "expected integer");
             var n = state.ToInteger(1);
 
-            if (n == 0) return 0;
-            if (n <= -Eight.WindowHeight || n >= Eight.WindowHeight)
+            if ( n == 0 ) return 0;
+            if ( n <= -Eight.WindowHeight || n >= Eight.WindowHeight )
                 return Clear(luaState);
 
             ulong[] newGrid = new ulong[Display.TextGrid.Length];
+            byte[] newFlags = new byte[Display.TextFlags.Length];
 
             long m = Math.Abs(n) * Eight.WindowWidth;
-            if (n < 0) { // text goes up, left shift
+            if ( n < 0 ) { // text goes up, left shift
                 Array.Copy(Display.TextGrid, m, newGrid, 0, Display.TextGrid.Length - m);
+                Array.Copy(Display.TextFlags, m, newFlags, 0, Display.TextFlags.Length - m);
             } else { // text goes down, right shift
                 Array.Copy(Display.TextGrid, 0, newGrid, m, Display.TextGrid.Length - m);
+                Array.Copy(Display.TextFlags, 0, newFlags, m, Display.TextFlags.Length - m);
             }
 
             Display.TextGrid = newGrid;
+            Display.TextFlags = newFlags;
             /*for (int i = 0; i < Display.TextGrid.Length; i++) {
                 Display.TextGrid[i] = newGrid[i];
             }*/
@@ -124,7 +129,7 @@ namespace Eight.Module {
 
             ScreenShapes.DrawRectangle(0, 0, Eight.RealWidth, Eight.RealHeight, bg.R, bg.G, bg.B);
 
-            if (resetGrid)
+            if ( resetGrid )
                 Display.TextGrid = new ulong[Display.TextGrid.Length];
 
             Display.Dirty = true;
@@ -132,8 +137,8 @@ namespace Eight.Module {
 
         public static void Redraw() {
             ClearScreen(false);
-            for (int y = 0; y < Eight.WindowHeight; y++) {
-                for (int x = 0; x < Eight.WindowWidth; x++) {
+            for ( int y = 0; y < Eight.WindowHeight; y++ ) {
+                for ( int x = 0; x < Eight.WindowWidth; x++ ) {
                     var point = Display.TextGrid[x + y * Eight.WindowWidth];
                     var tp = Utils.ToTextPoint(point);
 
@@ -142,12 +147,25 @@ namespace Eight.Module {
             }
         }
 
-        public static void SetChar(char c, int x, int y) {
-            if (x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight) return;
+        public static void RedrawChar(int x, int y) {
+            var point = Display.TextGrid[x + y * Eight.WindowWidth];
+            var tp = Utils.ToTextPoint(point);
+
+            DrawChar(tp.Char, x, y, tp.Foreground, tp.Background);
+        }
+        public static void RedrawChar(int i) {
+            var x = i % Eight.WindowWidth;
+            var y = i / Eight.WindowWidth;
+            RedrawChar(x, y);
+        }
+
+        public static void SetChar(char c, int x, int y, Utils.TextFlag flags = 0) {
+            if ( x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight ) return;
 
             var point = Utils.ToULong(c, ForegroundColor, BackgroundColor);
 
             Display.TextGrid[x + y * Eight.WindowWidth] = point;
+            Display.TextFlags[x + y * Eight.WindowWidth] = (byte)flags;
 
             DrawChar(c, x, y, ForegroundColor, BackgroundColor);
         }
@@ -161,31 +179,33 @@ namespace Eight.Module {
             var x = (int)state.ToInteger(1);
             var y = (int)state.ToInteger(2);
 
-            if (x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight) return 0;
+            if ( x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight ) return 0;
 
             var point = Utils.ToTextPoint(Display.TextGrid[x + y * Eight.WindowWidth]);
 
             state.PushString(point.Char.ToString());
             state.PushInteger(point.Foreground);
             state.PushInteger(point.Background);
+            state.PushInteger((byte)GetFlags(x, y));
 
-            return 3;
+            return 4;
         }
 
-
         public static void DrawChar(char c, int x, int y, int fg, int bg) {
-            if (Eight.IsQuitting) return;
+            if ( Eight.IsQuitting ) return;
 
-            if (x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight) return;
+            if ( x < 0 || y < 0 || x >= Eight.WindowWidth || y >= Eight.WindowHeight ) return;
 
-            Color fgc = Color.FromArgb(fg);
+            var flag = (Utils.TextFlag)Display.TextFlags[x + y * Eight.WindowWidth];
 
-            Color bgc = Color.FromArgb(bg);
+            Color fgc = Color.FromArgb(!flag.HasFlag(Utils.TextFlag.Reversed) ? fg : bg);
+
+            Color bgc = Color.FromArgb(!flag.HasFlag(Utils.TextFlag.Reversed) ? bg : fg);
 
             if ( c >= Display.TextFont.CharList.Length ) c = '?';
             var matrix = Display.TextFont.CharList[c];
             if ( matrix == null ) matrix = Display.TextFont.CharList['?'];
-            
+
             var bgRectangle = new SDL_Rect {
                 x = (x * Eight.CellWidth),
                 y = (y * Eight.CellHeight),
@@ -195,18 +215,41 @@ namespace Eight.Module {
 
             var sur = Marshal.PtrToStructure<SDL_Surface>(Display.Surface);
 
+            // Draw BG
             SDL_FillRect(Display.Surface, ref bgRectangle, SDL_MapRGB(sur.format, bgc.R, bgc.G, bgc.B));
 
+            // Draw char
             int deltaX = (Eight.CellWidth - matrix.GetLength(1)) / 2;
-            for (int gy = 0; gy < matrix.GetLength(0); gy++ ) {
-                for(int gx = 0; gx < matrix.GetLength(1); gx++) {
+            for ( int gy = 0; gy < matrix.GetLength(0); gy++ ) {
+                for ( int gx = 0; gx < matrix.GetLength(1); gx++ ) {
                     if ( matrix[gy, gx] ) {
                         ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth) + deltaX, gy + (y * Eight.CellHeight), fgc.R, fgc.G, fgc.B);
                     }
                 }
             }
 
+            // Draw flags
+            if ( flag.HasFlag(Utils.TextFlag.Underlined) ) {
+                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight - 1, Eight.CellWidth, 1, fgc.R, fgc.G, fgc.B);
+            }
+
+            if(flag.HasFlag(Utils.TextFlag.Strikethrough)) {
+                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight / 2, Eight.CellWidth, 1, fgc.R, fgc.G, fgc.B);
+            }
+
+            if(flag.HasFlag(Utils.TextFlag.Bold)) {
+                // Ignored
+            }
+
             Display.Dirty = true;
+        }
+
+        public static void SetFlags(Utils.TextFlag flags, int x, int y) {
+            Display.TextFlags[x + y * Eight.WindowWidth] = (byte)flags;
+        }
+
+        public static Utils.TextFlag GetFlags(int x, int y) {
+            return (Utils.TextFlag)Display.TextFlags[x + y * Eight.WindowWidth];
         }
 
     }

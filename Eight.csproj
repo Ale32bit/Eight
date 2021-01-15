@@ -36,6 +36,13 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x86'  Or '$(RuntimeIdentifier)' == 'win-x64'">
+    <None Update="Lua/**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+
   <ItemGroup>
     <PackageReference Include="KeraLua" Version="1.2.11" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.53" />

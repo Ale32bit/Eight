@@ -1,4 +1,5 @@
 using KeraLua;
+using System;
 
 namespace Eight {
     public class Utils {
@@ -50,6 +51,20 @@ namespace Eight {
         public struct LuaParameter {
             public LuaType Type;
             public object Value;
+        }
+
+        [Flags]
+        public enum TextFlag : byte {
+            None = 0,
+            Underlined = 1,
+            Strikethrough = 2,
+            Bold = 4,
+            Reversed = 8,
+            Blinking = 16,
+            Mirrored = 32,
+            UpsideDown = 64,
+            X = 128,
+
         }
     }
 }
