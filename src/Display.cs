@@ -1,7 +1,6 @@
 using System;
 using static SDL2.SDL;
 using System.Drawing;
-//using static SDL2.SDL_ttf;
 
 namespace Eight {
     public class Display {
@@ -16,6 +15,7 @@ namespace Eight {
 
         private static int BlinkFlagDelay = 500; // ms
         private static int BlinkFlagLastUpdate = 0;
+        public static bool BlinkOn = false;
 
         public static EBF TextFont;
 
@@ -141,11 +141,10 @@ namespace Eight {
                 for ( int i = 0; i < TextFlags.Length; i++ ) {
                     var flags = (Utils.TextFlag)TextFlags[i];
                     if ( flags.HasFlag(Utils.TextFlag.Blinking) ) {
-                        TextFlags[i] ^= (byte)Utils.TextFlag.Reversed;
-
                         Module.ScreenText.RedrawChar(i);
                     }
                 }
+                BlinkOn = !BlinkOn;
                 BlinkFlagLastUpdate = 0;
             }
 

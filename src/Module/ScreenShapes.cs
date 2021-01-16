@@ -1,11 +1,8 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using static SDL2.SDL;
-//using static SDL2.SDL_ttf;
+﻿using static SDL2.SDL;
 
 namespace Eight.Module {
     public class ScreenShapes {
-        public static void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
+        public static unsafe void DrawRectangle(int x, int y, int w, int h, byte r, byte g, byte b) {
             if ( Eight.IsQuitting ) return;
 
             var rect = new SDL_Rect {
@@ -15,14 +12,12 @@ namespace Eight.Module {
                 h = h
             };
 
-            var sur = Marshal.PtrToStructure<SDL_Surface>(Display.Surface);
-
-            SDL_FillRect(Display.Surface, ref rect, SDL_MapRGB(sur.format, r, g, b));
+            SDL_FillRect(Display.Surface, ref rect, SDL_MapRGB(((SDL_Surface*)Display.Surface)->format, r, g, b));
 
             Display.Dirty = true;
         }
 
-        public static void DrawPixel(int x, int y, byte r, byte g, byte b) {
+        public static unsafe void DrawPixel(int x, int y, byte r, byte g, byte b) {
             if ( Eight.IsQuitting ) return;
 
             if ( x < 0 && y < 0 && x >= Eight.RealWidth && y >= Eight.RealHeight ) {
@@ -36,9 +31,7 @@ namespace Eight.Module {
                 h = 1
             };
 
-            var sur = Marshal.PtrToStructure<SDL_Surface>(Display.Surface);
-
-            SDL_FillRect(Display.Surface, ref pixel, SDL_MapRGB(sur.format, r, g, b));
+            SDL_FillRect(Display.Surface, ref pixel, SDL_MapRGB(((SDL_Surface*)Display.Surface)->format, r, g, b));
 
             Display.Dirty = true;
         }

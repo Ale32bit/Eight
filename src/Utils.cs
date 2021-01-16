@@ -63,7 +63,6 @@ namespace Eight {
             Blinking = 16,
             Mirrored = 32,
             UpsideDown = 64,
-            X = 128,
 
         }
     }
