@@ -1,6 +1,7 @@
 ﻿using KeraLua;
 using System;
 using System.Drawing;
+using System.Linq;
 using static SDL2.SDL;
 
 namespace Eight.Module {
@@ -91,7 +92,7 @@ namespace Eight.Module {
             if ( n <= -Eight.WindowHeight || n >= Eight.WindowHeight )
                 return Clear(luaState);
 
-            ulong[] newGrid = new ulong[Display.TextGrid.Length];
+            ulong[] newGrid = Enumerable.Repeat(Utils.ToULong(' ', ForegroundColor, BackgroundColor), Display.TextGrid.Length).ToArray();
             byte[] newFlags = new byte[Display.TextFlags.Length];
 
             long m = Math.Abs(n) * Eight.WindowWidth;
@@ -127,7 +128,7 @@ namespace Eight.Module {
             ScreenShapes.DrawRectangle(0, 0, Eight.RealWidth, Eight.RealHeight, bg.R, bg.G, bg.B);
 
             if ( resetGrid )
-                Display.TextGrid = new ulong[Display.TextGrid.Length];
+                Display.TextGrid = Enumerable.Repeat(Utils.ToULong(' ', ForegroundColor, BackgroundColor), Display.TextGrid.Length).ToArray();
                 Display.TextFlags = new byte[Display.TextFlags.Length];
 
             Display.Dirty = true;

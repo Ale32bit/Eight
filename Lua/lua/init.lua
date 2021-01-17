@@ -60,7 +60,7 @@ term.init()
 term.clear()
 term.setPos(0, 0)
 
-term.setForeground(0x21, 0x96, 0xf3)
+term.setForeground(0x2196f3)
 print("Eight", os.version())
 term.setForeground(0xffffff)
 

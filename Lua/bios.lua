@@ -10,8 +10,8 @@ os.log = print
 
 local w, h, oSize = screen.getSize()
 
-local cX, cY = 0, 0
-local function log(msg, offset)
+local cX, cY = 0, -1
+local function log(msg, offset, nonewline)
     os.log(msg)
     offset = offset or 0
     for i = 1, #msg do
@@ -34,7 +34,9 @@ local function log(msg, offset)
     end
 
     cX = 0
-    cY = cY + 1
+    if not nonewline then
+        cY = cY + 1
+    end
 
     if cY >= h then
         screen.scroll(-1)
@@ -51,7 +53,6 @@ local function panic(err)
     local stacktrace = debug.traceback(err or "Unknown", 2);
     screen.setSize(w, h, oSize)
     screen.setBackground(0x0000ff)
-
     screen.clear()
 
     cY = math.floor(h / 4)
@@ -66,9 +67,14 @@ local function panic(err)
 
     log(stacktrace, 1)
 
-    while true do
-        coroutine.yield()
-    end
+    cY = h-1
+    log("Press any key to restart", nil, true)
+
+    local ev = {}
+    repeat
+        ev = {coroutine.yield()}
+    until ev[1] == "key_down"
+    os.reboot()
 end
 
 log("Eight BIOS v1")

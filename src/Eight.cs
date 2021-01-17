@@ -14,7 +14,7 @@ namespace Eight {
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;
-        public const int DefaultScale = 2;
+        public const float DefaultScale = 2;
         public const int DefaultTickrate = 60;
 
         public const int CellWidth = 6;
@@ -33,7 +33,7 @@ namespace Eight {
 
         public static int WindowWidth;
         public static int WindowHeight;
-        public static int WindowScale;
+        public static float WindowScale;
 
         public static int Tickrate;
         public static int Ticktime;
@@ -102,6 +102,7 @@ namespace Eight {
             IsQuitting = true;
             Runtime.Quit();
             Display.Reset();
+            SetTickrate(DefaultTickrate);
         }
 
         public static void SetTickrate(int tickrate) {
@@ -187,10 +188,10 @@ namespace Eight {
 
                             break;
                         case SDL_MOUSEMOTION:
-                            x = _e.motion.x / WindowScale;
-                            y = _e.motion.y / WindowScale;
+                            x = (int) (_e.motion.x / WindowScale);
+                            y = (int) (_e.motion.y / WindowScale);
                             if (oldX != x || oldY != y) {
-                                state.PushString(pressedMouseButtons.Count > 0 ? "mouse_drag" : "mouse_hover");
+                                state.PushString(pressedMouseButtons.Count > 0 ? "mouse_drag" : "mouse_move");
 
                                 if (pressedMouseButtons.Count > 0) state.PushInteger(pressedMouseButtons.Last());
 
@@ -206,8 +207,8 @@ namespace Eight {
                             break;
                         case SDL_MOUSEBUTTONDOWN:
                         case SDL_MOUSEBUTTONUP:
-                            x = _e.motion.x / WindowScale;
-                            y = _e.motion.y / WindowScale;
+                            x = (int)(_e.motion.x / WindowScale);
+                            y = (int)(_e.motion.y / WindowScale);
 
                             if (_e.button.state == SDL_PRESSED) {
                                 if (!pressedMouseButtons.Contains(_e.button.button))

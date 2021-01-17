@@ -34,8 +34,8 @@ namespace Eight {
 
             Console.WriteLine("Creating window...");
             Window = SDL_CreateWindow("Eight " + Eight.Version, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                Eight.RealWidth * Eight.WindowScale,
-                Eight.RealHeight * Eight.WindowScale,
+                (int)(Eight.RealWidth * Eight.WindowScale),
+                (int)(Eight.RealHeight * Eight.WindowScale),
                 SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI);
 
             if ( Window == IntPtr.Zero ) {
@@ -98,17 +98,18 @@ namespace Eight {
 
         private static void UpdateScreen() {
             SDL_SetWindowSize(Window,
-                Eight.RealWidth * Eight.WindowScale,
-                Eight.RealHeight * Eight.WindowScale
+                (int)(Eight.RealWidth * Eight.WindowScale),
+                (int)(Eight.RealHeight * Eight.WindowScale)
             );
+
+            CreateScreen();
 
             SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-            CreateScreen();
         }
 
 
-        public static void SetScreenSize(int width, int height, int scale) {
+        public static void SetScreenSize(int width, int height, float scale) {
             Eight.WindowWidth = width;
             Eight.WindowHeight = height;
             Eight.WindowScale = scale;
