@@ -189,5 +189,11 @@ namespace Eight {
             return BitmapToSurface(new(path));
         }
 
+        public static bool Reset() {
+            ResetScreenSize();
+            SDL_SetWindowTitle(Window, "Eight " + Eight.Version);
+            return true;
+        }
+
     }
 }

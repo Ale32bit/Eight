@@ -48,6 +48,8 @@ namespace Eight {
         public static List<Utils.LuaParameter[]> UserEventQueue = new();
 
         public static bool IsQuitting;
+        
+        private static bool _reset = false;
         private static SDL_Event _e;
 
         [STAThread]
@@ -81,10 +83,25 @@ namespace Eight {
             }
 
             IsQuitting = false;
-
-            EventLoop();
+            
+            while(!IsQuitting) {
+                EventLoop();
+                if(_reset) {
+                    Console.WriteLine("Resetting environment");
+                    IsQuitting = false;
+                    _reset = false;
+                    Runtime.Init();
+                }
+            }
 
             return true;
+        }
+
+        public static void Reset() {
+            _reset = true;
+            IsQuitting = true;
+            Runtime.Quit();
+            Display.Reset();
         }
 
         public static void SetTickrate(int tickrate) {
@@ -93,6 +110,7 @@ namespace Eight {
         }
 
         public static void Resume(int n) {
+            if(IsQuitting) return;
             var syncTimer = new Timer {
                 Enabled = true,
                 AutoReset = false,

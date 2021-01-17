@@ -26,6 +26,11 @@ namespace Eight.Module {
                 function = Exit
             });
 
+            OSLib.Add(new State.LuaRegister {
+                name = "reboot",
+                function = Reboot,
+            });
+
             foreach (var name in Whitelist) {
                 LuaState.GetGlobal("os");
                 var funcType = LuaState.GetField(-1, name);
@@ -60,6 +65,11 @@ namespace Eight.Module {
 
         public static int Exit(IntPtr state) {
             Eight.Quit();
+            return 0;
+        }
+
+        public static int Reboot(IntPtr state) {
+            Eight.Reset();
             return 0;
         }
     }

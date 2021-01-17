@@ -12,6 +12,7 @@ namespace Eight {
         private static bool _quit;
 
         public static bool Init() {
+            _quit = false;
             LuaState = new KeraLua.Lua {
                 Encoding = Encoding.UTF8
             };
