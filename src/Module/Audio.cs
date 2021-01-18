@@ -1,6 +1,7 @@
 ﻿// WORK IN PROGRESS
 
 using System;
+using KeraLua;
 
 namespace Eight.Module {
     class Audio {
@@ -21,13 +22,13 @@ namespace Eight.Module {
         }
 
         private static int OpenLib(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             state.NewLib(AudioLib);
             return 1;
         }
 
         public static int Beep(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             double freq = state.ToNumber(1);
             long duration = state.ToInteger(1);

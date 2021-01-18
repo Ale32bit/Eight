@@ -1,6 +1,7 @@
-using KeraLua;
 using System;
 using System.Collections.Generic;
+using KeraLua;
+
 using System.Timers;
 
 namespace Eight.Module {
@@ -24,13 +25,13 @@ namespace Eight.Module {
         }
 
         private static int Open(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             state.NewLib(TimerLib);
             return 1;
         }
 
         public static int Start(IntPtr s) {
-            var state = KeraLua.Lua.FromIntPtr(s);
+            var state = Lua.FromIntPtr(s);
 
             state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
 
@@ -41,7 +42,7 @@ namespace Eight.Module {
         }
 
         public static int Stop(IntPtr s) {
-            var state = KeraLua.Lua.FromIntPtr(s);
+            var state = Lua.FromIntPtr(s);
 
             state.ArgumentCheck(state.IsInteger(1), 1, "expected integer");
 

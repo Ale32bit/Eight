@@ -6,7 +6,6 @@ using System.Timers;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
 using KeraLua;
-using Timer = System.Timers.Timer;
 
 namespace Eight {
     public static class Eight {
@@ -112,7 +111,7 @@ namespace Eight {
 
         public static void Resume(int n) {
             if(IsQuitting) return;
-            var syncTimer = new Timer {
+            var syncTimer = new Timer() {
                 Enabled = true,
                 AutoReset = false,
                 Interval = SyncTimeout

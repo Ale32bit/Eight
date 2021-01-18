@@ -1,9 +1,9 @@
 #nullable enable
-using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using static Eight.Utils;
+using KeraLua;
+
 
 namespace Eight.Module {
     public static class HTTP {
@@ -22,13 +22,13 @@ namespace Eight.Module {
         }
 
         public static int OpenLib(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             state.NewLib(AudioLib);
             return 1;
         }
 
         public static int Request(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             string? body = null;
             string? method = null;
 
@@ -96,7 +96,7 @@ namespace Eight.Module {
 
                 ProcessHttpResponse(response, rnd);
             } catch (Exception e) {
-                LuaParameter[] parameters = {
+                Utils.LuaParameter[] parameters = {
                     new() {
                         Type = LuaType.String,
                         Value = "http_failure"
@@ -118,7 +118,7 @@ namespace Eight.Module {
         private static async void ProcessHttpResponse(HttpResponseMessage response, string rnd) {
             var content = await response.Content.ReadAsByteArrayAsync();
 
-            LuaParameter[] parameters = {
+            Utils.LuaParameter[] parameters = {
                 new() {
                     Type = LuaType.String,
                     Value = "http_success"

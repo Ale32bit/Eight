@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using State = KeraLua;
+using KeraLua;
 
 namespace Eight.Module {
     public static class Os {
@@ -11,22 +11,22 @@ namespace Eight.Module {
             "date"
         };
 
-        public static List<State.LuaRegister> OSLib = new();
+        public static List<LuaRegister> OSLib = new();
 
         public static void Setup() {
             var LuaState = Runtime.LuaState;
 
-            OSLib.Add(new State.LuaRegister {
+            OSLib.Add(new() {
                 name = "version",
                 function = Version
             });
 
-            OSLib.Add(new State.LuaRegister {
+            OSLib.Add(new() {
                 name = "exit",
                 function = Exit
             });
 
-            OSLib.Add(new State.LuaRegister {
+            OSLib.Add(new() {
                 name = "reboot",
                 function = Reboot,
             });
@@ -34,9 +34,9 @@ namespace Eight.Module {
             foreach (var name in Whitelist) {
                 LuaState.GetGlobal("os");
                 var funcType = LuaState.GetField(-1, name);
-                if (funcType != State.LuaType.Function) continue;
+                if (funcType != LuaType.Function) continue;
                 var func = LuaState.ToCFunction(-1);
-                OSLib.Add(new State.LuaRegister {
+                OSLib.Add(new LuaRegister {
                     name = name,
                     function = func
                 });
@@ -56,7 +56,7 @@ namespace Eight.Module {
         }
 
         public static int Version(IntPtr luaState) {
-            var state = State.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.PushString(Eight.Version);
 
