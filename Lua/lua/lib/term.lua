@@ -111,9 +111,11 @@ local function getRealPos(x, y)
 end
 
 local function drawCursor()
-    local rw, rh = screen.getRealSize()
-    local cw, ch = getCellSize()
-    screen.drawRectangle(posX * cw, posY * ch + 1, 1, ch - 2, colors.toRGB(screen.getForeground()))
+    if isBlinking then
+        local rw, rh = screen.getRealSize()
+        local cw, ch = getCellSize()
+        screen.drawRectangle(posX * cw, posY * ch + 1, 1, ch - 2, screen.getForeground())
+    end
 end
 
 function term.setSize(w, h, s)

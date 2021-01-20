@@ -123,13 +123,12 @@ namespace Eight.Module {
         }
 
         public static void ClearScreen(bool resetGrid = true) {
-            Color bg = Color.FromArgb(BackgroundColor);
 
-            ScreenShapes.DrawRectangle(0, 0, Eight.RealWidth, Eight.RealHeight, bg.R, bg.G, bg.B);
+            ScreenShapes.DrawRectangle(0, 0, Eight.RealWidth, Eight.RealHeight, BackgroundColor);
 
             if ( resetGrid )
                 Display.TextGrid = Enumerable.Repeat(Utils.ToULong(' ', ForegroundColor, BackgroundColor), Display.TextGrid.Length).ToArray();
-                Display.TextFlags = new byte[Display.TextFlags.Length];
+            Display.TextFlags = new byte[Display.TextFlags.Length];
 
             Display.Dirty = true;
         }
@@ -198,15 +197,19 @@ namespace Eight.Module {
 
             var flag = (Utils.TextFlag)Display.TextFlags[x + y * Eight.WindowWidth];
 
-            Color fgc = Color.FromArgb(!flag.HasFlag(Utils.TextFlag.Reversed) ? fg : bg);
-
-            Color bgc = Color.FromArgb(!flag.HasFlag(Utils.TextFlag.Reversed) ? bg : fg);
+            if ( flag.HasFlag(Utils.TextFlag.Reversed) ) {
+                var fgc = fg;
+                fg = bg;
+                bg = fgc;
+            }
 
             if ( flag.HasFlag(Utils.TextFlag.Blinking) && Display.BlinkOn ) {
-                var cfgc = fgc;
-                fgc = bgc;
-                bgc = cfgc;
+                var fgc = fg;
+                fg = bg;
+                bg = fgc;
             }
+
+            var bgc = Color.FromArgb(bg);
 
             if ( c >= Display.TextFont.CharList.Length ) c = '?';
             var matrix = Display.TextFont.CharList[c];
@@ -227,18 +230,18 @@ namespace Eight.Module {
             for ( int gy = 0; gy < matrix.GetLength(0); gy++ ) {
                 for ( int gx = 0; gx < matrix.GetLength(1); gx++ ) {
                     if ( matrix[gy, gx] ) {
-                        ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth) + deltaX, gy + (y * Eight.CellHeight), fgc.R, fgc.G, fgc.B);
+                        ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth) + deltaX, gy + (y * Eight.CellHeight), fg);
                     }
                 }
             }
 
             // Draw flags
             if ( flag.HasFlag(Utils.TextFlag.Underlined) ) {
-                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight - 1, Eight.CellWidth, 1, fgc.R, fgc.G, fgc.B);
+                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight - 1, Eight.CellWidth, 1, fg);
             }
 
             if ( flag.HasFlag(Utils.TextFlag.Strikethrough) ) {
-                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight / 2, Eight.CellWidth, 1, fgc.R, fgc.G, fgc.B);
+                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight / 2, Eight.CellWidth, 1, fg);
             }
 
             Display.Dirty = true;
@@ -251,6 +254,5 @@ namespace Eight.Module {
         public static Utils.TextFlag GetFlags(int x, int y) {
             return (Utils.TextFlag)Display.TextFlags[x + y * Eight.WindowWidth];
         }
-
     }
 }

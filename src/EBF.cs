@@ -1,9 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace Eight {
     public class EBF {
@@ -19,8 +16,13 @@ namespace Eight {
         public EBF(string path) {
             _buffer = File.ReadAllBytes(path);
 
-            if ( NextByte() != 0 || ReadString(3) != "EBF" ) throw new Exception("Invalid EBF file");
-            if ( NextByte() != Version ) throw new Exception("Unsupported version");
+            if ( NextByte() != 0 || ReadString(3) != "EBF" ) {
+                throw new Exception("Invalid EBF file");
+            }
+
+            if ( NextByte() != Version ) {
+                throw new Exception("Unsupported version");
+            }
 
             Width = NextByte();
             Height = NextByte();
@@ -28,13 +30,15 @@ namespace Eight {
             Dictionary<ushort, bool[,]> list = new();
             ushort highestPoint = 0;
 
-            while( _i < _buffer.Length ) {
+            while ( _i < _buffer.Length ) {
                 var point = NextUShort();
                 highestPoint = Math.Max(highestPoint, point);
 
                 var pW = NextByte();
 
-                if ( pW > 8 ) throw new Exception("Width out of bounds");
+                if ( pW > 8 ) {
+                    throw new Exception("Width out of bounds");
+                }
 
                 var pH = NextByte();
 
@@ -44,16 +48,16 @@ namespace Eight {
                     for ( int x = pW; x > 0; x-- ) {
                         int bit = r & 1;
                         r >>= 1;
-                        matrix[y, x-1] = bit == 1;
+                        matrix[y, x - 1] = bit == 1;
                     }
                 }
 
                 list[point] = matrix;
             }
 
-            CharList = new bool[highestPoint+1][,];
+            CharList = new bool[highestPoint + 1][,];
 
-            foreach(var p in list.Keys) {
+            foreach ( var p in list.Keys ) {
                 CharList[p] = list[p];
             }
         }
@@ -89,7 +93,7 @@ namespace Eight {
             char[] arr = new char[l];
 
             for ( int i = 0; i < l; i++ ) {
-                arr[i] = (char) _buffer[_i];
+                arr[i] = (char)_buffer[_i];
                 _i++;
             }
 

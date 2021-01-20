@@ -65,7 +65,7 @@ local function draw(emg, x, y)
     for k, v in ipairs(emg.pixels) do
         local color = emg.palette[v]
         
-        screen.setPixel(x + dx, y + dy, table.unpack(color))
+        screen.drawPixel(x + dx, y + dy, table.unpack(color))
         --cprint(dx, dy, table.unpack(color))
         dx = dx + 1
         if dx >= emg.width then

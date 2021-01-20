@@ -50,13 +50,13 @@ namespace Eight.Module {
         }
 
         private static int OpenLib(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             state.NewLib(FileSystemLib);
             return 1;
         }
 
         public static int Open(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
             state.ArgumentCheck(state.IsString(2), 2, "expected string");
@@ -75,7 +75,7 @@ namespace Eight.Module {
         }
 
         public static int Lines(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
@@ -91,7 +91,7 @@ namespace Eight.Module {
         }
 
         public static int MakeDir(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
             var error = "Unknown error";
             var ok = true;
 
@@ -125,7 +125,7 @@ namespace Eight.Module {
         }
 
         public static int List(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
@@ -155,7 +155,7 @@ namespace Eight.Module {
         }
 
         public static int GetType(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
@@ -181,7 +181,7 @@ namespace Eight.Module {
         }
 
         public static int Delete(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
 
@@ -239,7 +239,7 @@ namespace Eight.Module {
         }
 
         public static int Move(IntPtr luaState) {
-            var state = KeraLua.Lua.FromIntPtr(luaState);
+            var state = Lua.FromIntPtr(luaState);
 
             state.ArgumentCheck(state.IsString(1), 1, "expected string");
             state.ArgumentCheck(state.IsString(2), 2, "expected string");

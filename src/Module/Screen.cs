@@ -1,13 +1,21 @@
-using System;
 using KeraLua;
+using System;
 using static SDL2.SDL;
 
 namespace Eight.Module {
     public class Screen {
         public static LuaRegister[] ScreenLib = {
             new() {
-                name = "setPixel",
-                function = SetPixel
+                name = "drawRectangle",
+                function = DrawRectangle
+            },
+            new() {
+                name = "drawPixel",
+                function = DrawPixel
+            },
+            new() {
+                name = "drawString",
+                function = DrawString,
             },
             new() {
                 name = "setSize",
@@ -32,10 +40,6 @@ namespace Eight.Module {
             new() {
                 name = "clear",
                 function = ScreenText.Clear
-            },
-            new() {
-                name = "drawRectangle",
-                function = DrawRectangle
             },
             new() {
                 name = "setTitle",
@@ -87,25 +91,6 @@ namespace Eight.Module {
             return 1;
         }
 
-        public static int SetPixel(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
-            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
-            state.ArgumentCheck(state.IsNumber(5), 5, "expected number");
-
-            var x = (int)state.ToNumber(1);
-            var y = (int)state.ToNumber(2);
-            var r = (byte)state.ToNumber(3);
-            var g = (byte)state.ToNumber(4);
-            var b = (byte)state.ToNumber(5);
-
-            ScreenShapes.DrawPixel(x, y, r, g, b);
-            return 0;
-        }
-
         public static int SetSize(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
@@ -139,6 +124,61 @@ namespace Eight.Module {
             };
 
             Eight.PushEvent(ev);
+
+            return 0;
+        }
+
+        public static int DrawRectangle(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
+            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
+            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
+            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
+            state.ArgumentCheck(state.IsNumber(5), 5, "expected number");
+
+            var x = (int)state.ToNumber(1);
+            var y = (int)state.ToNumber(2);
+            var w = (int)state.ToNumber(3);
+            var h = (int)state.ToNumber(4);
+            var c = (int)state.ToNumber(5);
+
+            ScreenShapes.DrawRectangle(x, y, w, h, c);
+
+            return 0;
+        }
+
+        public static int DrawPixel(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
+            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
+            state.ArgumentCheck(state.IsNumber(3) || state.IsInteger(3), 3, "expected number");
+
+            var x = (int)state.ToNumber(1);
+            var y = (int)state.ToNumber(2);
+            var c = (byte)state.ToInteger(3);
+
+            ScreenShapes.DrawPixel(x, y, c);
+            return 0;
+        }
+
+        public static int DrawString(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsStringOrNumber(1), 1, "expected string");
+            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
+            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
+            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
+            state.ArgumentCheck(state.IsNoneOrNil(5) || state.IsNumber(5), 5, "expected number, nil");
+
+            string text = state.ToString(1);
+            int x = (int)state.ToInteger(2);
+            int y = (int)state.ToInteger(3);
+            int c = (int)state.ToInteger(4);
+            int? spacing = (int?)state.ToInteger(5);
+
+            ScreenShapes.DrawString(text, x, y, c, spacing ?? 1);
 
             return 0;
         }
@@ -179,30 +219,6 @@ namespace Eight.Module {
             state.PushInteger(Eight.Tickrate);
 
             return 1;
-        }
-
-        public static int DrawRectangle(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
-            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
-            state.ArgumentCheck(state.IsNumber(5), 5, "expected number");
-            state.ArgumentCheck(state.IsNumber(6), 6, "expected number");
-            state.ArgumentCheck(state.IsNumber(7), 7, "expected number");
-
-            var x = (int)state.ToNumber(1);
-            var y = (int)state.ToNumber(2);
-            var w = (int)state.ToNumber(3);
-            var h = (int)state.ToNumber(4);
-            var r = (byte)state.ToNumber(5);
-            var g = (byte)state.ToNumber(6);
-            var b = (byte)state.ToNumber(7);
-
-            ScreenShapes.DrawRectangle(x, y, w, h, r, g, b);
-
-            return 0;
         }
 
         public static int SetTitle(IntPtr luaState) {
