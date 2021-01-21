@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Numerics;
 using static SDL2.SDL;
 
 namespace Eight.Module {
@@ -73,6 +74,30 @@ namespace Eight.Module {
                     dx += 4;
                 }
             }
+        }
+
+        public static Vector2 GetStringBounds(string text, int spacing) {
+            var chars = text.ToCharArray();
+
+            var w = 0;
+            var h = 0;
+
+            for ( int i = 0; i < chars.Length; i++ ) {
+                var ch = chars[i];
+
+                if ( ch >= Display.TextFont.CharList.Length ) ch = '?';
+                var matrix = Display.TextFont.CharList[ch];
+                if ( matrix == null ) matrix = Display.TextFont.CharList['?'];
+
+                w += matrix.GetLength(1) + spacing;
+                h = Math.Max(h, matrix.GetLength(0));
+
+                if ( ch == ' ' ) {
+                    w += 4;
+                }
+            }
+
+            return new Vector2(w - spacing, h);
         }
     }
 }

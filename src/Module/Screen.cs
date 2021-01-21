@@ -1,5 +1,5 @@
-using KeraLua;
 using System;
+using KeraLua;
 using static SDL2.SDL;
 
 namespace Eight.Module {
@@ -16,6 +16,10 @@ namespace Eight.Module {
             new() {
                 name = "drawString",
                 function = DrawString,
+            },
+            new() {
+                name = "getStringBounds",
+                function = GetStringBounds,
             },
             new() {
                 name = "setSize",
@@ -181,6 +185,23 @@ namespace Eight.Module {
             ScreenShapes.DrawString(text, x, y, c, spacing ?? 1);
 
             return 0;
+        }
+
+        private static int GetStringBounds(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.ArgumentCheck(state.IsStringOrNumber(1), 1, "expected string");
+            state.ArgumentCheck(state.IsNumber(2) || state.IsNoneOrNil(2), 2, "expected number, nil");
+
+            string text = state.ToString(1);
+            int? spacing = (int?)state.ToInteger(2);
+
+            var bounds = ScreenShapes.GetStringBounds(text, spacing ?? 1);
+
+            state.PushNumber(bounds.X);
+            state.PushNumber(bounds.Y);
+
+            return 2;
         }
 
         public static int GetSize(IntPtr luaState) {
