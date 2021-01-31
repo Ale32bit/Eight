@@ -7,7 +7,7 @@ using KeraLua;
 
 namespace Eight.Module {
     public static class HTTP {
-        public static LuaRegister[] AudioLib = {
+        public static LuaRegister[] HTTPLib = {
             new() {
                 function = Request,
                 name = "requestAsync"
@@ -23,7 +23,7 @@ namespace Eight.Module {
 
         public static int OpenLib(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
-            state.NewLib(AudioLib);
+            state.NewLib(HTTPLib);
             return 1;
         }
 

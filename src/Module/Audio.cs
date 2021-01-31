@@ -2,6 +2,7 @@
 
 using System;
 using KeraLua;
+using static SDL2.SDL;
 
 namespace Eight.Module {
     class Audio {
@@ -36,7 +37,16 @@ namespace Eight.Module {
         }
 
         public static void PlayFrequency() {
+        }
 
+        public static unsafe void PlayWAV() {
+            SDL_AudioSpec wavSpec = new();
+            uint wavLength;
+            IntPtr wavBuffer;
+
+            //SDL_LoadWAV("Powerup5.wav", ref wavSpec, out wavBuffer, out wavLength);
+
+            //SDL_AudioDeviceID deviceId = SDL_OpenAudioDevice(NULL, 0, &wavSpec, NULL, 0);
         }
     }
 }

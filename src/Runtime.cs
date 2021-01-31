@@ -6,14 +6,13 @@ using System.Text;
 
 namespace Eight {
     public static class Runtime {
-        public static KeraLua.Lua LuaState;
-        public static KeraLua.Lua State;
+        public static Lua LuaState;
+        public static Lua State;
 
         private static bool _quit;
-
         public static bool Init() {
             _quit = false;
-            LuaState = new KeraLua.Lua {
+            LuaState = new Lua {
                 Encoding = Encoding.UTF8
             };
 
@@ -42,7 +41,7 @@ namespace Eight {
         }
 
         private static void DoLibs() {
-            // Get io.open for filesystem
+            // Get io.open and io.lines for filesystem
             LuaState.GetGlobal("io");
             LuaState.GetField(-1, "open");
             LuaState.SetField((int)LuaRegistry.Index, "_io_open");
@@ -51,6 +50,13 @@ namespace Eight {
             LuaState.GetGlobal("io");
             LuaState.GetField(-1, "lines");
             LuaState.SetField((int)LuaRegistry.Index, "_io_lines");
+            LuaState.Pop(1);
+
+            // Get debug.traceback
+
+            LuaState.GetGlobal("debug");
+            LuaState.GetField(-1, "traceback");
+            LuaState.SetField((int)LuaRegistry.Index, "_debug_traceback");
             LuaState.Pop(1);
 
             // Destroy dem libtards with shapiro
@@ -66,6 +72,8 @@ namespace Eight {
 
             LuaState.PushNil();
             LuaState.SetGlobal("loadfile");
+
+
 
             FileSystem.Setup();
             Os.Setup();

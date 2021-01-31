@@ -9,7 +9,7 @@ using KeraLua;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 1.0.0";
+        public const string Version = "Alpha 1.1.0";
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;
@@ -47,7 +47,7 @@ namespace Eight {
         public static List<Utils.LuaParameter[]> UserEventQueue = new();
 
         public static bool IsQuitting;
-        
+
         private static bool _reset = false;
         private static SDL_Event _e;
 
@@ -57,7 +57,7 @@ namespace Eight {
 
             Console.WriteLine($"Eight {Version}");
 
-            if (!Directory.Exists(LuaDir)) {
+            if ( !Directory.Exists(LuaDir) ) {
                 Directory.CreateDirectory(LuaDir);
             }
 
@@ -71,21 +71,21 @@ namespace Eight {
         public static bool Init() {
             SetTickrate(DefaultTickrate);
 
-            if (!Runtime.Init()) {
+            if ( !Runtime.Init() ) {
                 Console.WriteLine("Lua could not be initialized!");
                 return false;
             }
 
-            if (!Display.Init()) {
+            if ( !Display.Init() ) {
                 Console.WriteLine("SDL2 could not be initialized!");
                 return false;
             }
 
             IsQuitting = false;
-            
-            while(!IsQuitting) {
+
+            while ( !IsQuitting ) {
                 EventLoop();
-                if(_reset) {
+                if ( _reset ) {
                     Console.WriteLine("Resetting environment");
                     IsQuitting = false;
                     _reset = false;
@@ -110,7 +110,7 @@ namespace Eight {
         }
 
         public static void Resume(int n) {
-            if(IsQuitting) return;
+            if ( IsQuitting ) return;
             var syncTimer = new Timer() {
                 Enabled = true,
                 AutoReset = false,
@@ -123,7 +123,7 @@ namespace Eight {
             OutOfSync = false;
 
             syncTimer.Stop();
-            if (!ok) IsQuitting = true;
+            if ( !ok ) IsQuitting = true;
         }
 
         // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
@@ -141,7 +141,7 @@ namespace Eight {
 
             using var state = Runtime.State;
 
-            foreach (var arg in Args) {
+            foreach ( var arg in Args ) {
                 state.PushString(arg);
             }
 
@@ -152,9 +152,9 @@ namespace Eight {
             ulong last = SDL_GetPerformanceCounter();
             ulong now = last;
 
-            while (!IsQuitting) {
-                while (!IsQuitting && SDL_PollEvent(out _e) != 0) {
-                    switch (_e.type) {
+            while ( !IsQuitting ) {
+                while ( !IsQuitting && SDL_PollEvent(out _e) != 0 ) {
+                    switch ( _e.type ) {
                         case SDL_QUIT:
                             Quit();
                             break;
@@ -187,12 +187,12 @@ namespace Eight {
 
                             break;
                         case SDL_MOUSEMOTION:
-                            x = (int) (_e.motion.x / WindowScale);
-                            y = (int) (_e.motion.y / WindowScale);
-                            if (oldX != x || oldY != y) {
+                            x = (int)(_e.motion.x / WindowScale);
+                            y = (int)(_e.motion.y / WindowScale);
+                            if ( oldX != x || oldY != y ) {
                                 state.PushString(pressedMouseButtons.Count > 0 ? "mouse_drag" : "mouse_move");
 
-                                if (pressedMouseButtons.Count > 0) state.PushInteger(pressedMouseButtons.Last());
+                                if ( pressedMouseButtons.Count > 0 ) state.PushInteger(pressedMouseButtons.Last());
 
                                 state.PushInteger(x);
                                 state.PushInteger(y);
@@ -209,11 +209,11 @@ namespace Eight {
                             x = (int)(_e.motion.x / WindowScale);
                             y = (int)(_e.motion.y / WindowScale);
 
-                            if (_e.button.state == SDL_PRESSED) {
-                                if (!pressedMouseButtons.Contains(_e.button.button))
+                            if ( _e.button.state == SDL_PRESSED ) {
+                                if ( !pressedMouseButtons.Contains(_e.button.button) )
                                     pressedMouseButtons.Add(_e.button.button);
                             } else {
-                                if (pressedMouseButtons.Contains(_e.button.button))
+                                if ( pressedMouseButtons.Contains(_e.button.button) )
                                     pressedMouseButtons.Remove(_e.button.button);
                             }
 
@@ -232,12 +232,12 @@ namespace Eight {
                             x = _e.wheel.x;
                             y = _e.wheel.y;
 
-                            if (SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED.Equals(_e.wheel.direction)) {
+                            if ( SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED.Equals(_e.wheel.direction) ) {
                                 x *= -1;
                                 y *= -1;
                             }
 
-                            if (y != 0 || x != 0) {
+                            if ( y != 0 || x != 0 ) {
                                 state.PushString("mouse_scroll");
 
                                 state.PushInteger(x);
@@ -251,7 +251,7 @@ namespace Eight {
 
                             break;
                         case SDL_USEREVENT:
-                            switch (_e.user.code) {
+                            switch ( _e.user.code ) {
                                 case -1:
                                     // I don't really trust this code
                                     // It will probably give problems in the future
@@ -259,7 +259,7 @@ namespace Eight {
                                         var index = (int)_e.user.data1;
                                         var parameters = UserEventQueue[index];
 
-                                        for (var i = 0; i < parameters.Length; i++) {
+                                        for ( var i = 0; i < parameters.Length; i++ ) {
                                             var type = parameters[i].Type;
                                             var value = parameters[i].Value;
 
@@ -277,9 +277,9 @@ namespace Eight {
                                                     state.PushNumber(Convert.ToDouble(value));
                                                     break;
                                                 case LuaType.String:
-                                                    if ( value is byte[] v)
+                                                    if ( value is byte[] v )
                                                         state.PushBuffer(v);
-                                                    else if ( value is string s)
+                                                    else if ( value is string s )
                                                         state.PushString(s);
                                                     break;
                                                 case LuaType.UserData:
@@ -289,7 +289,7 @@ namespace Eight {
                                         }
 
                                         Resume(parameters.Length);
-                                    } catch (Exception e) {
+                                    } catch ( Exception e ) {
                                         Console.WriteLine(e);
                                     }
 
@@ -300,10 +300,10 @@ namespace Eight {
                     }
                 }
 
-                if ((ptime * 1000) >= Ticktime) {
+                if ( (ptime * 1000) >= Ticktime ) {
                     ptime = 0;
-                    if (!IsQuitting) {
-                        if ( state.Status == LuaStatus.Yield) {
+                    if ( !IsQuitting ) {
+                        if ( state.Status == LuaStatus.Yield ) {
                             Display.Update();
                             Display.RenderScreen();
                             state.PushString("tick");
