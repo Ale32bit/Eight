@@ -263,7 +263,10 @@ function humanPlay(piece)
 		local x = tonumber(term.read())
 		term.write("Now give the Y-coordinate (starting with 0): ")
 		local y = tonumber(term.read())
-		placed = placePiece(x, y, piece)
+		local place = true
+		if tonumber(x) and tonumber(y) and x < BOARD_RANK and y < BOARD_RANK and x >= 0 and y >= 0 then
+			placed = placePiece(x, y, piece)
+		end
 		if placed == false then
 			term.write("You can't play there!")
 		end
@@ -326,37 +329,51 @@ print()
 print("1. Player VS CPU")
 print("2. Player VS Player")
 print("3. CPU VS CPU")
-term.write(": ")
-local plcpu = tonumber(term.read()) -- Are they playable by human or computer-controlled?
-if plcpu == 1 then 
-	PLAYER_1_HUMAN = true
-	PLAYER_2_HUMAN = false
-elseif plcpu == 2 then
-	PLAYER_1_HUMAN = true
-	PLAYER_2_HUMAN = true
-elseif plcpu == 3 then
-	PLAYER_1_HUMAN = false
-	PLAYER_2_HUMAN = false
-else print("Invalid option. Exiting")
-return
-end
-
-print("Please insert a board size. Default is 3, Maximum is 16")
-term.write("(3): ")
-BOARD_RANK = tonumber(term.read())
-if stringisempty(BOARD_RANK) then
-BOARD_RANK = 3	-- The board will be this in both dimensions.
-end
--------------------------------------------------------
--- Don't run if the board is larger than the maximum --
--------------------------------------------------------
-
-if BOARD_RANK > MAX_BOARD_RANK then print("The board is too big. Exiting...") return end
+print("4. Exit")
+repeat
+	term.write(": ")
+	local plcpu = tonumber(term.read()) -- Are they playable by human or computer-controlled?
+	local continue = false
+	if plcpu == 1 then 
+		PLAYER_1_HUMAN = true
+		PLAYER_2_HUMAN = false
+		continue = true
+	elseif plcpu == 2 then
+		PLAYER_1_HUMAN = true
+		PLAYER_2_HUMAN = true
+		continue = true
+	elseif plcpu == 3 then
+		PLAYER_1_HUMAN = false
+		PLAYER_2_HUMAN = false
+		continue = true
+	elseif plcpu == 4 then
+		return
+	else
+		print("Invalid option. Try again")
+	end
+until continue == true
+print("Please insert a board size. Default/Minimum is 3, Maximum is 16")
+repeat
+	local continue = false
+	term.write("(3): ")
+	local board_input = tonumber(term.read())
+	if stringisempty(board_input) then
+		BOARD_RANK = 3	-- The board will be this in both dimensions.
+		break
+	end
+	if tonumber(board_input) and board_input < MAX_BOARD_RANK and board_input >= 3 then
+		BOARD_RANK = tonumber(board_input)
+		continue = true
+	else 
+		print("The board requested is outside possible boundaries")
+	end
+until continue == true
 
 -----------------------------
 -- Create board (2D table) --
 -----------------------------
-
+term.clear()
+term.setPos(0,0)
 space = {}
 for i = 0, (BOARD_RANK - 1) do
 	space[i] = {}
