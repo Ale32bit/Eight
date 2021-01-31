@@ -9,7 +9,7 @@
     <Import_RootNamespace>Lua</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)lua**">
+    <Content Include="$(MSBuildThisFileDirectory)lua/**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="$(MSBuildThisFileDirectory)bios.lua">
