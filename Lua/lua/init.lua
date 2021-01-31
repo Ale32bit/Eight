@@ -15,7 +15,14 @@ local term = require("term")
 -- not really the fanciest way
 local function init()
     while true do
-        dofile("/bin/shell.lua")
+        local ok, err = pcall(loadfile("/bin/shell.lua"))
+        if not ok then
+            if err == "interrupted" then
+                print("^C")
+            else
+                error(err);
+            end
+        end
     end
 end
 

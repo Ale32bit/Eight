@@ -22,15 +22,20 @@ end
 
 function event.pull(...)
     local filters = {...}
+    local ev = {}
     if #filters > 0 then
-        local ev = {}
         repeat
             ev = {coroutine.yield()}
-        until inTable(filters, ev[1])
-        return table.unpack(ev)
+        until inTable(filters, ev[1]) or ev[1] == "interrupt"
     else
-        return coroutine.yield()
+        ev = {coroutine.yield()}
     end
+
+    if ev[1] == "interrupt" and not inTable(filters, "interrupt") then
+        error("interrupted", 0)
+    end
+
+    return table.unpack(ev)
 end
 
 function event.on(eventName, callback)

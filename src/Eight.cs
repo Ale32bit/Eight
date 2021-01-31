@@ -1,3 +1,4 @@
+using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,7 +6,6 @@ using System.Linq;
 using System.Timers;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
-using KeraLua;
 
 namespace Eight {
     public static class Eight {
@@ -138,6 +138,9 @@ namespace Eight {
             var oldX = -1;
             var oldY = -1;
             var pressedMouseButtons = new List<byte>();
+            var pressedKeys = new List<SDL_Keycode>();
+
+            bool interrupted = false;
 
             using var state = Runtime.State;
 
@@ -160,6 +163,14 @@ namespace Eight {
                             break;
                         case SDL_KEYDOWN:
                         case SDL_KEYUP:
+
+                            if ( _e.key.state == SDL_PRESSED ) {
+                                if ( !pressedKeys.Contains(_e.key.keysym.sym) )
+                                    pressedKeys.Add(_e.key.keysym.sym);
+                            } else {
+                                if ( pressedKeys.Contains(_e.key.keysym.sym) )
+                                    pressedKeys.Remove(_e.key.keysym.sym);
+                            }
 
                             var keyName = SDL_GetKeyName(_e.key.keysym.sym);
                             keyName = keyName.ToLower();
@@ -304,6 +315,22 @@ namespace Eight {
                     ptime = 0;
                     if ( !IsQuitting ) {
                         if ( state.Status == LuaStatus.Yield ) {
+                            // If pressed ^C
+                            if ( pressedKeys.Contains(SDL_Keycode.SDLK_LCTRL) && pressedKeys.Contains(SDL_Keycode.SDLK_c) ) {
+                                if ( !interrupted ) {
+                                    PushEvent(new Utils.LuaParameter[] {
+                                        new() {
+                                            Type = LuaType.String,
+                                            Value = "interrupt",
+                                        }
+                                    });
+
+                                    interrupted = true;
+                                }
+                            } else {
+                                interrupted = false;
+                            }
+
                             Display.Update();
                             Display.RenderScreen();
                             state.PushString("tick");
