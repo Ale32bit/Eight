@@ -161,7 +161,7 @@ namespace Eight.Module {
 
             var x = (int)state.ToNumber(1);
             var y = (int)state.ToNumber(2);
-            var c = (byte)state.ToInteger(3);
+            var c = (int)state.ToInteger(3);
 
             ScreenShapes.DrawPixel(x, y, c);
             return 0;
