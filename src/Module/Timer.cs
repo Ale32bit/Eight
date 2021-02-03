@@ -30,10 +30,10 @@ namespace Eight.Module {
             return 1;
         }
 
-        public static int Start(IntPtr s) {
-            var state = Lua.FromIntPtr(s);
+        public static int Start(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
+            state.CheckNumber(1);
 
             var ms = state.ToNumber(1);
 
@@ -41,10 +41,10 @@ namespace Eight.Module {
             return 1;
         }
 
-        public static int Stop(IntPtr s) {
-            var state = Lua.FromIntPtr(s);
+        public static int Stop(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsInteger(1), 1, "expected integer");
+            state.CheckNumber(1);
 
             var timerId = state.ToNumber(1);
 

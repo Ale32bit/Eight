@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Numerics;
 using KeraLua;
 using static SDL2.SDL;
 
@@ -12,6 +14,10 @@ namespace Eight.Module {
             new() {
                 name = "drawPixel",
                 function = DrawPixel
+            },
+            new() {
+                name = "drawPixels",
+                function = DrawPixels,
             },
             new() {
                 name = "drawString",
@@ -98,9 +104,9 @@ namespace Eight.Module {
         public static int SetSize(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
+            state.CheckNumber(1);
+            state.CheckNumber(2);
+            state.CheckNumber(3);
 
             var w = (int)state.ToNumber(1);
             var h = (int)state.ToNumber(2);
@@ -135,11 +141,11 @@ namespace Eight.Module {
         public static int DrawRectangle(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
-            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
-            state.ArgumentCheck(state.IsNumber(5), 5, "expected number");
+            state.CheckNumber(1);
+            state.CheckNumber(2);
+            state.CheckNumber(3);
+            state.CheckNumber(4);
+            state.CheckNumber(5);
 
             var x = (int)state.ToNumber(1);
             var y = (int)state.ToNumber(2);
@@ -152,12 +158,20 @@ namespace Eight.Module {
             return 0;
         }
 
+        public static int DrawRectangles(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.Error("Work in progress");
+
+            return 0;
+        }
+
         public static int DrawPixel(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-            state.ArgumentCheck(state.IsNumber(3) || state.IsInteger(3), 3, "expected number");
+            state.CheckNumber(1);
+            state.CheckNumber(2);
+            state.CheckNumber(3);
 
             var x = (int)state.ToNumber(1);
             var y = (int)state.ToNumber(2);
@@ -167,14 +181,63 @@ namespace Eight.Module {
             return 0;
         }
 
+        public static int DrawPixels(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            state.Error("Work in progress");
+
+            /*state.CheckType(1, LuaType.Table);
+            state.CheckNumber(2);
+
+            int c = (int)state.ToNumber(2);
+
+            state.SetTop(1);
+
+            int size = (int)state.Length(1);
+
+            state.ArgumentCheck(size % 2 == 0, 1, "expected an even table");
+
+            List<Vector2> pixels = new();
+
+            for ( int i = 1; i <= size; i += 2 ) {
+                // Get X
+                state.PushInteger(i);
+                state.GetTable(1);
+                if ( !state.IsNumber(-1) ) {
+                    state.Error("item %d invalid (number expected, got %s)", i, state.TypeName(-1));
+                    return 0;
+                }
+                int x = (int)state.ToNumber(-1);
+                state.Pop(-1);
+
+                // Get Y
+                state.PushInteger(i + 1);
+                state.GetTable(1);
+                if ( !state.IsNumber(-1) ) {
+                    state.Error("item %d invalid (number expected, got %s)", i, state.TypeName(-1));
+                    return 0;
+                }
+
+                int y = (int)state.ToNumber(-1);
+                state.Pop(-1);
+
+                // Add pixel to list
+                pixels.Add(new(x, y));
+            }
+
+            ScreenShapes.DrawPixels(pixels.ToArray(), c);*/
+
+            return 0;
+        }
+
         public static int DrawString(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsStringOrNumber(1), 1, "expected string");
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected number");
-            state.ArgumentCheck(state.IsNumber(3), 3, "expected number");
-            state.ArgumentCheck(state.IsNumber(4), 4, "expected number");
-            state.ArgumentCheck(state.IsNoneOrNil(5) || state.IsNumber(5), 5, "expected number, nil");
+            state.CheckString(1);
+            state.CheckNumber(2);
+            state.CheckNumber(3);
+            state.CheckNumber(4);
+            state.CheckNumber(5);
 
             string text = state.ToString(1);
             int x = (int)state.ToInteger(2);
@@ -227,7 +290,7 @@ namespace Eight.Module {
         public static int SetTickrate(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected number");
+            state.CheckNumber(1);
 
             var tickrate = (int)state.ToNumber(1);
             Eight.SetTickrate(tickrate);
@@ -245,7 +308,7 @@ namespace Eight.Module {
         public static int SetTitle(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var title = state.ToString(1);
 

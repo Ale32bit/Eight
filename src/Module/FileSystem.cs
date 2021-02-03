@@ -58,8 +58,8 @@ namespace Eight.Module {
         public static int Open(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
-            state.ArgumentCheck(state.IsString(2), 2, "expected string");
+            state.CheckString(1);
+            state.CheckString(2);
 
             var path = state.ToString(1);
             var mode = state.ToString(2);
@@ -77,7 +77,7 @@ namespace Eight.Module {
         public static int Lines(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var path = state.ToString(1);
 
@@ -95,7 +95,7 @@ namespace Eight.Module {
             var error = "Unknown error";
             var ok = true;
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var dirPath = state.ToString(1);
             var resolvedPath = Resolve(dirPath);
@@ -127,7 +127,7 @@ namespace Eight.Module {
         public static int List(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var path = state.ToString(1);
             var resolvedPath = Resolve(path);
@@ -157,7 +157,7 @@ namespace Eight.Module {
         public static int GetType(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var path = state.ToString(1);
             var resolvedPath = Resolve(path);
@@ -183,7 +183,7 @@ namespace Eight.Module {
         public static int Delete(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var path = state.ToString(1);
             var recursive = false;
@@ -228,7 +228,7 @@ namespace Eight.Module {
         public static int Exists(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
 
             var path = state.ToString(1);
             var resolvedPath = Resolve(path);
@@ -241,8 +241,8 @@ namespace Eight.Module {
         public static int Move(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
-            state.ArgumentCheck(state.IsString(2), 2, "expected string");
+            state.CheckString(1);
+            state.CheckString(2);
             state.ArgumentCheck(state.IsBoolean(3) || state.IsNoneOrNil(3), 3, "expected boolean, nil");
 
             var source = state.ToString(1);

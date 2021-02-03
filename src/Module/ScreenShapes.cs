@@ -28,6 +28,14 @@ namespace Eight.Module {
             Display.Dirty = true;
         }
 
+        public static unsafe void DrawRectangles(SDL_Rect[] rects, int c) {
+            if ( Eight.IsQuitting ) return;
+
+            Color color = Color.FromArgb(c);
+
+            SDL_FillRects(Display.Surface, rects, rects.Length, SDL_MapRGB(((SDL_Surface*)Display.Surface)->format, color.R, color.G, color.B));
+        }
+
         public static unsafe void DrawPixel(int x, int y, int c) {
             if ( Eight.IsQuitting ) return;
 
@@ -47,6 +55,26 @@ namespace Eight.Module {
             SDL_FillRect(Display.Surface, ref pixel, SDL_MapRGB(((SDL_Surface*)Display.Surface)->format, color.R, color.G, color.B));
 
             Display.Dirty = true;
+        }
+
+        public static unsafe void DrawPixels(Vector2[] pixels, int c) {
+            if ( Eight.IsQuitting ) return;
+
+            Color color = Color.FromArgb(c);
+
+            SDL_Rect[] rects = new SDL_Rect[pixels.Length];
+
+            for(int i = 0; i < pixels.Length; i++) {
+                var pixel = pixels[i];
+                rects[i] = new() {
+                    x = (int)pixel.X,
+                    y = (int)pixel.Y,
+                    w = 1,
+                    h = 1,
+                };
+            }
+
+            SDL_FillRects(Display.Surface, rects, rects.Length, SDL_MapRGB(((SDL_Surface*)Display.Surface)->format, color.R, color.G, color.B));
         }
 
         public static void DrawString(string text, int x, int y, int c, int spacing) {

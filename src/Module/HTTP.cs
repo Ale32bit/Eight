@@ -32,7 +32,7 @@ namespace Eight.Module {
             string? body = null;
             string? method = null;
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected string");
+            state.CheckString(1);
             state.ArgumentCheck(state.IsString(2) || state.IsNoneOrNil(2), 2, "expected string");
             state.ArgumentCheck(state.IsTable(3) || state.IsNoneOrNil(3), 3, "expected string");
             state.ArgumentCheck(state.IsString(4) || state.IsNoneOrNil(4), 4, "expected string");

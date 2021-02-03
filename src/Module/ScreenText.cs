@@ -12,10 +12,10 @@ namespace Eight.Module {
         public static int SetChar(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsString(1), 1, "expected char");
-            state.ArgumentCheck(state.IsInteger(2) || state.IsNumber(2), 2, "expected integer");
-            state.ArgumentCheck(state.IsInteger(3) || state.IsNumber(3), 3, "expected integer");
-            state.ArgumentCheck(state.IsInteger(4) || state.IsNumber(4) || state.IsNoneOrNil(4), 4, "expected integer, nil");
+            state.CheckString(1);
+            state.CheckNumber(2);
+            state.CheckNumber(3);
+            state.ArgumentCheck(state.IsNumber(4) || state.IsNoneOrNil(4), 4, "expected number, nil");
 
             var c = state.ToString(1);
             var x = (int)state.ToInteger(2);
@@ -37,7 +37,7 @@ namespace Eight.Module {
         public static int SetForeground(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsInteger(1) || state.IsNumber(1), 1, "expected integer");
+            state.CheckNumber(1);
 
             var c = state.ToInteger(1);
 
@@ -53,7 +53,7 @@ namespace Eight.Module {
         public static int SetBackground(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsInteger(1) || state.IsNumber(1), 1, "expected integer");
+            state.CheckNumber(1);
 
             var c = state.ToInteger(1);
 
@@ -85,7 +85,7 @@ namespace Eight.Module {
         public static int Scroll(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsInteger(1), 1, "expected integer");
+            state.CheckNumber(1);
             var n = state.ToInteger(1);
 
             if ( n == 0 ) return 0;
@@ -171,8 +171,8 @@ namespace Eight.Module {
         public static int GetChar(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.ArgumentCheck(state.IsNumber(1), 1, "expected integer"); // because integers still fail 
-            state.ArgumentCheck(state.IsNumber(2), 2, "expected integer");
+            state.CheckNumber(1);
+            state.CheckNumber(2);
 
             var x = (int)state.ToInteger(1);
             var y = (int)state.ToInteger(2);
