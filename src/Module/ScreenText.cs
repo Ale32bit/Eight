@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using KeraLua;
@@ -123,8 +124,9 @@ namespace Eight.Module {
         }
 
         public static void ClearScreen(bool resetGrid = true) {
-
-            ScreenShapes.DrawRectangle(0, 0, Eight.RealWidth, Eight.RealHeight, BackgroundColor);
+            Color color = Color.FromArgb(BackgroundColor);
+            SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
+            SDL_RenderClear(Display.Renderer);
 
             if ( resetGrid )
                 Display.TextGrid = Enumerable.Repeat(Utils.ToULong(' ', ForegroundColor, BackgroundColor), Display.TextGrid.Length).ToArray();
@@ -209,39 +211,37 @@ namespace Eight.Module {
                 bg = fgc;
             }
 
-            var bgc = Color.FromArgb(bg);
-
-            if ( c >= Display.TextFont.CharList.Length ) c = '?';
+            if ( c >= Display.TextFont.CharList.Length ) c = '\uFFFD';
             var matrix = Display.TextFont.CharList[c];
-            if ( matrix == null ) matrix = Display.TextFont.CharList['?'];
-
-            var bgRectangle = new SDL_Rect {
-                x = (x * Eight.CellWidth),
-                y = (y * Eight.CellHeight),
-                w = Eight.CellWidth,
-                h = Eight.CellHeight,
-            };
+            if ( matrix == null ) matrix = Display.TextFont.CharList['\uFFFD'];
 
             // Draw BG
-            SDL_FillRect(Display.Surface, ref bgRectangle, SDL_MapRGB(((SDL_Surface*)Display.Surface)->format, bgc.R, bgc.G, bgc.B));
+            Graphics.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight, Eight.CellWidth, Eight.CellHeight, bg);
 
             // Draw char
+            List<SDL_Point> points = new();
+
             int deltaX = (Eight.CellWidth - matrix.GetLength(1)) / 2;
             for ( int gy = 0; gy < matrix.GetLength(0); gy++ ) {
                 for ( int gx = 0; gx < matrix.GetLength(1); gx++ ) {
                     if ( matrix[gy, gx] ) {
-                        ScreenShapes.DrawPixel(gx + (x * Eight.CellWidth) + deltaX, gy + (y * Eight.CellHeight), fg);
+                        points.Add(new() {
+                            x = gx + (x * Eight.CellWidth) + deltaX,
+                            y = gy + (y * Eight.CellHeight),
+                        });
                     }
                 }
             }
 
+            Graphics.DrawPixels(points.ToArray(), fg);
+
             // Draw flags
             if ( flag.HasFlag(Utils.TextFlag.Underlined) ) {
-                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight - 1, Eight.CellWidth, 1, fg);
+                Graphics.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight - 1, Eight.CellWidth, 1, fg);
             }
 
             if ( flag.HasFlag(Utils.TextFlag.Strikethrough) ) {
-                ScreenShapes.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight / 2, Eight.CellWidth, 1, fg);
+                Graphics.DrawRectangle(x * Eight.CellWidth, y * Eight.CellHeight + Eight.CellHeight / 2, Eight.CellWidth, 1, fg);
             }
 
             Display.Dirty = true;

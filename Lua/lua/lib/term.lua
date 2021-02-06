@@ -1,6 +1,7 @@
 -- Terminal library, for text mode related functions
 
 local screen = require("screen")
+local graphics = require("graphics")
 local event = require("event")
 local timer = require("timer")
 local expect = require("expect")
@@ -114,7 +115,7 @@ local function drawCursor()
     if isBlinking then
         local rw, rh = screen.getRealSize()
         local cw, ch = getCellSize()
-        screen.drawRectangle(posX * cw, posY * ch + 1, 1, ch - 2, screen.getForeground())
+        graphics.drawLine(posX * cw, posY * ch + 2, posX * cw, posY * ch + ch - 2, screen.getForeground())
     end
 end
 

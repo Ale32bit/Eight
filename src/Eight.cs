@@ -9,7 +9,7 @@ using static SDL2.SDL.SDL_EventType;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 1.1.0";
+        public const string Version = "Alpha 1.2.0";
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;
@@ -259,6 +259,18 @@ namespace Eight {
 
                                 Resume(5);
                             }
+
+                            break;
+                        case SDL_JOYAXISMOTION:
+                            var id = _e.jaxis.which;
+                            var axis = _e.jaxis.axis;
+                            var axisValue = _e.jaxis.axisValue;
+
+                            state.PushString("joyaxis_motion");
+                            state.PushNumber(id);
+                            state.PushNumber(axis);
+                            state.PushNumber(axisValue);
+                            Resume(4);
 
                             break;
                         case SDL_USEREVENT:

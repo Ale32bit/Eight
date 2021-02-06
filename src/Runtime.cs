@@ -74,11 +74,11 @@ namespace Eight {
             LuaState.SetGlobal("loadfile");
 
 
-
             FileSystem.Setup();
             Os.Setup();
             Timer.Setup();
             Screen.Setup();
+            Graphics.Setup();
             HTTP.Setup();
             Audio.Setup();
         }

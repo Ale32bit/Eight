@@ -5,8 +5,9 @@ using System.Drawing;
 namespace Eight {
     public class Display {
         public static IntPtr Window = IntPtr.Zero;
-        public static IntPtr Renderer = IntPtr.Zero;
+        private static IntPtr _hdRenderer = IntPtr.Zero;
         public static IntPtr Surface = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         public static bool Dirty = true;
 
@@ -49,12 +50,12 @@ namespace Eight {
             SDL_SetWindowIcon(Window, icon);
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-            SDL_SetRenderDrawBlendMode(Renderer, SDL_BlendMode.SDL_BLENDMODE_NONE);
+            SDL_SetRenderDrawBlendMode(_hdRenderer, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
             Console.WriteLine("Creating renderer...");
-            Renderer = SDL_CreateRenderer(Window, -1,
+            _hdRenderer = SDL_CreateRenderer(Window, -1,
                 SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
-            if ( Renderer == IntPtr.Zero ) {
+            if ( _hdRenderer == IntPtr.Zero ) {
                 Console.WriteLine("SDL_CreateRenderer Error: {0}", SDL_GetError());
                 SDL_Quit();
                 return false;
@@ -78,6 +79,11 @@ namespace Eight {
                 Surface = IntPtr.Zero;
             }
 
+            if( Renderer != IntPtr.Zero ) {
+                SDL_DestroyRenderer(Renderer);
+                Renderer = IntPtr.Zero;
+            }
+
             Surface = SDL_CreateRGBSurface(0, Eight.RealWidth,
                 Eight.RealHeight, 32,
                 0xff000000,
@@ -87,6 +93,12 @@ namespace Eight {
 
             if ( Surface == IntPtr.Zero ) {
                 Console.WriteLine("SDL_CreateRGBSurface() failed: " + SDL_GetError());
+                Eight.Quit();
+            }
+
+            Renderer = SDL_CreateSoftwareRenderer(Surface);
+            if( Renderer == IntPtr.Zero ) {
+                Console.WriteLine("SDL_CreateSoftwareRender() failed: " + SDL_GetError());
                 Eight.Quit();
             }
 
@@ -105,7 +117,6 @@ namespace Eight {
             CreateScreen();
 
             SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
         }
 
 
@@ -124,13 +135,13 @@ namespace Eight {
         public static void RenderScreen() {
             if ( !Dirty ) return;
 
-            var sTexture = SDL_CreateTextureFromSurface(Renderer, Surface);
+            var sTexture = SDL_CreateTextureFromSurface(_hdRenderer, Surface);
 
-            SDL_RenderClear(Renderer);
+            SDL_RenderClear(_hdRenderer);
 
-            SDL_RenderCopy(Renderer, sTexture, IntPtr.Zero, IntPtr.Zero);
+            SDL_RenderCopy(_hdRenderer, sTexture, IntPtr.Zero, IntPtr.Zero);
 
-            SDL_RenderPresent(Renderer);
+            SDL_RenderPresent(_hdRenderer);
 
             SDL_DestroyTexture(sTexture);
 
@@ -156,7 +167,7 @@ namespace Eight {
             if ( Surface != IntPtr.Zero )
                 SDL_FreeSurface(Surface);
 
-            SDL_DestroyRenderer(Renderer);
+            SDL_DestroyRenderer(_hdRenderer);
             SDL_DestroyWindow(Window);
             SDL_Quit();
         }
