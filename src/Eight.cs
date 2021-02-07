@@ -9,7 +9,7 @@ using static SDL2.SDL.SDL_EventType;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 1.2.1";
+        public const string Version = "Alpha 1.2.2";
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;

@@ -14,6 +14,10 @@ namespace Eight.Module {
                 function = DrawRectangleL
             },
             new() {
+                name = "drawRectangles",
+                function = DrawRectanglesL,
+            },
+            new() {
                 name = "drawPixel",
                 function = DrawPixelL
             },
@@ -75,7 +79,49 @@ namespace Eight.Module {
         public static int DrawRectanglesL(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.Error("Work in progress");
+            state.CheckType(1, LuaType.Table);
+            state.CheckNumber(2);
+
+            int c = (int)state.ToNumber(2);
+
+            state.SetTop(1);
+
+            int size = (int)state.Length(1);
+
+            state.ArgumentCheck(size % 4 == 0, 1, "expected a table size of multiple of 4");
+
+            List<SDL_Rect> pixels = new();
+
+            for ( int i = 1; i <= size; i += 4 ) {
+                state.GetInteger(1, i);
+                state.ArgumentCheck(state.IsNumber(-1), 1, "expected number at index " + i);
+                var x = (int)state.ToNumber(-1);
+                state.Pop(1);
+
+                state.GetInteger(1, i + 1);
+                state.ArgumentCheck(state.IsNumber(-1), 1, "expected number at index " + (i + 1));
+                var y = (int)state.ToNumber(-1);
+                state.Pop(1);
+
+                state.GetInteger(1, i + 2);
+                state.ArgumentCheck(state.IsNumber(-1), 1, "expected number at index " + (i + 2));
+                var w = (int)state.ToNumber(-1);
+                state.Pop(1);
+
+                state.GetInteger(1, i + 3);
+                state.ArgumentCheck(state.IsNumber(-1), 1, "expected number at index " + (i + 3));
+                var h = (int)state.ToNumber(-1);
+                state.Pop(1);
+
+                pixels.Add(new() {
+                    x = x,
+                    y = y,
+                    w = w,
+                    h = h,
+                });
+            }
+
+            DrawRectangles(pixels.ToArray(), c);
 
             return 0;
         }
@@ -98,11 +144,7 @@ namespace Eight.Module {
         public static int DrawPixelsL(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.Error("Work in progress");
-
-
-
-            /*state.CheckType(1, LuaType.Table);
+            state.CheckType(1, LuaType.Table);
             state.CheckNumber(2);
 
             int c = (int)state.ToNumber(2);
@@ -113,35 +155,26 @@ namespace Eight.Module {
 
             state.ArgumentCheck(size % 2 == 0, 1, "expected an even table");
 
-            List<Vector2> pixels = new();
+            List<SDL_Point> pixels = new();
 
             for ( int i = 1; i <= size; i += 2 ) {
-                // Get X
-                state.PushInteger(i);
-                state.GetTable(1);
-                if ( !state.IsNumber(-1) ) {
-                    state.Error("item %d invalid (number expected, got %s)", i, state.TypeName(-1));
-                    return 0;
-                }
-                int x = (int)state.ToNumber(-1);
-                state.Pop(-1);
+                state.GetInteger(1, i);
+                state.ArgumentCheck(state.IsNumber(-1), 1, "expected number at index " + i);
+                var x = (int)state.ToNumber(-1);
+                state.Pop(1);
 
-                // Get Y
-                state.PushInteger(i + 1);
-                state.GetTable(1);
-                if ( !state.IsNumber(-1) ) {
-                    state.Error("item %d invalid (number expected, got %s)", i, state.TypeName(-1));
-                    return 0;
-                }
+                state.GetInteger(1, i + 1);
+                state.ArgumentCheck(state.IsNumber(-1), 1, "expected number at index " + (i + 1));
+                var y = (int)state.ToNumber(-1);
+                state.Pop(1);
 
-                int y = (int)state.ToNumber(-1);
-                state.Pop(-1);
-
-                // Add pixel to list
-                pixels.Add(new(x, y));
+                pixels.Add(new() {
+                    x = x,
+                    y = y,
+                });
             }
 
-            ScreenShapes.DrawPixels(pixels.ToArray(), c);*/
+            DrawPixels(pixels.ToArray(), c);
 
             return 0;
         }
@@ -229,6 +262,8 @@ namespace Eight.Module {
             if ( Eight.IsQuitting ) return;
 
             // Optimization?
+
+            // this does not need to simulate "out of bounds" when out of bounds :p
             if ( x < 0 ) x = 0;
             if ( y < 0 ) y = 0;
             if ( w > Eight.RealWidth ) w = Eight.RealWidth;
@@ -266,10 +301,10 @@ namespace Eight.Module {
 
             if ( x < 0 && y < 0 && x >= Eight.RealWidth && y >= Eight.RealHeight ) return;
 
-            Color color = Color.FromArgb(c);
+            uint p = ((uint)c << 8) | 0xff;
 
-            SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
-            SDL_RenderDrawPoint(Display.Renderer, x, y);
+            var pitch = ((SDL_Surface*)Display.Surface)->pitch;
+            ((uint*)((SDL_Surface*)Display.Surface)->pixels)[x + y * pitch / 4] = p;
 
             Display.Dirty = true;
         }
@@ -277,10 +312,12 @@ namespace Eight.Module {
         public static unsafe void DrawPixels(SDL_Point[] points, int c) {
             if ( Eight.IsQuitting ) return;
 
-            Color color = Color.FromArgb(c);
+            uint p = ((uint)c << 8) | 0xff;
+            var pitch = ((SDL_Surface*)Display.Surface)->pitch;
 
-            SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
-            SDL_RenderDrawPoints(Display.Renderer, points, points.Length);
+            foreach ( var point in points ) {
+                ((uint*)((SDL_Surface*)Display.Surface)->pixels)[point.x + point.y * pitch / 4] = p;
+            }
 
             Display.Dirty = true;
         }
@@ -294,7 +331,7 @@ namespace Eight.Module {
 
             for ( int i = 0; i < chars.Length; i++ ) {
                 var ch = chars[i];
-                
+
                 if ( ch >= Display.TextFont.CharList.Length ) ch = '\uFFFD';
                 var matrix = Display.TextFont.CharList[ch];
                 if ( matrix == null ) matrix = Display.TextFont.CharList['\uFFFD'];
@@ -312,7 +349,7 @@ namespace Eight.Module {
 
                 dx += matrix.GetLength(1) + spacing;
 
-                if(ch == ' ') {
+                if ( ch == ' ' ) {
                     dx += 4;
                 }
             }
@@ -352,10 +389,14 @@ namespace Eight.Module {
             if ( Eight.IsQuitting ) return;
 
             // Optimization?
-            if ( x < 0 ) x = 0;
-            if ( y < 0 ) y = 0;
-            if ( w > Eight.RealWidth ) w = Eight.RealWidth;
-            if ( h > Eight.RealHeight ) h = Eight.RealHeight;
+            // out of bounds by 1 pixel to "simulate" the out of bounds ._.
+            // the outline shouldn't be seen in the display border
+
+            // is this even optimization? 
+            if ( x < 0 ) x = -1;
+            if ( y < 0 ) y = -1;
+            if ( w > Eight.RealWidth ) w = Eight.RealWidth + 1;
+            if ( h > Eight.RealHeight ) h = Eight.RealHeight + 1;
 
             Color color = Color.FromArgb(c);
 
