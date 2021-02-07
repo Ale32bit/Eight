@@ -258,6 +258,7 @@ namespace Eight.Module {
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderFillRects(Display.Renderer, rects, rects.Length);
 
+            Display.Dirty = true;
         }
 
         public static unsafe void DrawPixel(int x, int y, int c) {
@@ -280,6 +281,8 @@ namespace Eight.Module {
 
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderDrawPoints(Display.Renderer, points, points.Length);
+
+            Display.Dirty = true;
         }
 
         public static void DrawString(string text, int x, int y, int c, int spacing) {
@@ -315,6 +318,8 @@ namespace Eight.Module {
             }
 
             DrawPixels(points.ToArray(), c);
+
+            Display.Dirty = true;
         }
 
         public static Vector2 GetStringBounds(string text, int spacing) {
@@ -376,18 +381,23 @@ namespace Eight.Module {
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderDrawRects(Display.Renderer, rects, rects.Length);
 
+            Display.Dirty = true;
         }
 
         public static void DrawLine(int x1, int y1, int x2, int y2, int c) {
             Color color = Color.FromArgb(c);
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderDrawLine(Display.Renderer, x1, y1, x2, y2);
+
+            Display.Dirty = true;
         }
 
         public static void DrawLines(SDL_Point[] points, int c) {
             Color color = Color.FromArgb(c);
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderDrawLines(Display.Renderer, points, points.Length);
+
+            Display.Dirty = true;
         }
     }
 }
