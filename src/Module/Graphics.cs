@@ -150,7 +150,7 @@ namespace Eight.Module {
             int c = (int)state.ToNumber(2);
 
             state.SetTop(1);
-
+            
             int size = (int)state.Length(1);
 
             state.ArgumentCheck(size % 2 == 0, 1, "expected an even table");
@@ -439,6 +439,23 @@ namespace Eight.Module {
             SDL_RenderDrawLines(Display.Renderer, points, points.Length);
 
             Display.Dirty = true;
+        }
+
+        public static void DrawCircle(int x, int y, int r, int c) {
+            List<SDL_Point> points = new();
+
+            for(int i = 1; i <= 360; i++ ) {
+                var angle = i * Math.PI / 180;
+                var ptx = x * r * Math.Cos(angle);
+                var pty = y * r * Math.Sin(angle);
+
+                points.Add(new() {
+                    x = (int) ptx,
+                    y = (int) pty,
+                });
+            }
+
+            DrawPixels(points.ToArray(), c);
         }
     }
 }

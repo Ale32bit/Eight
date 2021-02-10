@@ -1,72 +1,67 @@
 local fs = require("filesystem")
-local screen = require("screen")
+local graphics = require("graphics")
 
 local function load(path)
-    local image = {}
-    image.palette = {}
-    image.pixels = {}
-    image.width = 0
-    image.height = 0
-    image.version = 0;
-    
+    local emg = {}
+    emg.pixels = {}
+    emg.width = 0
+    emg.height = 0
+    emg.version = 2
+
     local offset = 0
-    
-    local emg = fs.readFile(path, true)
-    
+
+    local data = fs.readFile(path, true)
+
     local function nextByte()
-        local byte = string.unpack(">B", emg, offset )
+        local byte = string.unpack(">B", data, offset )
         offset = offset + 1
         return byte
     end
     
     local function nextShort()
-        local byte = string.unpack(">H", emg, offset )
-        --cprint("Reading short at ", offset, string.format("%X", byte))
+        local short = string.unpack(">H", data, offset )
         offset = offset + 2
-        return byte
+        return short
     end
-    
-    if emg:sub(1, 11) ~= "\0EIGHTIMAGE" then
+
+    if data:sub(1, 11) ~= "\0EIGHTIMAGE" then
         return false, "Invalid emage"
     end
-    
+
     offset = 12
-    
-    image.version = nextByte()
-    
+
+    emg.version = nextByte();
+
     if nextByte() ~= 0 then
         return false, "Invalid emage"
     end
-    
-    image.width = nextShort()
-    image.height = nextShort()
-    
-    --cprint("reading palette")
-    
-    for i = 0, 255 do
-        local r = nextByte()
-        local g = nextByte()
-        local b = nextByte()
-        --cprint("Color " .. i, string.format("%02X%02X%02X", r, g, b))
-        image.palette[i] = {r, g, b}
+
+    emg.width = nextShort()
+    emg.height = nextShort()
+
+    for i = 1, emg.width * emg.height do
+        local r, g, b = nextByte(), nextByte(), nextByte()
+        local x, y = i % emg.width, i // emg.width
+        local color = (r << 16) | (g << 8) | b;
+
+        if not emg.pixels[color] then
+            emg.pixels[color] = {}
+        end
+
+        table.insert(emg.pixels[color], x)
+        table.insert(emg.pixels[color], y)
     end
-    
-    for i = 1, image.width * image.height do
-        local pixel = nextByte()
-        image.pixels[#image.pixels + 1] = pixel
-    end
-    
-    return image, nil
+
+    return emg, nil
 end
 
-local function draw(emg, x, y)
+local function draw(emg, --[[x, y]])
     local dx, dy = 0, 0
-    
-    for k, v in ipairs(emg.pixels) do
-        local color = emg.palette[v]
-        
-        screen.drawPixel(x + dx, y + dy, table.unpack(color))
-        --cprint(dx, dy, table.unpack(color))
+	
+	-- TODO: work delta coords out
+
+    for color, pixels in pairs(emg.pixels) do
+        graphics.drawPixels(pixels, color)
         dx = dx + 1
         if dx >= emg.width then
             dx = 0

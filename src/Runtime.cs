@@ -2,6 +2,7 @@ using Eight.Module;
 using KeraLua;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Eight {
@@ -18,6 +19,8 @@ namespace Eight {
 
             LuaState.PushString($"Eight {Eight.Version}");
             LuaState.SetGlobal("_HOST");
+
+            LuaState.SetWarningFunction(WarnFunction, IntPtr.Zero);
 
             DoLibs();
 
@@ -122,6 +125,11 @@ namespace Eight {
             Console.WriteLine("Could not resume");
 
             return false;
+        }
+
+        public static unsafe void WarnFunction(IntPtr ud, IntPtr msg, int tocont) {
+            var message = Marshal.PtrToStringAnsi(msg);
+            Console.WriteLine($"[WARN] {message}");
         }
 
         public static void Quit() {
