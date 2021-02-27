@@ -2,6 +2,7 @@
 
 local screen = require("screen")
 local fs = require("filesystem")
+local audio = require("audio")
 
 _HOST = _HOST or "Generic host"
 
@@ -76,6 +77,8 @@ local function panic(err)
     until ev[1] == "key_down"
     os.reboot()
 end
+
+audio.beep(840, 200);
 
 log("Eight BIOS v1")
 log("Lua: " .. _VERSION)

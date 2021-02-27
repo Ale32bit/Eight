@@ -55,7 +55,7 @@ local function load(path)
     return emg, nil
 end
 
-local function draw(emg, --[[x, y]])
+local function draw(emg)
     local dx, dy = 0, 0
 	
 	-- TODO: work delta coords out

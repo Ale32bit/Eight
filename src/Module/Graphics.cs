@@ -150,7 +150,7 @@ namespace Eight.Module {
             int c = (int)state.ToNumber(2);
 
             state.SetTop(1);
-            
+
             int size = (int)state.Length(1);
 
             state.ArgumentCheck(size % 2 == 0, 1, "expected an even table");
@@ -168,10 +168,12 @@ namespace Eight.Module {
                 var y = (int)state.ToNumber(-1);
                 state.Pop(1);
 
-                pixels.Add(new() {
-                    x = x,
-                    y = y,
-                });
+                if ( x >= 0 && y >= 0 && x < Eight.RealWidth && y < Eight.RealHeight ) {
+                    pixels.Add(new() {
+                        x = x,
+                        y = y,
+                    });
+                }
             }
 
             DrawPixels(pixels.ToArray(), c);
@@ -444,14 +446,14 @@ namespace Eight.Module {
         public static void DrawCircle(int x, int y, int r, int c) {
             List<SDL_Point> points = new();
 
-            for(int i = 1; i <= 360; i++ ) {
+            for ( int i = 1; i <= 360; i++ ) {
                 var angle = i * Math.PI / 180;
                 var ptx = x * r * Math.Cos(angle);
                 var pty = y * r * Math.Sin(angle);
 
                 points.Add(new() {
-                    x = (int) ptx,
-                    y = (int) pty,
+                    x = (int)ptx,
+                    y = (int)pty,
                 });
             }
 

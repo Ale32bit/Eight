@@ -9,7 +9,7 @@ using static SDL2.SDL.SDL_EventType;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 1.2.2";
+        public const string Version = "Alpha 1.3.0";
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;
@@ -42,6 +42,8 @@ namespace Eight {
         public static int SyncTimeout = 3000;
         public static bool OutOfSync;
 
+        public static int RebootDelay = 750;
+
         public static readonly DateTime Epoch = DateTime.Now;
 
         public static List<Utils.LuaParameter[]> UserEventQueue = new();
@@ -71,13 +73,13 @@ namespace Eight {
         public static bool Init() {
             SetTickrate(DefaultTickrate);
 
-            if ( !Runtime.Init() ) {
-                Console.WriteLine("Lua could not be initialized!");
+            if ( !Display.Init() ) {
+                Console.WriteLine("SDL2 could not be initialized!");
                 return false;
             }
 
-            if ( !Display.Init() ) {
-                Console.WriteLine("SDL2 could not be initialized!");
+            if ( !Runtime.Init() ) {
+                Console.WriteLine("Lua could not be initialized!");
                 return false;
             }
 
@@ -141,6 +143,7 @@ namespace Eight {
             var pressedKeys = new List<SDL_Keycode>();
 
             bool interrupted = false;
+            int rebootTime = 0;
 
             using var state = Runtime.State;
 
@@ -328,19 +331,29 @@ namespace Eight {
                     if ( !IsQuitting ) {
                         if ( state.Status == LuaStatus.Yield ) {
                             // If pressed ^C
-                            if ( pressedKeys.Contains(SDL_Keycode.SDLK_LCTRL) && pressedKeys.Contains(SDL_Keycode.SDLK_c) ) {
-                                if ( !interrupted ) {
-                                    PushEvent(new Utils.LuaParameter[] {
+                            if ( pressedKeys.Contains(SDL_Keycode.SDLK_LCTRL) ) {
+                                if ( pressedKeys.Contains(SDL_Keycode.SDLK_c) ) {
+                                    if ( !interrupted ) {
+                                        PushEvent(new Utils.LuaParameter[] {
                                         new() {
                                             Type = LuaType.String,
                                             Value = "interrupt",
                                         }
                                     });
-
-                                    interrupted = true;
+                                        interrupted = true;
+                                    }
+                                } else {
+                                    interrupted = false;
                                 }
-                            } else {
-                                interrupted = false;
+
+                                if ( pressedKeys.Contains(SDL_Keycode.SDLK_r) ) {
+                                    rebootTime += Ticktime;
+                                    if(rebootTime >= RebootDelay) {
+                                        Reset();
+                                    }
+                                } else {
+                                    rebootTime = 0;
+                                }
                             }
 
                             Display.Update();
