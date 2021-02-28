@@ -38,24 +38,4 @@ function event.pull(...)
     return table.unpack(ev)
 end
 
-function event.on(eventName, callback)
-    expect(1, eventName, "string")
-    expect(2, callback, "function")
-    
-    local id = #event.__listeners + 1
-    
-    event.__listeners[id] = {
-        event = eventName,
-        callback = callback,
-    }
-    
-    return id
-end
-
-function event.removeListener(id)
-    expect(1, id, "number")
-    
-    event.__listeners[id] = nil
-end
-
 return event

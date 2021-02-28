@@ -515,7 +515,7 @@ function term.read(_sReplaceChar, _tHistory, _fnComplete, _sDefault)
     return sLine
 end
 
-function term.init()
+function term.run()
     if initiated then
         return
     end
@@ -523,21 +523,19 @@ function term.init()
 
     timerBlinkId = timer.start(blinkDelay)
     local blink = false
-    event.on(
-        "timer",
-        function(timerId)
-            if timerId == timerBlinkId then
-                if isBlinking then
-                    redrawChar(posX, posY)
-                    blink = not blink
-                    if blink then
-                        drawCursor()
-                    end
+    while true do
+        local _, timerId = coroutine.yield("timer")
+        if timerId == timerBlinkId then
+            if isBlinking then
+                redrawChar(posX, posY)
+                blink = not blink
+                if blink then
+                    drawCursor()
                 end
-                timerBlinkId = timer.start(blinkDelay)
             end
+            timerBlinkId = timer.start(blinkDelay)
         end
-    )
+    end
 end
 
 return term

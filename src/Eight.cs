@@ -358,8 +358,6 @@ namespace Eight {
 
                             Display.Update();
                             Display.RenderScreen();
-                            state.PushString("tick");
-                            Resume(1);
                         }
                     }
                 }

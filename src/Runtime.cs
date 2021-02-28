@@ -10,7 +10,9 @@ namespace Eight {
         public static Lua LuaState;
         public static Lua State;
 
+        private static bool _running;
         private static bool _quit;
+        private static bool _killed;
         public static bool Init() {
             _quit = false;
             LuaState = new Lua {
@@ -25,6 +27,19 @@ namespace Eight {
             DoLibs();
 
             State = LuaState.NewThread();
+
+            State.SetHook((luaState, ar) => {
+                var state = Lua.FromIntPtr(luaState);
+
+                var arg = LuaDebug.FromIntPtr(ar);
+
+                if ( arg.Event == LuaHookEvent.Count ) {
+                    if ( Eight.OutOfSync && !_killed) {
+                        _killed = true;
+                        State.Error("out of sync");
+                    }
+                }
+            }, LuaHookMask.Count, 10000);
 
             if ( !File.Exists("../bios.lua") ) {
                 Console.WriteLine("Could not find bios.lua");
@@ -88,13 +103,18 @@ namespace Eight {
 
         public static bool Resume(int n = 0) {
             if ( _quit ) return false;
+            if ( _running ) return false;
+            _running = true;
             var status = State.Resume(null, n, out var nres);
+            _running = false;
+            _killed = false;
             if ( status == LuaStatus.OK || status == LuaStatus.Yield ) {
                 State.Pop(nres);
                 if ( status != LuaStatus.OK ) return true;
                 Console.WriteLine(State.ToString(-1));
                 return false;
             }
+
 
             var error = State.ToString(-1) ?? "Unknown Error";
             State.Traceback(State);

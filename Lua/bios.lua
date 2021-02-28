@@ -69,13 +69,11 @@ local function panic(err)
     log(stacktrace, 1)
 
     cY = h-1
-    log("Press any key to restart", nil, true)
+    log("Hold CTRL + R to restart", nil, true)
 
-    local ev = {}
-    repeat
-        ev = {coroutine.yield()}
-    until ev[1] == "key_down"
-    os.reboot()
+    while true do
+        coroutine.yield()
+    end
 end
 
 audio.beep(840, 200);
