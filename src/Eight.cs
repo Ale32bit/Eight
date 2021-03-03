@@ -128,7 +128,7 @@ namespace Eight {
             if ( !ok ) IsQuitting = true;
         }
 
-        // TODO: kill lua if this ever happens, which is very likely, i caused this at least 10 times today.
+        // TODO: improve lua state killing, gotta train those hunters
         private static void SyncTimerHandler(object sender, ElapsedEventArgs ev) {
             OutOfSync = true;
             Console.WriteLine("Warning: Lua State is out of sync!");
@@ -348,7 +348,7 @@ namespace Eight {
 
                                 if ( pressedKeys.Contains(SDL_Keycode.SDLK_r) ) {
                                     rebootTime += Ticktime;
-                                    if(rebootTime >= RebootDelay) {
+                                    if ( rebootTime >= RebootDelay ) {
                                         Reset();
                                     }
                                 } else {
@@ -381,6 +381,43 @@ namespace Eight {
             };
 
             SDL_PushEvent(ref userEvent);
+        }
+
+        public static void Crash(params string[] messages) {
+            Module.ScreenText.ForegroundColor = 0xffffff;
+            Module.ScreenText.BackgroundColor = 0x000000;
+            Display.ResetScreenSize();
+            Module.ScreenText.ClearScreen(true);
+            
+            int x = 0;
+            int y = 0;
+            foreach ( var msg in messages ) {
+                for (int i = 0; i < msg.Length; i++ ) {
+                    char ch = msg[i];
+                    if ( ch == '\t' ) {
+                        x += 2;
+                    } else if ( ch == '\n' ) {
+                        y++;
+                        x = 0;
+                    } else {
+                        Module.ScreenText.DrawChar(ch, x, y, Module.ScreenText.ForegroundColor, Module.ScreenText.BackgroundColor);
+                        x++;
+                    }
+                }
+                x = 0;
+                y++;
+            }
+
+            Display.Update();
+            Display.RenderScreen();
+
+            while(SDL_WaitEvent(out var ev) != 0) {
+                if(ev.type == SDL_QUIT) {
+                    break;
+                }
+            }
+
+            Quit();
         }
 
         public static void Quit() {

@@ -13,6 +13,19 @@ namespace Eight {
         private static bool _running;
         private static bool _quit;
         private static bool _killed;
+
+        private static string[] crashSplashes = {
+            "Why are we here?",
+            "Here! Have a cookie!",
+            "The crash has crashed.",
+            "Press F to pay respects",
+            "Crap! Not again!",
+            "Why am I wasting my time writing these?!",
+            "Give me some coffee, please!",
+            "<3 SquidDev",
+            "Eight.Quit();",
+            "Now crash this."
+        };
         public static bool Init() {
             _quit = false;
             LuaState = new Lua {
@@ -143,6 +156,11 @@ namespace Eight {
             Console.WriteLine($"Lua Exception [0x{hexStatus}] {nr}: {error}");
             Console.WriteLine(traceback);
             Console.WriteLine("Could not resume");
+
+            var rand = new Random();
+            var splash = crashSplashes[rand.Next(crashSplashes.Length)];
+
+            Eight.Crash(splash, error, traceback, "Could not resume");
 
             return false;
         }
