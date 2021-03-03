@@ -301,7 +301,7 @@ namespace Eight.Module {
         public static unsafe void DrawPixel(int x, int y, int c) {
             if ( Eight.IsQuitting ) return;
 
-            if ( x < 0 && y < 0 && x >= Eight.RealWidth && y >= Eight.RealHeight ) return;
+            if ( x < 0 || y < 0 || x >= Eight.RealWidth || y >= Eight.RealHeight ) return;
 
             uint p = ((uint)c << 8) | 0xff;
 
