@@ -29,6 +29,9 @@ function colors.toRGB(n)
 end
 
 function colors.toHex(r, g, b)
+    r = math.tointeger(r)
+    g = math.tointeger(g)
+    b = math.tointeger(b)
     return (r << 16) | (g << 8) | b
 end
 

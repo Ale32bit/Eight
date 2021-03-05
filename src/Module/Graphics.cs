@@ -428,6 +428,8 @@ namespace Eight.Module {
         }
 
         public static void DrawLine(int x1, int y1, int x2, int y2, int c) {
+            if ( Eight.IsQuitting ) return;
+
             Color color = Color.FromArgb(c);
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderDrawLine(Display.Renderer, x1, y1, x2, y2);
@@ -436,6 +438,8 @@ namespace Eight.Module {
         }
 
         public static void DrawLines(SDL_Point[] points, int c) {
+            if ( Eight.IsQuitting ) return;
+
             Color color = Color.FromArgb(c);
             SDL_SetRenderDrawColor(Display.Renderer, color.R, color.G, color.B, 255);
             SDL_RenderDrawLines(Display.Renderer, points, points.Length);
@@ -444,6 +448,8 @@ namespace Eight.Module {
         }
 
         public static void DrawCircle(int x, int y, int r, int c) {
+            if ( Eight.IsQuitting ) return;
+
             List<SDL_Point> points = new();
 
             for ( int i = 1; i <= 360; i++ ) {

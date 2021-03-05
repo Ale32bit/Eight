@@ -44,7 +44,7 @@ namespace Eight.Module {
         };
 
         public static void Setup() {
-            Console.WriteLine("Working in {0}", Directory.GetCurrentDirectory());
+            Console.WriteLine("Working in {0}", Eight.DataDir);
 
             Runtime.LuaState.RequireF("filesystem", OpenLib, false);
         }
@@ -198,9 +198,15 @@ namespace Eight.Module {
 
             if ( PathExists(resolvedPath) ) {
                 try {
-                    if ( Directory.Exists(resolvedPath) ) // if it's path
-{
-                        Directory.Delete(resolvedPath, recursive);
+                    if ( Directory.Exists(resolvedPath) ) { // if it's path
+
+                        if ( !recursive && Directory.EnumerateFileSystemEntries(resolvedPath).Any() ) {
+                            ok = false;
+                            error = "Directory is not empty";
+                        } else {
+                            Directory.Delete(resolvedPath, recursive);
+                        }
+                
                     } else if ( File.Exists(resolvedPath) ) {
                         File.Delete(resolvedPath);
                     }
@@ -305,7 +311,7 @@ namespace Eight.Module {
             var isolatedPath = absolutePath.Remove(0, rootPath.Length - 1);
 
             // Now join the isolatedPath to the Lua directory, always inside of it
-            var resolvedPath = Path.Join(Eight.LuaDir, isolatedPath);
+            var resolvedPath = Path.Join(Eight.DataDir, isolatedPath);
 
             return resolvedPath;
         }

@@ -19,8 +19,7 @@ namespace Eight {
         public const int CellWidth = 6;
         public const int CellHeight = 12;
 
-        public static readonly string BaseDir = Directory.GetCurrentDirectory();
-        public static readonly string LuaDir = Path.Combine(BaseDir, "lua");
+        public static readonly string DataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eight", "data");
 
         public static int RealWidth {
             get { return WindowWidth * CellWidth; }
@@ -59,28 +58,31 @@ namespace Eight {
 
             Console.WriteLine($"Eight {Version}");
 
-            if ( !Directory.Exists(LuaDir) ) {
-                Directory.CreateDirectory(LuaDir);
+            if ( !Directory.Exists(DataDir) ) {
+                Directory.CreateDirectory(DataDir);
             }
 
-            Directory.SetCurrentDirectory(LuaDir);
+            if ( !Directory.EnumerateFileSystemEntries(DataDir).Any() ) {
+                InstallOS();
+            }
 
-            Init();
-
-            Environment.Exit(0);
-        }
-
-        public static bool Init() {
             SetTickrate(DefaultTickrate);
 
             if ( !Display.Init() ) {
                 Console.WriteLine("SDL2 could not be initialized!");
-                return false;
+                return;
             }
 
+            if ( BIOS.BootPrompt() )
+                Init();
+
+            Environment.Exit(0);
+        }
+
+        public static void Init() {
             if ( !Runtime.Init() ) {
                 Console.WriteLine("Lua could not be initialized!");
-                return false;
+                return;
             }
 
             IsQuitting = false;
@@ -94,8 +96,10 @@ namespace Eight {
                     Runtime.Init();
                 }
             }
+        }
 
-            return true;
+        public static void InstallOS() {
+            Utils.DirectoryCopy("./Lua/lua", DataDir, true);
         }
 
         public static void Reset() {
@@ -384,35 +388,16 @@ namespace Eight {
         }
 
         public static void Crash(params string[] messages) {
-            Module.ScreenText.ForegroundColor = 0xffffff;
-            Module.ScreenText.BackgroundColor = 0x000000;
-            Display.ResetScreenSize();
-            Module.ScreenText.ClearScreen(true);
-            
-            int x = 0;
-            int y = 0;
+            BIOS.ResetScreen();
+
             foreach ( var msg in messages ) {
-                for (int i = 0; i < msg.Length; i++ ) {
-                    char ch = msg[i];
-                    if ( ch == '\t' ) {
-                        x += 2;
-                    } else if ( ch == '\n' ) {
-                        y++;
-                        x = 0;
-                    } else {
-                        Module.ScreenText.DrawChar(ch, x, y, Module.ScreenText.ForegroundColor, Module.ScreenText.BackgroundColor);
-                        x++;
-                    }
-                }
-                x = 0;
-                y++;
+                BIOS.Print(msg);
             }
 
-            Display.Update();
-            Display.RenderScreen();
+            BIOS.Render();
 
-            while(SDL_WaitEvent(out var ev) != 0) {
-                if(ev.type == SDL_QUIT) {
+            while ( SDL_WaitEvent(out var ev) != 0 ) {
+                if ( ev.type == SDL_QUIT ) {
                     break;
                 }
             }

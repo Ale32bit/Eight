@@ -54,14 +54,15 @@ namespace Eight {
                 }
             }, LuaHookMask.Count, 10000);
 
-            if ( !File.Exists("../bios.lua") ) {
-                Console.WriteLine("Could not find bios.lua");
+            if ( !File.Exists("Lua/boot.lua") ) {
+                Console.WriteLine("Could not find boot.lua");
+                Eight.Crash("Could not find bios.lua!", "Is Eight installed correctly?");
                 return false;
             }
 
-            var biosContent = File.ReadAllText("../bios.lua");
+            var biosContent = File.ReadAllText("Lua/boot.lua");
 
-            var status = State.LoadString(biosContent, "@BIOS");
+            var status = State.LoadString(biosContent, "@BOOT");
             if ( status != LuaStatus.OK ) {
                 var error = State.ToString(-1);
                 Console.WriteLine("Lua Load Exception: {0}", error);
@@ -172,7 +173,8 @@ namespace Eight {
 
         public static void Quit() {
             _quit = true;
-            State.Close();
+            
+            if(State != null) State.Close();
         }
     }
 }

@@ -78,7 +78,7 @@ end
 
 audio.beep(840, 200);
 
-log("Eight BIOS v1")
+log("Eight Bootloader v1")
 log("Lua: " .. _VERSION)
 log("Host: " .. _HOST)
 

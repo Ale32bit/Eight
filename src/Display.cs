@@ -1,6 +1,7 @@
 using System;
 using static SDL2.SDL;
 using System.Drawing;
+using System.IO;
 
 namespace Eight {
     public class Display {
@@ -32,6 +33,7 @@ namespace Eight {
             }
 
             ResetScreenSize();
+            SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
             Console.WriteLine("Creating window...");
             Window = SDL_CreateWindow("Eight " + Eight.Version, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -45,9 +47,11 @@ namespace Eight {
                 return false;
             }
 
-            var icon = LoadImage("../icon.png");
+            if ( File.Exists("icon.png") ) {
+                var icon = LoadImage("icon.png");
+                SDL_SetWindowIcon(Window, icon);
+            }
 
-            SDL_SetWindowIcon(Window, icon);
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
             SDL_SetRenderDrawBlendMode(_hdRenderer, SDL_BlendMode.SDL_BLENDMODE_NONE);
@@ -63,8 +67,8 @@ namespace Eight {
 
             Console.WriteLine("Loading EBF font...");
             try {
-                TextFont = new EBF("../Assets/font.ebf");
-            } catch ( System.IO.FileNotFoundException e ) {
+                TextFont = new EBF("Assets/font.ebf");
+            } catch ( FileNotFoundException e ) {
                 Console.WriteLine("Could not find font.ebf");
                 Console.WriteLine(e);
                 return false;
@@ -79,7 +83,7 @@ namespace Eight {
                 Surface = IntPtr.Zero;
             }
 
-            if( Renderer != IntPtr.Zero ) {
+            if ( Renderer != IntPtr.Zero ) {
                 SDL_DestroyRenderer(Renderer);
                 Renderer = IntPtr.Zero;
             }
@@ -97,7 +101,7 @@ namespace Eight {
             }
 
             Renderer = SDL_CreateSoftwareRenderer(Surface);
-            if( Renderer == IntPtr.Zero ) {
+            if ( Renderer == IntPtr.Zero ) {
                 Console.WriteLine("SDL_CreateSoftwareRender() failed: " + SDL_GetError());
                 Eight.Quit();
             }
@@ -115,8 +119,6 @@ namespace Eight {
             );
 
             CreateScreen();
-
-            SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         }
 
 
@@ -136,15 +138,10 @@ namespace Eight {
             if ( !Dirty ) return;
 
             var sTexture = SDL_CreateTextureFromSurface(_hdRenderer, Surface);
-
             SDL_RenderClear(_hdRenderer);
-
             SDL_RenderCopy(_hdRenderer, sTexture, IntPtr.Zero, IntPtr.Zero);
-
             SDL_RenderPresent(_hdRenderer);
-
             SDL_DestroyTexture(sTexture);
-
             Dirty = false;
         }
 

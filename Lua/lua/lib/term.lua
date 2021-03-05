@@ -19,11 +19,10 @@ local timerBlinkId
 local initiated = false
 
 if not utf8.sub then
-    function sub(s, i, j)
+    local function sub(s, i, j)
         expect(1, s, "string")
         expect(2, i, "number")
         expect(3, j, "number", "nil")
-        cprint(s, i, utf8.offset(s, i))
         return string.sub(s, utf8.offset(s, i), j and (utf8.offset(s, j + 1) - 1) or #s)
     end
 end
