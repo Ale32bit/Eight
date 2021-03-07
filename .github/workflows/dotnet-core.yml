@@ -21,5 +21,11 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
+    - uses: actions/upload-artifact@v2
+      name: Upload Artifacts
+      with:
+        path: |
+          bin/Release/net5.0/Eight.dll
+          Lua/
     - name: Test
       run: dotnet test --no-restore --verbosity normal
