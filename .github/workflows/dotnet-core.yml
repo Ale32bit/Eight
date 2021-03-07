@@ -24,7 +24,9 @@ jobs:
     - uses: actions/upload-artifact@v2
       name: Upload Artifacts
       with:
-        name: dotnetcore-artifact
-        path: bin/Release/net5.0/Eight.dll
+        name: output
+        path: |
+          bin/Release/net5.0/Eight.dll
+          Lua/
     - name: Test
       run: dotnet test --no-restore --verbosity normal
