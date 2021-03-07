@@ -11,7 +11,7 @@ os.log = print
 
 local w, h, oSize = screen.getSize()
 
-local cX, cY = 0, -1
+local cX, cY = 0, 0
 local function log(msg, offset, nonewline)
     os.log(msg)
     offset = offset or 0
@@ -75,6 +75,8 @@ local function panic(err)
         coroutine.yield()
     end
 end
+
+screen.clear()
 
 audio.beep(840, 200);
 

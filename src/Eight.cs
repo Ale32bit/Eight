@@ -19,7 +19,8 @@ namespace Eight {
         public const int CellWidth = 6;
         public const int CellHeight = 12;
 
-        public static readonly string DataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eight", "data");
+        public static readonly string MainDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eight");
+        public static readonly string DataDir = Path.Combine(MainDir, "data");
 
         public static int RealWidth {
             get { return WindowWidth * CellWidth; }
@@ -62,8 +63,9 @@ namespace Eight {
                 Directory.CreateDirectory(DataDir);
             }
 
-            if ( !Directory.EnumerateFileSystemEntries(DataDir).Any() ) {
+            if ( !File.Exists(Path.Combine(MainDir, ".installed")) ) {
                 InstallOS();
+                File.WriteAllText(Path.Combine(MainDir, ".installed"), "Delete this file to install the default OS on launch");
             }
 
             SetTickrate(DefaultTickrate);

@@ -16,6 +16,8 @@ namespace Eight {
         private static bool quitBios = false;
         private static bool resume = true;
 
+        private static int selection = 0;
+
         public static void Render() {
             Display.Update();
             Display.RenderScreen();
@@ -43,6 +45,11 @@ namespace Eight {
             }
             X = 0;
             Y++;
+        }
+
+        public static void CenterPrint(string msg) {
+            X = (Eight.WindowWidth - msg.Length) / 2;
+            Print(msg);
         }
 
         private static void OpenFolder(string path) {
@@ -96,9 +103,14 @@ namespace Eight {
             Y = 0;
 
             ResetScreen();
-            Print("Eight BIOS");
+            CenterPrint("Eight Setup Menu");
+            Y = 2;
             for ( int i = 0; i < biosOptions.Length; i++ ) {
-                Print($"[{i + 1}] {biosOptions[i].name}");
+                if ( selection == i ) {
+                    CenterPrint($"[ {biosOptions[i].name} ]");
+                } else {
+                    CenterPrint($"{biosOptions[i].name}");
+                }
             }
             Render();
         }
@@ -108,7 +120,7 @@ namespace Eight {
 
             Y = Eight.WindowHeight - 1;
 
-            Print("Press F2 to enter BIOS");
+            CenterPrint("Press F2 to enter setup");
 
             Render();
 
@@ -148,19 +160,22 @@ namespace Eight {
                         Eight.Quit();
                         return false;
                     }
-                    if ( _ev.type == SDL_EventType.SDL_TEXTINPUT ) {
 
-                        unsafe {
-                            if ( int.TryParse(Encoding.ASCII.GetString(Utils.CString(_ev.text.text)), out var pick) ) {
-                                if ( pick >= 1 && (pick - 1) < biosOptions.Length ) {
-                                    biosOptions[pick - 1].cb?.Invoke();
-                                    if ( quitBios ) break;
-                                    DrawMenu();
-                                }
-                            }
+                    if ( _ev.type == SDL_EventType.SDL_KEYDOWN ) {
+                        if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_DOWN ) {
+                            selection++;
+                        } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_UP ) {
+                            selection--;
+                        } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_RETURN ) {
+                            biosOptions[selection].cb?.Invoke();
+                            if ( quitBios ) break;
                         }
-                    }
 
+                        if ( selection < 0 ) selection = biosOptions.Length - 1;
+                        if ( selection >= biosOptions.Length ) selection = 0;
+
+                        DrawMenu();
+                    }
                 }
             }
             return resume;
