@@ -24,7 +24,6 @@ jobs:
     - uses: actions/upload-artifact@v2
       name: Upload Artifacts
       with:
-        name: output
         path: |
           bin/Release/net5.0/Eight.dll
           Lua/
