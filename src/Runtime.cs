@@ -49,7 +49,8 @@ namespace Eight {
                 if ( arg.Event == LuaHookEvent.Count ) {
                     if ( Eight.OutOfSync && !_killed) {
                         _killed = true;
-                        State.Error("out of sync");
+                        if(Eight.Flags["out_of_sync_error"])
+                            State.Error("out of sync");
                     }
                 }
             }, LuaHookMask.Count, 10000);

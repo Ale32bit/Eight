@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Text;
 using static SDL2.SDL;
 
 namespace Eight {
@@ -116,6 +115,8 @@ namespace Eight {
         }
 
         public static bool BootPrompt() {
+            Discord.SetStatus("Booting up", "");
+            
             Print("Eight " + Eight.Version);
 
             Y = Eight.WindowHeight - 1;
@@ -153,6 +154,7 @@ namespace Eight {
             }
 
             if ( pressedF2 ) {
+                Discord.SetStatus("In setup menu", "");
                 DrawMenu();
                 while ( SDL_WaitEvent(out var _ev) != 0 ) {
 
