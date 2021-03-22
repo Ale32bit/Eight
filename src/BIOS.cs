@@ -197,8 +197,7 @@ namespace Eight {
                 Render();
             });
 
-        public static bool BootPrompt() {
-                Discord.SetStatus("Booting up", "");
+            Discord.SetStatus("Booting up", "");
             Print("Eight " + Eight.Version);
 
             Y = Eight.WindowHeight - 1;
@@ -238,8 +237,8 @@ namespace Eight {
             }
 
             if ( pressedF2 ) {
-                    Discord.SetStatus("In setup menu", "");
-                DrawMenu();
+                Discord.SetStatus("In setup menu", "");
+                drawMenu();
                 while ( SDL_WaitEvent(out var _ev) != 0 ) {
 
                     if ( _ev.type == SDL_EventType.SDL_QUIT ) {
