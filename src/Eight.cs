@@ -392,6 +392,9 @@ namespace Eight {
         public static void Crash(params string[] messages) {
             BIOS.ResetScreen();
 
+            BIOS.X = 0;
+            BIOS.Y = 0;
+
             foreach ( var msg in messages ) {
                 BIOS.Print(msg);
             }

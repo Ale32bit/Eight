@@ -318,6 +318,7 @@ namespace Eight.Module {
             var pitch = ((SDL_Surface*)Display.Surface)->pitch;
 
             foreach ( var point in points ) {
+                if ( point.x < 0 || point.y < 0 || point.x >= Eight.RealWidth || point.y >= Eight.RealHeight ) continue;
                 ((uint*)((SDL_Surface*)Display.Surface)->pixels)[point.x + point.y * pitch / 4] = p;
             }
 

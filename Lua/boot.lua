@@ -78,8 +78,6 @@ end
 
 screen.clear()
 
-audio.beep(840, 200);
-
 log("Eight Bootloader v1")
 log("Lua: " .. _VERSION)
 log("Host: " .. _HOST)
@@ -189,6 +187,7 @@ else
     local func, err = loadfile("init.lua")
     if func then
         log("Booting OS...")
+        audio.beep(840, 200)
         local ok, err = pcall(func, ...)
         if not ok then
             panic(err)

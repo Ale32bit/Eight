@@ -82,7 +82,6 @@ namespace Eight.Module {
 
         public static void Setup() {
             Runtime.LuaState.RequireF("audio", OpenLib, false);
-            InitAudio();
         }
 
         private static int OpenLib(IntPtr luaState) {
