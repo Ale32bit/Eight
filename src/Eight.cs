@@ -44,9 +44,11 @@ namespace Eight {
 
         public static int RebootDelay = 750;
 
+        public static Dictionary<string, bool> Flags = new();
+
         public static readonly DateTime Epoch = DateTime.Now;
 
-        public static List<Utils.LuaParameter[]> UserEventQueue = new();
+        private static List<Utils.LuaParameter[]> _userEventQueue = new();
 
         public static bool IsQuitting;
 
@@ -68,7 +70,11 @@ namespace Eight {
                 File.WriteAllText(Path.Combine(MainDir, ".installed"), "Delete this file to install the default OS on launch");
             }
 
+            SetupFlags();
+
             SetTickrate(DefaultTickrate);
+
+            Discord.Init();
 
             if ( !Display.Init() ) {
                 Console.WriteLine("SDL2 could not be initialized!");
@@ -81,6 +87,11 @@ namespace Eight {
             Environment.Exit(0);
         }
 
+        private static void SetupFlags() {
+            Flags["out_of_sync_error"] = true;
+            Flags["allow_rpc_change"] = true;
+        }
+
         public static void Init() {
             if ( !Runtime.Init() ) {
                 Console.WriteLine("Lua could not be initialized!");
@@ -88,6 +99,8 @@ namespace Eight {
             }
 
             IsQuitting = false;
+
+            Discord.SetStatus("", "");
 
             while ( !IsQuitting ) {
                 EventLoop();
@@ -289,7 +302,7 @@ namespace Eight {
                                     // It will probably give problems in the future
                                     try {
                                         var index = (int)_e.user.data1;
-                                        var parameters = UserEventQueue[index];
+                                        var parameters = _userEventQueue[index];
 
                                         for ( var i = 0; i < parameters.Length; i++ ) {
                                             var type = parameters[i].Type;
@@ -375,8 +388,8 @@ namespace Eight {
         }
 
         public static void PushEvent(Utils.LuaParameter[] parameters) {
-            UserEventQueue.Add(parameters);
-            var index = UserEventQueue.Count - 1;
+            _userEventQueue.Add(parameters);
+            var index = _userEventQueue.Count - 1;
 
             var userEvent = new SDL_Event {
                 type = SDL_USEREVENT,
