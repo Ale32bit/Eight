@@ -1,8 +1,8 @@
 #nullable enable
+using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using KeraLua;
 
 
 namespace Eight.Module {
@@ -37,18 +37,18 @@ namespace Eight.Module {
             state.ArgumentCheck(state.IsTable(3) || state.IsNoneOrNil(3), 3, "expected string");
             state.ArgumentCheck(state.IsString(4) || state.IsNoneOrNil(4), 4, "expected string");
 
-            if (state.IsString(2)) body = state.ToString(2);
+            if ( state.IsString(2) ) body = state.ToString(2);
 
-            if (state.IsString(4)) method = state.ToString(4);
+            if ( state.IsString(4) ) method = state.ToString(4);
 
             var url = state.ToString(1);
 
             var headers = new Dictionary<string, string>();
 
-            if (state.IsTable(3)) {
+            if ( state.IsTable(3) ) {
                 state.PushNil();
 
-                while (state.Next(3)) {
+                while ( state.Next(3) ) {
                     string value = state.ToString(-1);
                     string key = state.ToString(-2);
 
@@ -64,7 +64,7 @@ namespace Eight.Module {
             Uri? uri;
             var ok = Uri.TryCreate(url, UriKind.Absolute, out uri);
 
-            if (ok && uri != null) {
+            if ( ok && uri != null ) {
                 Request(uri, body, headers, method, id);
                 state.PushBoolean(true);
                 state.PushString(id);
@@ -82,11 +82,11 @@ namespace Eight.Module {
                 RequestUri = url
             };
 
-            if (body != null)
+            if ( body != null )
                 message.Content = new StringContent(body);
 
-            if (headers != null)
-                foreach (var (key, value) in headers)
+            if ( headers != null )
+                foreach ( var (key, value) in headers )
                     message.Headers.TryAddWithoutValidation(key, value);
 
             message.Method = method != null ? new HttpMethod(method) : HttpMethod.Get;
@@ -95,7 +95,7 @@ namespace Eight.Module {
                 var response = await Http.SendAsync(message);
 
                 ProcessHttpResponse(response, rnd);
-            } catch (Exception e) {
+            } catch ( Exception e ) {
                 Utils.LuaParameter[] parameters = {
                     new() {
                         Type = LuaType.String,

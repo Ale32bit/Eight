@@ -6,10 +6,10 @@ namespace Eight {
     public class Utils {
         public static unsafe byte[] CString(byte* s) {
             var end = s;
-            while (*end != 0) ++end;
+            while ( *end != 0 ) ++end;
 
             byte[] o = new byte[end - s];
-            for (var i = 0; i < o.Length; i++) o[i] = s[i];
+            for ( var i = 0; i < o.Length; i++ ) o[i] = s[i];
 
             return o;
         }
@@ -24,7 +24,7 @@ namespace Eight {
             int fg = (int)(p >> 16) & 0xffffff;
             int bg = (int)(p >> 40) & 0xffffff;
 
-            if (c == 0) c = ' ';
+            if ( c == 0 ) c = ' ';
 
             TextPoint point = new() {
                 Char = c,

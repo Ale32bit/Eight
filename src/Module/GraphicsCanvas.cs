@@ -1,5 +1,5 @@
-﻿using System;
-using KeraLua;
+﻿using KeraLua;
+using System;
 using static SDL2.SDL;
 
 
@@ -62,11 +62,11 @@ namespace Eight.Module {
 
             var data = state.OptString(3, null);
 
-            if(data != null) {
+            if ( data != null ) {
 
             }
 
-            canvas_t *ud = (canvas_t*)state.NewUserData(sizeof(canvas_t));
+            canvas_t* ud = (canvas_t*)state.NewUserData(sizeof(canvas_t));
 
             state.SetMetaTable("canvas_t");
             ud->s = (SDL_Surface*)s;

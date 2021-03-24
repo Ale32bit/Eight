@@ -1,8 +1,8 @@
-﻿using System;
-using KeraLua;
-using static SDL2.SDL;
+﻿using KeraLua;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using static SDL2.SDL;
 
 namespace Eight.Module {
     class Audio {

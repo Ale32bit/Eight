@@ -1,5 +1,5 @@
-using System;
 using KeraLua;
+using System;
 using static SDL2.SDL;
 
 namespace Eight.Module {

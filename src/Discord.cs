@@ -1,5 +1,5 @@
-﻿using System;
-using DiscordRPC;
+﻿using DiscordRPC;
+using System;
 
 namespace Eight {
     class Discord {
@@ -24,7 +24,7 @@ namespace Eight {
         }
 
         public static void SetStatus(string details, string state = "") {
-            if ( Client != null && !Client.IsDisposed)  {
+            if ( Client != null && !Client.IsDisposed ) {
                 Client.SetPresence(new RichPresence() {
                     Details = details,
                     State = state,

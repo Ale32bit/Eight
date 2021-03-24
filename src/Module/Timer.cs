@@ -1,7 +1,6 @@
+using KeraLua;
 using System;
 using System.Collections.Generic;
-using KeraLua;
-
 using System.Timers;
 
 namespace Eight.Module {
@@ -69,7 +68,7 @@ namespace Eight.Module {
         }
 
         public static bool StopTimer(double timerId) {
-            if (!_timers.ContainsKey(timerId)) return false;
+            if ( !_timers.ContainsKey(timerId) ) return false;
 
             var timer = _timers[timerId];
             timer.Enabled = false;
@@ -81,7 +80,7 @@ namespace Eight.Module {
         }
 
         private static void TimerHandler(object sender, ElapsedEventArgs e, double timerId) {
-            if (!_timers.ContainsKey(timerId)) return;
+            if ( !_timers.ContainsKey(timerId) ) return;
 
             Utils.LuaParameter[] parameters = {
                 new() {

@@ -1,6 +1,6 @@
+using KeraLua;
 using System;
 using System.Collections.Generic;
-using KeraLua;
 
 namespace Eight.Module {
     public static class Os {
@@ -96,7 +96,7 @@ namespace Eight.Module {
             string flagName = state.ToString(1);
 
             if ( state.IsNoneOrNil(2) ) {
-                if(Eight.Flags.TryGetValue(flagName, out bool value)) {
+                if ( Eight.Flags.TryGetValue(flagName, out bool value) ) {
                     state.PushBoolean(value);
                 } else {
                     state.PushBoolean(false);
@@ -120,11 +120,11 @@ namespace Eight.Module {
             string rpcDetails = state.CheckString(1);
             string rpcState = "";
 
-            if ( !state.IsNoneOrNil(2)) {
-               rpcState =  state.CheckString(2);
+            if ( !state.IsNoneOrNil(2) ) {
+                rpcState = state.CheckString(2);
             }
 
-            if(Eight.Flags["allow_rpc_change"]) 
+            if ( Eight.Flags["allow_rpc_change"] )
                 Discord.SetStatus(rpcDetails, rpcState);
 
             return 0;

@@ -1,8 +1,8 @@
+using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using KeraLua;
 
 
 namespace Eight.Module {
@@ -206,7 +206,7 @@ namespace Eight.Module {
                         } else {
                             Directory.Delete(resolvedPath, recursive);
                         }
-                
+
                     } else if ( File.Exists(resolvedPath) ) {
                         File.Delete(resolvedPath);
                     }

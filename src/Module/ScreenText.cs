@@ -1,8 +1,8 @@
-﻿using System;
+﻿using KeraLua;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using KeraLua;
 using static SDL2.SDL;
 
 namespace Eight.Module {

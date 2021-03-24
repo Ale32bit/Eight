@@ -1,7 +1,7 @@
 using System;
-using static SDL2.SDL;
 using System.Drawing;
 using System.IO;
+using static SDL2.SDL;
 
 namespace Eight {
     public class Display {

@@ -1,11 +1,10 @@
-﻿using System;
+﻿using KeraLua;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
-using System.Text;
-using System.Timers;
-using KeraLua;
 
 namespace Eight {
     class Event {

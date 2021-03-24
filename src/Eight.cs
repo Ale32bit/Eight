@@ -1,9 +1,6 @@
-using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Timers;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
 
@@ -48,7 +45,6 @@ namespace Eight {
         public static bool IsQuitting;
 
         private static bool _reset = false;
-        private static SDL_Event _e;
 
         [STAThread]
         public static void Main(string[] args) {
