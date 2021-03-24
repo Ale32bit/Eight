@@ -47,9 +47,9 @@ namespace Eight {
                 var arg = LuaDebug.FromIntPtr(ar);
 
                 if ( arg.Event == LuaHookEvent.Count ) {
-                    if ( Eight.OutOfSync && !_killed) {
+                    if ( Eight.OutOfSync && !_killed ) {
                         _killed = true;
-                        if(Eight.Flags["out_of_sync_error"])
+                        if ( Eight.Flags["out_of_sync_error"] )
                             State.Error("out of sync");
                     }
                 }
@@ -130,7 +130,6 @@ namespace Eight {
                 return false;
             }
 
-
             var error = State.ToString(-1) ?? "Unknown Error";
             State.Traceback(State);
             var traceback = State.ToString(-1) ?? "Unknown Trace";
@@ -174,8 +173,8 @@ namespace Eight {
 
         public static void Quit() {
             _quit = true;
-            
-            if(State != null) State.Close();
+
+            if ( State != null ) State.Close();
         }
     }
 }

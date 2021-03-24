@@ -36,7 +36,7 @@ namespace Eight {
             SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
             Console.WriteLine("Creating window...");
-            Window = SDL_CreateWindow("Eight " + Eight.Version, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            Window = SDL_CreateWindow("Eight", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                 (int)(Eight.RealWidth * Eight.WindowScale),
                 (int)(Eight.RealHeight * Eight.WindowScale),
                 SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI);
@@ -51,7 +51,6 @@ namespace Eight {
                 var icon = LoadImage("icon.png");
                 SDL_SetWindowIcon(Window, icon);
             }
-
 
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
             SDL_SetRenderDrawBlendMode(_hdRenderer, SDL_BlendMode.SDL_BLENDMODE_NONE);

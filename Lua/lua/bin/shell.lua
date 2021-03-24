@@ -145,6 +145,7 @@ if not shell then
 end
 
 local history = {}
+os.setRPC("In shell")
 while not bExit do
     local cwd = shell.getWorkingDirectory()
     if cwd == "/home" then
@@ -160,5 +161,14 @@ while not bExit do
         table.insert(history, input)
     end
 
+    local name = shell.resolveProgram(input)
+    if name then
+        os.setRPC("In shell", "Running " .. fs.getName(name))
+    end
+
     shell.run(input)
+
+    if name then
+        os.setRPC("In shell")
+    end
 end

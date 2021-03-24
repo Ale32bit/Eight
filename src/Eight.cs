@@ -9,7 +9,7 @@ using static SDL2.SDL.SDL_EventType;
 
 namespace Eight {
     public static class Eight {
-        public const string Version = "Alpha 1.3.0";
+        public const string Version = "Alpha 1.4.0";
 
         public const int DefaultWidth = 66;
         public const int DefaultHeight = 24;
@@ -61,38 +61,57 @@ namespace Eight {
 
             Console.WriteLine($"Eight {Version}");
 
-            if ( !Directory.Exists(DataDir) ) {
-                Directory.CreateDirectory(DataDir);
-            }
+            if ( Display.Init() ) {
+                Discord.Init();
+                Init();
 
-            if ( !File.Exists(Path.Combine(MainDir, ".installed")) ) {
-                InstallOS();
-                File.WriteAllText(Path.Combine(MainDir, ".installed"), "Delete this file to install the default OS on launch");
-            }
-
-            SetupFlags();
-
-            SetTickrate(DefaultTickrate);
-
-            Discord.Init();
-
-            if ( !Display.Init() ) {
+                Environment.Exit(0);
+            } else {
                 Console.WriteLine("SDL2 could not be initialized!");
                 return;
             }
-
-            if ( BIOS.BootPrompt() )
-                Init();
-
-            Environment.Exit(0);
-        }
-
-        private static void SetupFlags() {
-            Flags["out_of_sync_error"] = true;
-            Flags["allow_rpc_change"] = true;
         }
 
         public static void Init() {
+            IsQuitting = false;
+            while ( !IsQuitting ) {
+                if ( !Directory.Exists(DataDir) ) {
+                    Directory.CreateDirectory(DataDir);
+                }
+
+                if ( !File.Exists(Path.Combine(MainDir, ".installed")) ) {
+                    InstallOS();
+                    File.WriteAllText(Path.Combine(MainDir, ".installed"), "Delete this file to install the default OS on launch");
+                }
+
+                SetupFlags();
+
+                SetTickrate(DefaultTickrate);
+
+                Discord.SetStatus("", "");
+
+                if ( BIOS.BootPrompt() ) {
+                    if ( !Runtime.Init() ) {
+                        Console.WriteLine("Lua could not be initialized!");
+                        return;
+                    }
+
+                    EventLoop();
+
+                } else {
+                    break;
+                }
+
+                if ( _reset ) {
+                    IsQuitting = false;
+                    _reset = false;
+                }
+            }
+        }
+
+        /*public static void LegacyInit() {
+            if ( !BIOS.BootPrompt() ) return;
+
             if ( !Runtime.Init() ) {
                 Console.WriteLine("Lua could not be initialized!");
                 return;
@@ -108,21 +127,23 @@ namespace Eight {
                     Console.WriteLine("Resetting environment");
                     IsQuitting = false;
                     _reset = false;
-                    Runtime.Init();
+                    if ( BIOS.BootPrompt() ) {
+                        Runtime.Init();
+                    } else {
+                        break;
+                    }
                 }
             }
+        }
+        */
+
+        private static void SetupFlags() {
+            Flags["out_of_sync_error"] = true;
+            Flags["allow_rpc_change"] = true;
         }
 
         public static void InstallOS() {
             Utils.DirectoryCopy("./Lua/lua", DataDir, true);
-        }
-
-        public static void Reset() {
-            _reset = true;
-            IsQuitting = true;
-            Runtime.Quit();
-            Display.Reset();
-            SetTickrate(DefaultTickrate);
         }
 
         public static void SetTickrate(int tickrate) {
@@ -423,12 +444,20 @@ namespace Eight {
             Quit();
         }
 
+        public static void Reset() {
+            _reset = true;
+            IsQuitting = true;
+            Runtime.Quit();
+            Display.Reset();
+        }
+
         public static void Quit() {
             Console.WriteLine("Quitting");
             IsQuitting = true;
 
             Runtime.Quit();
             Display.Quit();
+            Discord.Dispose();
         }
     }
 }

@@ -117,11 +117,12 @@ namespace Eight.Module {
         public static int SetRPC(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            state.CheckString(1);
-            state.CheckString(2);
+            string rpcDetails = state.CheckString(1);
+            string rpcState = "";
 
-            string rpcDetails = state.ToString(1);
-            string rpcState = state.ToString(2);
+            if ( !state.IsNoneOrNil(2)) {
+               rpcState =  state.CheckString(2);
+            }
 
             if(Eight.Flags["allow_rpc_change"]) 
                 Discord.SetStatus(rpcDetails, rpcState);
