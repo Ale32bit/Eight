@@ -94,7 +94,7 @@ namespace Eight.Module {
                 }
             };
 
-            Eight.PushEvent(parameters);
+            Event.Push(parameters);
 
             _timers.Remove(timerId);
         }

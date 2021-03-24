@@ -13,15 +13,11 @@ namespace Eight {
         public static void Init() {
             Client = new(ClientID) {
                 SkipIdenticalPresence = true,
-                Logger = new DiscordRPC.Logging.ConsoleLogger(DiscordRPC.Logging.LogLevel.Error, true)
+                Logger = new DiscordRPC.Logging.ConsoleLogger(DiscordRPC.Logging.LogLevel.Error)
             };
 
             Client.OnReady += (sender, e) => {
                 Log($"Ready: {e.User.Username}");
-            };
-
-            Client.OnPresenceUpdate += (sender, e) => {
-                Log("Presence update");
             };
 
             Client.Initialize();

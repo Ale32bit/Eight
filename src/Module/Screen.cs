@@ -111,7 +111,7 @@ namespace Eight.Module {
                 }
             };
 
-            Eight.PushEvent(ev);
+            Event.Push(ev);
 
             return 0;
         }
@@ -174,7 +174,7 @@ namespace Eight.Module {
                 }
             };
 
-            Eight.PushEvent(ev);
+            Event.Push(ev);
 
             return 0;
         }

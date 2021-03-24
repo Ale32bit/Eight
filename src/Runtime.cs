@@ -47,7 +47,7 @@ namespace Eight {
                 var arg = LuaDebug.FromIntPtr(ar);
 
                 if ( arg.Event == LuaHookEvent.Count ) {
-                    if ( Eight.OutOfSync && !_killed ) {
+                    if ( Event.OutOfSync && !_killed ) {
                         _killed = true;
                         if ( Eight.Flags["out_of_sync_error"] )
                             State.Error("out of sync");

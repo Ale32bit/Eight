@@ -111,7 +111,7 @@ namespace Eight.Module {
                     }
                 };
 
-                Eight.PushEvent(parameters);
+                Event.Push(parameters);
             }
         }
 
@@ -133,7 +133,7 @@ namespace Eight.Module {
                 }
             };
 
-            Eight.PushEvent(parameters);
+            Event.Push(parameters);
         }
     }
 }
