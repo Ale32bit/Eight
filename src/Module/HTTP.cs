@@ -2,6 +2,7 @@
 using KeraLua;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 
 
@@ -29,19 +30,24 @@ namespace Eight.Module {
 
         public static int Request(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
+
+            if ( !BIOS.biosConfig.EnableHTTP ) {
+                state.PushBoolean(false);
+                state.PushString("HTTP is disabled from BIOS");
+                return 2;
+            }
+
             string? body = null;
             string? method = null;
 
-            state.CheckString(1);
-            state.ArgumentCheck(state.IsString(2) || state.IsNoneOrNil(2), 2, "expected string");
-            state.ArgumentCheck(state.IsTable(3) || state.IsNoneOrNil(3), 3, "expected string");
-            state.ArgumentCheck(state.IsString(4) || state.IsNoneOrNil(4), 4, "expected string");
+            var url = state.CheckString(1);
+            if ( !state.IsNoneOrNil(2) ) state.CheckString(2);
+            if ( !state.IsNoneOrNil(3) ) state.CheckString(3);
+            if ( !state.IsNoneOrNil(4) ) state.CheckString(4);
 
             if ( state.IsString(2) ) body = state.ToString(2);
 
             if ( state.IsString(4) ) method = state.ToString(4);
-
-            var url = state.ToString(1);
 
             var headers = new Dictionary<string, string>();
 
@@ -116,7 +122,8 @@ namespace Eight.Module {
         }
 
         private static async void ProcessHttpResponse(HttpResponseMessage response, string rnd) {
-            var content = await response.Content.ReadAsByteArrayAsync();
+            var stream = await response.Content.ReadAsStreamAsync();
+            var content = ReadToEnd(stream);
 
             Utils.LuaParameter[] parameters = {
                 new() {
@@ -134,6 +141,48 @@ namespace Eight.Module {
             };
 
             Event.Push(parameters);
+        }
+
+        public static byte[] ReadToEnd(Stream stream) {
+            long originalPosition = 0;
+
+            if ( stream.CanSeek ) {
+                originalPosition = stream.Position;
+                stream.Position = 0;
+            }
+
+            try {
+                byte[] readBuffer = new byte[4096];
+
+                int totalBytesRead = 0;
+                int bytesRead;
+
+                while ( (bytesRead = stream.Read(readBuffer, totalBytesRead, readBuffer.Length - totalBytesRead)) > 0 ) {
+                    totalBytesRead += bytesRead;
+
+                    if ( totalBytesRead == readBuffer.Length ) {
+                        int nextByte = stream.ReadByte();
+                        if ( nextByte != -1 ) {
+                            byte[] temp = new byte[readBuffer.Length * 2];
+                            Buffer.BlockCopy(readBuffer, 0, temp, 0, readBuffer.Length);
+                            Buffer.SetByte(temp, totalBytesRead, (byte)nextByte);
+                            readBuffer = temp;
+                            totalBytesRead++;
+                        }
+                    }
+                }
+
+                byte[] buffer = readBuffer;
+                if ( readBuffer.Length != totalBytesRead ) {
+                    buffer = new byte[totalBytesRead];
+                    Buffer.BlockCopy(readBuffer, 0, buffer, 0, totalBytesRead);
+                }
+                return buffer;
+            } finally {
+                if ( stream.CanSeek ) {
+                    stream.Position = originalPosition;
+                }
+            }
         }
     }
 }

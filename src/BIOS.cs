@@ -13,10 +13,11 @@ namespace Eight {
             public string name;
         }
 
-        struct Config {
+        public struct Config {
             public int Width;
             public int Height;
             public float Scale;
+            public bool EnableHTTP;
         }
 
         public static int X = 0;
@@ -27,7 +28,7 @@ namespace Eight {
 
         private static int selection = 0;
         private static string configPath = Path.Combine(Eight.MainDir, "config.xml");
-        private static Config biosConfig;
+        public static Config biosConfig;
 
         private static Config LoadConfig() {
             XmlDocument doc = new();
@@ -36,11 +37,25 @@ namespace Eight {
             XmlNode widthNode = doc.DocumentElement.SelectSingleNode("/config/width");
             XmlNode heightNode = doc.DocumentElement.SelectSingleNode("/config/height");
             XmlNode scaleNode = doc.DocumentElement.SelectSingleNode("/config/scale");
+            XmlNode enableHttpNode = doc.DocumentElement.SelectSingleNode("/config/enable_http");
+
+            int width;
+            if ( widthNode == null || !int.TryParse(widthNode.InnerText, out width) ) width = Eight.DefaultWidth;
+
+            int height;
+            if ( heightNode == null || !int.TryParse(heightNode.InnerText, out height) ) height = Eight.DefaultHeight;
+
+            float scale;
+            if ( scaleNode == null || !float.TryParse(scaleNode.InnerText, out scale) ) scale = Eight.DefaultScale;
+
+            bool enableHttp;
+            if ( enableHttpNode == null || !bool.TryParse(enableHttpNode.InnerText, out enableHttp) ) enableHttp = true;
 
             return new Config {
-                Width = int.Parse(widthNode.InnerText),
-                Height = int.Parse(heightNode.InnerText),
-                Scale = float.Parse(scaleNode.InnerText),
+                Width = width,
+                Height = height,
+                Scale = scale,
+                EnableHTTP = enableHttp,
             };
         }
 
@@ -62,9 +77,11 @@ namespace Eight {
             scaleNode.InnerText = config.Scale.ToString();
             doc.DocumentElement.AppendChild(scaleNode);
 
+            XmlNode enableHttpNode = doc.CreateNode(XmlNodeType.Element, "enable_http", null);
+            enableHttpNode.InnerText = config.EnableHTTP.ToString();
+            doc.DocumentElement.AppendChild(enableHttpNode);
 
             doc.Save(configPath);
-
         }
 
         public static void Render() {
@@ -116,44 +133,8 @@ namespace Eight {
             }
         }
 
-        private static BIOSOption[] biosOptions = {
-            new() {
-                name = "Open data directory",
-                cb = () => {
-                    OpenFolder(Eight.DataDir);
-                },
-            },
-
-            new() {
-                name = "Install default OS",
-                cb = Eight.InstallOS,
-            },
-
-            new() {
-                name = "Setup screen size",
-                cb = ScreenSizeSetup,
-            },
-
-            new() {
-                name = "Continue",
-                cb = () => {
-                    quitBios = true;
-                    resume = true;
-                },
-            },
-
-            new() {
-                name = "Quit",
-                cb = () => {
-                    quitBios = true;
-                    resume = false;
-                    Eight.Quit();
-                },
-            }
-        };
-
-        static bool quitScreenSetup = false;
-        private static BIOSOption[] screenSetupOptions = {
+        static bool quitConfigSetup = false;
+        private static BIOSOption[] configSetupOptions = {
             new() {
                 name = "width",
                 cb = () => {
@@ -193,6 +174,12 @@ namespace Eight {
                 },
             },
             new() {
+                name = "allow_http",
+                cb = () => {
+                    biosConfig.EnableHTTP = !biosConfig.EnableHTTP;
+                },
+            },
+            new() {
                 name = "Save",
                 cb = () => {
                     SaveConfig(biosConfig);
@@ -201,37 +188,38 @@ namespace Eight {
             new() {
                 name = "Back",
                 cb = () => {
-                    quitScreenSetup = true;
+                    quitConfigSetup = true;
                 },
             }
         };
 
-        private static void ScreenSizeSetup() {
+        private static void ConfigSetup() {
             var drawMenu = new Action(() => {
-                // update screenSetupOptions names in case size changed
+                // update configSetupOptions names in case values changed
 
-                screenSetupOptions[0].name = $"Default width ({biosConfig.Width})"; // width
-                screenSetupOptions[1].name = $"Default height ({biosConfig.Height})"; // height
-                screenSetupOptions[2].name = $"Default scale ({biosConfig.Scale})"; // scale
+                configSetupOptions[0].name = $"Default width ({biosConfig.Width})"; // width
+                configSetupOptions[1].name = $"Default height ({biosConfig.Height})"; // height
+                configSetupOptions[2].name = $"Default scale ({biosConfig.Scale})"; // scale
+                configSetupOptions[4].name = "Toggle HTTP (" + (biosConfig.EnableHTTP ? "Enabled" : "Disabled") + ")"; // change enable_http name
 
                 X = 0;
                 Y = 0;
 
                 ResetScreen();
-                CenterPrint("Screen Size Setup Menu");
+                CenterPrint("Configuration Menu");
                 Y = 2;
-                for ( int i = 0; i < screenSetupOptions.Length; i++ ) {
+                for ( int i = 0; i < configSetupOptions.Length; i++ ) {
                     if ( selection == i ) {
-                        CenterPrint($"[ {screenSetupOptions[i].name} ]");
+                        CenterPrint($"[ {configSetupOptions[i].name} ]");
                     } else {
-                        CenterPrint($"{screenSetupOptions[i].name}");
+                        CenterPrint($"{configSetupOptions[i].name}");
                     }
                 }
                 Render();
             });
 
             selection = 0;
-            quitScreenSetup = false;
+            quitConfigSetup = false;
 
             drawMenu();
             while ( SDL_WaitEvent(out var _ev) != 0 ) {
@@ -248,24 +236,75 @@ namespace Eight {
                     } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_UP ) {
                         selection--;
                     } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_RETURN ) {
-                        screenSetupOptions[selection].cb?.Invoke();
-                        if ( quitScreenSetup ) {
+                        configSetupOptions[selection].cb?.Invoke();
+                        if ( quitConfigSetup ) {
                             selection = 0;
                             break;
                         }
                     }
 
-                    if ( selection < 0 ) selection = screenSetupOptions.Length - 1;
-                    if ( selection >= screenSetupOptions.Length ) selection = 0;
+                    if ( selection < 0 ) selection = configSetupOptions.Length - 1;
+                    if ( selection >= configSetupOptions.Length ) selection = 0;
 
                     drawMenu();
                 }
             }
         }
 
+        private static BIOSOption[] biosOptions = {
+            new() {
+                name = "Open data directory",
+                cb = () => {
+                    OpenFolder(Eight.DataDir);
+                },
+            },
+
+            new() {
+                name = "Install default OS",
+                cb = Eight.InstallOS,
+            },
+
+            new() {
+                name = "Configuration setup",
+                cb = ConfigSetup,
+            },
+            new() {
+                name = "Continue",
+                cb = () => {
+                    quitBios = true;
+                    resume = true;
+                },
+            },
+
+            new() {
+                name = "Quit",
+                cb = () => {
+                    quitBios = true;
+                    resume = false;
+                    Eight.Quit();
+                },
+            }
+        };
+
         public static bool BootPrompt() {
             X = 0;
             Y = 0;
+            quitBios = false;
+            resume = true;
+            selection = 0;
+
+            // Load config
+
+            if ( !File.Exists(configPath) ) {
+                SaveConfig(new Config {
+                    Width = Eight.DefaultWidth,
+                    Height = Eight.DefaultHeight,
+                    Scale = Eight.DefaultScale,
+                    EnableHTTP = true,
+                });
+            }
+
+            biosConfig = LoadConfig();
 
             var drawMenu = new Action(() => {
                 X = 0;
@@ -283,18 +322,6 @@ namespace Eight {
                 }
                 Render();
             });
-
-            // Load config
-
-            if ( !File.Exists(configPath) ) {
-                SaveConfig(new Config {
-                    Width = Eight.DefaultWidth,
-                    Height = Eight.DefaultHeight,
-                    Scale = Eight.DefaultScale,
-                });
-            }
-
-            biosConfig = LoadConfig();
 
             Discord.SetStatus("Booting up");
 

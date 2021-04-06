@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_EventType;
+using System.Runtime.InteropServices;
 
 namespace Eight {
     public static class Eight {
@@ -81,6 +82,7 @@ namespace Eight {
 
                 Discord.SetStatus("", "");
 
+                // BIOS waits too little time after reboots... why?!
                 if ( BIOS.BootPrompt() ) {
                     if ( !Runtime.Init() ) {
                         Console.WriteLine("Lua could not be initialized!");
@@ -140,6 +142,23 @@ namespace Eight {
         public static void SetTickrate(int tickrate) {
             Tickrate = tickrate;
             Ticktime = 1000 / Tickrate;
+        }
+
+        // Is this Windows only?
+        [DllImport("kernel32.dll")]
+        static extern IntPtr GetConsoleWindow();
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        const int SW_HIDE = 0;
+        const int SW_SHOW = 5;
+        public static void ShowConsole(bool show) {
+            var handle = GetConsoleWindow();
+            if ( show ) {
+                ShowWindow(handle, SW_SHOW);
+            } else {
+                ShowWindow(handle, SW_HIDE);
+            }
         }
 
         public static void Crash(params string[] messages) {
