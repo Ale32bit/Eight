@@ -17,7 +17,8 @@ namespace Eight {
             public int Width;
             public int Height;
             public float Scale;
-            public bool EnableHTTP;
+            public bool EnableInternet;
+            public bool ShowConsole;
         }
 
         public static int X = 0;
@@ -31,13 +32,16 @@ namespace Eight {
         public static Config biosConfig;
 
         private static Config LoadConfig() {
+            Console.WriteLine("Loading configuration...");
+
             XmlDocument doc = new();
             doc.Load(configPath);
 
             XmlNode widthNode = doc.DocumentElement.SelectSingleNode("/config/width");
             XmlNode heightNode = doc.DocumentElement.SelectSingleNode("/config/height");
             XmlNode scaleNode = doc.DocumentElement.SelectSingleNode("/config/scale");
-            XmlNode enableHttpNode = doc.DocumentElement.SelectSingleNode("/config/enable_http");
+            XmlNode enableHttpNode = doc.DocumentElement.SelectSingleNode("/config/enable_internet");
+            XmlNode showConsoleNode = doc.DocumentElement.SelectSingleNode("/config/show_console");
 
             int width;
             if ( widthNode == null || !int.TryParse(widthNode.InnerText, out width) ) width = Eight.DefaultWidth;
@@ -51,15 +55,21 @@ namespace Eight {
             bool enableHttp;
             if ( enableHttpNode == null || !bool.TryParse(enableHttpNode.InnerText, out enableHttp) ) enableHttp = true;
 
+            bool showConsole;
+            if ( showConsoleNode == null || !bool.TryParse(showConsoleNode.InnerText, out showConsole) ) showConsole = false;
+
             return new Config {
                 Width = width,
                 Height = height,
                 Scale = scale,
-                EnableHTTP = enableHttp,
+                EnableInternet = enableHttp,
+                ShowConsole = showConsole,
             };
         }
 
         private static void SaveConfig(Config config) {
+            Console.WriteLine("Saving configuration...");
+
             XmlDocument doc = new();
 
             XmlElement root = doc.CreateElement("config");
@@ -77,9 +87,13 @@ namespace Eight {
             scaleNode.InnerText = config.Scale.ToString();
             doc.DocumentElement.AppendChild(scaleNode);
 
-            XmlNode enableHttpNode = doc.CreateNode(XmlNodeType.Element, "enable_http", null);
-            enableHttpNode.InnerText = config.EnableHTTP.ToString();
+            XmlNode enableHttpNode = doc.CreateNode(XmlNodeType.Element, "enable_internet", null);
+            enableHttpNode.InnerText = config.EnableInternet.ToString();
             doc.DocumentElement.AppendChild(enableHttpNode);
+
+            XmlNode showConsoleNode = doc.CreateNode(XmlNodeType.Element, "show_console", null);
+            showConsoleNode.InnerText = config.ShowConsole.ToString();
+            doc.DocumentElement.AppendChild(showConsoleNode);
 
             doc.Save(configPath);
         }
@@ -174,10 +188,17 @@ namespace Eight {
                 },
             },
             new() {
-                name = "allow_http",
+                name = "enable_internet",
                 cb = () => {
-                    biosConfig.EnableHTTP = !biosConfig.EnableHTTP;
+                    biosConfig.EnableInternet = !biosConfig.EnableInternet;
                 },
+            },
+            new() {
+                name = "show_console",
+                cb = () => {
+                    biosConfig.ShowConsole = !biosConfig.ShowConsole;
+                    Eight.ShowConsole(biosConfig.ShowConsole);
+                }
             },
             new() {
                 name = "Save",
@@ -200,7 +221,8 @@ namespace Eight {
                 configSetupOptions[0].name = $"Default width ({biosConfig.Width})"; // width
                 configSetupOptions[1].name = $"Default height ({biosConfig.Height})"; // height
                 configSetupOptions[2].name = $"Default scale ({biosConfig.Scale})"; // scale
-                configSetupOptions[4].name = "Toggle HTTP (" + (biosConfig.EnableHTTP ? "Enabled" : "Disabled") + ")"; // change enable_http name
+                configSetupOptions[4].name = "Toggle internet (" + (biosConfig.EnableInternet ? "Enabled" : "Disabled") + ")"; // change enable_internet name
+                configSetupOptions[5].name = "Toggle console (" + (biosConfig.ShowConsole ? "Enabled" : "Disabled") + ")"; // change show_console name
 
                 X = 0;
                 Y = 0;
@@ -300,11 +322,15 @@ namespace Eight {
                     Width = Eight.DefaultWidth,
                     Height = Eight.DefaultHeight,
                     Scale = Eight.DefaultScale,
-                    EnableHTTP = true,
+                    EnableInternet = true,
+                    ShowConsole = false,
                 });
             }
 
             biosConfig = LoadConfig();
+            SaveConfig(biosConfig); // In case new configs are added
+
+            Eight.ShowConsole(biosConfig.ShowConsole);
 
             var drawMenu = new Action(() => {
                 X = 0;

@@ -114,6 +114,7 @@ namespace Eight {
             Graphics.Setup();
             HTTP.Setup();
             Audio.Setup();
+            Thread.Setup();
         }
 
         public static bool Resume(int n = 0) {

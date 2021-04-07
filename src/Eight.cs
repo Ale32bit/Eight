@@ -159,6 +159,8 @@ namespace Eight {
             } else {
                 ShowWindow(handle, SW_HIDE);
             }
+
+            SDL_RaiseWindow(Display.Window);
         }
 
         public static void Crash(params string[] messages) {

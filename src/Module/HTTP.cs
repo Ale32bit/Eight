@@ -31,9 +31,9 @@ namespace Eight.Module {
         public static int Request(IntPtr luaState) {
             var state = Lua.FromIntPtr(luaState);
 
-            if ( !BIOS.biosConfig.EnableHTTP ) {
+            if ( !BIOS.biosConfig.EnableInternet ) {
                 state.PushBoolean(false);
-                state.PushString("HTTP is disabled from BIOS");
+                state.PushString("Internet is disabled from BIOS");
                 return 2;
             }
 
