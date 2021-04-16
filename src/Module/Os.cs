@@ -3,7 +3,11 @@ using System;
 using System.Collections.Generic;
 
 namespace Eight.Module {
-    public static class Os {
+    public class Os : IModule {
+        public bool ThreadReady {
+            get => true;
+        }
+
         public static string[] Whitelist = {
             "time",
             "difftime",
@@ -11,63 +15,60 @@ namespace Eight.Module {
             "date"
         };
 
-        public static List<LuaRegister> OSLib = new();
-
-        public static void Setup() {
-            var LuaState = Runtime.LuaState;
-
-            OSLib.Add(new() {
+        public static List<LuaRegister> OSLib = new(new LuaRegister[] {
+            new() {
                 name = "version",
                 function = Version
-            });
-
-            OSLib.Add(new() {
+            },
+            new() {
                 name = "exit",
                 function = Exit
-            });
-
-            OSLib.Add(new() {
+            },
+            new() {
                 name = "reboot",
                 function = Reboot,
-            });
-
-            OSLib.Add(new() {
+            },
+            new() {
                 name = "flag",
                 function = Flag,
-            });
-
-            OSLib.Add(new() {
+            },
+            new() {
                 name = "setRPC",
                 function = SetRPC,
-            });
-
-            OSLib.Add(new() {
+            },
+            new() {
                 name = "getRPC",
                 function = GetRpc,
-            });
+            },
+        });
+
+        public void Init(Lua state) {
 
             foreach ( var name in Whitelist ) {
-                LuaState.GetGlobal("os");
-                var funcType = LuaState.GetField(-1, name);
-                if ( funcType != LuaType.Function ) continue;
-                var func = LuaState.ToCFunction(-1);
+                state.GetGlobal("os");
+                var funcType = state.GetField(-1, name);
+                if ( funcType != LuaType.Function ) {
+                    continue;
+                }
+
+                var func = state.ToCFunction(-1);
                 OSLib.Add(new LuaRegister {
                     name = name,
                     function = func
                 });
             }
 
-            LuaState.PushNil();
-            LuaState.SetGlobal("os");
+            state.PushNil();
+            state.SetGlobal("os");
 
-            LuaState.CreateTable(0, OSLib.Count);
+            state.CreateTable(0, OSLib.Count);
 
             foreach ( var reg in OSLib ) {
-                LuaState.PushCFunction(reg.function);
-                LuaState.SetField(-2, reg.name);
+                state.PushCFunction(reg.function);
+                state.SetField(-2, reg.name);
             }
 
-            LuaState.SetGlobal("os");
+            state.SetGlobal("os");
         }
 
         public static int Version(IntPtr luaState) {
@@ -124,8 +125,9 @@ namespace Eight.Module {
                 rpcState = state.CheckString(2);
             }
 
-            if ( Eight.Flags["allow_rpc_change"] )
+            if ( Eight.Flags["allow_rpc_change"] ) {
                 Discord.SetStatus(rpcDetails, rpcState);
+            }
 
             return 0;
         }

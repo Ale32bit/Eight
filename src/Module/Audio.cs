@@ -5,7 +5,12 @@ using System.Runtime.CompilerServices;
 using static SDL2.SDL;
 
 namespace Eight.Module {
-    class Audio {
+    class Audio : IModule {
+
+        public bool ThreadReady {
+            get => false;
+        }
+
         public const int FREQUENCY = 48000;
         public const int CHANNELS = 2;
         public const int SAMPLES = 1024;
@@ -80,8 +85,8 @@ namespace Eight.Module {
             ready = false;
         }
 
-        public static void Setup() {
-            Runtime.LuaState.RequireF("audio", OpenLib, false);
+        public void Init(Lua state) {
+            state.RequireF("audio", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {

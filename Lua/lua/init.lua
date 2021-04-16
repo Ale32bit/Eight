@@ -6,8 +6,14 @@ local fs = require("filesystem")
 local parallel = require("parallel")
 
 -- Boot
+local bootErrors = {}
 for _, file in ipairs(fs.list("boot")) do
-    dofile("boot/" .. file)
+    local ok, err = pcall(dofile, "boot/" .. file)
+    if not ok then
+        print(err)
+        local n = string.find(err, "\n")
+        table.insert(bootErrors, string.sub(err, 1, n))
+    end
 end
 
 local event = require("event")
@@ -58,6 +64,10 @@ term.clear()
 term.setPos(0, 0)
 print("Eight", os.version())
 term.setForeground(0xffffff)
+
+for i = 1, #bootErrors do
+    print(bootErrors[i])
+end
 
 resume()
 

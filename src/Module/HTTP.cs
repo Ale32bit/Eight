@@ -7,7 +7,11 @@ using System.Net.Http;
 
 
 namespace Eight.Module {
-    public static class HTTP {
+    public class HTTP : IModule {
+        public bool ThreadReady {
+            get => true;
+        }
+
         public static LuaRegister[] HTTPLib = {
             new() {
                 function = Request,
@@ -18,8 +22,8 @@ namespace Eight.Module {
 
         public static HttpClient Http = new();
 
-        public static void Setup() {
-            Runtime.LuaState.RequireF("http", OpenLib, false);
+        public void Init(Lua state) {
+            state.RequireF("http", OpenLib, false);
         }
 
         public static int OpenLib(IntPtr luaState) {

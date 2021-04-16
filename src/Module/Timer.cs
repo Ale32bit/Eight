@@ -4,7 +4,11 @@ using System.Collections.Generic;
 using System.Timers;
 
 namespace Eight.Module {
-    public static class Timer {
+    public class Timer : IModule {
+        public bool ThreadReady {
+            get => false;
+        }
+
         private static readonly Dictionary<double, System.Timers.Timer> _timers = new();
 
         private static readonly LuaRegister[] TimerLib = {
@@ -19,8 +23,8 @@ namespace Eight.Module {
             new() // Null
         };
 
-        public static void Setup() {
-            Runtime.LuaState.RequireF("timer", Open, false);
+        public void Init(Lua state) {
+            state.RequireF("timer", Open, false);
         }
 
         private static int Open(IntPtr luaState) {
@@ -52,6 +56,7 @@ namespace Eight.Module {
         }
 
         public static double StartTimer(double ms) {
+            if ( ms <= 0 ) ms = 1;
             var timer = new System.Timers.Timer {
                 Interval = ms,
                 AutoReset = false,

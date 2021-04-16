@@ -2,6 +2,8 @@ using Eight.Module;
 using KeraLua;
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -37,7 +39,7 @@ namespace Eight {
 
             LuaState.SetWarningFunction(WarnFunction, IntPtr.Zero);
 
-            DoLibs();
+            DoLibs(LuaState, true);
 
             State = LuaState.NewThread();
 
@@ -55,16 +57,16 @@ namespace Eight {
                 }
             }, LuaHookMask.Count, 10000);
 
-            if ( !File.Exists("Lua/boot.lua") ) {
-                Console.WriteLine("Could not find boot.lua");
-                Eight.Crash("Could not find bios.lua!", "Is Eight installed correctly?");
+            if ( !File.Exists("Lua/firmware.lua") ) {
+                Console.WriteLine("Could not find firmware.lua");
+                Eight.Crash("Could not find firmware.lua!", "Is Eight installed correctly?");
                 return false;
             }
 
-            var biosContent = File.ReadAllText("Lua/boot.lua");
+            var bootContent = File.ReadAllText("Lua/boot.lua");
 
-            var status = State.LoadString(biosContent, "@BOOT");
-            if ( status != LuaStatus.OK ) {
+            var btStatus = State.LoadString(bootContent, "@BOOT");
+            if ( btStatus != LuaStatus.OK ) {
                 var error = State.ToString(-1);
                 Console.WriteLine("Lua Load Exception: {0}", error);
                 return false;
@@ -73,48 +75,55 @@ namespace Eight {
             return true;
         }
 
-        private static void DoLibs() {
+        private static void DoLibs(Lua state, bool completeLoad) {
             // Get io.open and io.lines for filesystem
-            LuaState.GetGlobal("io");
-            LuaState.GetField(-1, "open");
-            LuaState.SetField((int)LuaRegistry.Index, "_io_open");
-            LuaState.Pop(1);
+            state.GetGlobal("io");
+            state.GetField(-1, "open");
+            state.SetField((int)LuaRegistry.Index, "_io_open");
+            state.Pop(1);
 
-            LuaState.GetGlobal("io");
-            LuaState.GetField(-1, "lines");
-            LuaState.SetField((int)LuaRegistry.Index, "_io_lines");
-            LuaState.Pop(1);
+            state.GetGlobal("io");
+            state.GetField(-1, "lines");
+            state.SetField((int)LuaRegistry.Index, "_io_lines");
+            state.Pop(1);
 
             // Get debug.traceback
-
-            LuaState.GetGlobal("debug");
-            LuaState.GetField(-1, "traceback");
-            LuaState.SetField((int)LuaRegistry.Index, "_debug_traceback");
-            LuaState.Pop(1);
+            state.GetGlobal("debug");
+            state.GetField(-1, "traceback");
+            state.SetField((int)LuaRegistry.Index, "_debug_traceback");
+            state.Pop(1);
 
             // Destroy dem libtards with shapiro
 
-            LuaState.PushNil();
-            LuaState.SetGlobal("debug");
+            state.PushNil();
+            state.SetGlobal("debug");
 
-            LuaState.PushNil();
-            LuaState.SetGlobal("io");
+            state.PushNil();
+            state.SetGlobal("io");
 
-            LuaState.PushNil();
-            LuaState.SetGlobal("dofile");
+            state.PushNil();
+            state.SetGlobal("dofile");
 
-            LuaState.PushNil();
-            LuaState.SetGlobal("loadfile");
+            state.PushNil();
+            state.SetGlobal("loadfile");
 
+            var instances = from t in Assembly.GetExecutingAssembly().GetTypes()
+                            where t.GetInterfaces().Contains(typeof(IModule))
+                                     && t.GetConstructor(Type.EmptyTypes) != null
+                            select Activator.CreateInstance(t) as IModule;
 
-            FileSystem.Setup();
-            Os.Setup();
-            Timer.Setup();
-            Screen.Setup();
-            Graphics.Setup();
-            HTTP.Setup();
-            Audio.Setup();
-            Thread.Setup();
+            foreach ( var instance in instances ) {
+                if(completeLoad || (!completeLoad && instance.ThreadReady))
+                    instance.Init(state);
+            }
+
+            var fwContent = File.ReadAllText("Lua/firmware.lua");
+
+            var fwStatus = state.LoadString(fwContent, "@FIRMWARE");
+            if ( fwStatus != LuaStatus.OK ) {
+                var error = State.ToString(-1);
+                Console.WriteLine("Lua Load Exception: {0}", error);
+            }
         }
 
         public static bool Resume(int n = 0) {

@@ -3,7 +3,11 @@ using System;
 using static SDL2.SDL;
 
 namespace Eight.Module {
-    public class Screen {
+    public class Screen : IModule {
+        public bool ThreadReady {
+            get => false;
+        }
+
         public static LuaRegister[] ScreenLib = {
             new() {
                 name = "setSize",
@@ -68,8 +72,8 @@ namespace Eight.Module {
             new()
         };
 
-        public static void Setup() {
-            Runtime.LuaState.RequireF("screen", OpenLib, false);
+        public void Init(Lua state) {
+            state.RequireF("screen", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {

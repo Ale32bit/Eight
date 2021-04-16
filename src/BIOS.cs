@@ -8,8 +8,8 @@ using static SDL2.SDL;
 
 namespace Eight {
     class BIOS {
-        struct BIOSOption {
-            public Action cb;
+        public struct PromptOption {
+            public Func<bool> cb;
             public string name;
         }
 
@@ -24,10 +24,8 @@ namespace Eight {
         public static int X = 0;
         public static int Y = 0;
 
-        private static bool quitBios = false;
         private static bool resume = true;
 
-        private static int selection = 0;
         private static string configPath = Path.Combine(Eight.MainDir, "config.xml");
         public static Config biosConfig;
 
@@ -131,299 +129,6 @@ namespace Eight {
             Y++;
         }
 
-        public static void CenterPrint(string msg) {
-            X = (Eight.WindowWidth - msg.Length) / 2;
-            Print(msg);
-        }
-
-        private static void OpenFolder(string path) {
-            switch ( Environment.OSVersion.Platform ) {
-                case PlatformID.Win32NT:
-                    Process.Start("explorer.exe", path);
-                    break;
-                case PlatformID.Unix:
-                    Process.Start("xdg-open", path);
-                    break;
-            }
-        }
-
-        static bool quitConfigSetup = false;
-        private static BIOSOption[] configSetupOptions = {
-            new() {
-                name = "width",
-                cb = () => {
-                    X = 0;
-                    Y++;
-                    Write("Type new width: ");
-                    var width = int.Parse(ReadLine(4, @"^\d+$"));
-                    biosConfig.Width = width;
-                },
-            },
-            new() {
-                name = "height",
-                cb = () => {
-                    X = 0;
-                    Y++;
-                    Write("Type new height: ");
-                    var height = int.Parse(ReadLine(4, @"^\d+$"));
-                    biosConfig.Height = height;
-                },
-            },
-            new() {
-                name = "scale",
-                cb = () => {
-                    X = 0;
-                    Y++;
-                    Write("Type new scale: ");
-                    var scale = float.Parse(ReadLine(4, @"^\d+$"));
-                    biosConfig.Scale = scale;
-                },
-            },
-            new() {
-                name = $"Reset ({Eight.DefaultWidth} x {Eight.DefaultHeight} x {Eight.DefaultScale})",
-                cb = () => {
-                    biosConfig.Width = Eight.DefaultWidth;
-                    biosConfig.Height = Eight.DefaultHeight;
-                    biosConfig.Scale = Eight.DefaultScale;
-                },
-            },
-            new() {
-                name = "enable_internet",
-                cb = () => {
-                    biosConfig.EnableInternet = !biosConfig.EnableInternet;
-                },
-            },
-            new() {
-                name = "show_console",
-                cb = () => {
-                    biosConfig.ShowConsole = !biosConfig.ShowConsole;
-                    Eight.ShowConsole(biosConfig.ShowConsole);
-                }
-            },
-            new() {
-                name = "Save",
-                cb = () => {
-                    SaveConfig(biosConfig);
-                },
-            },
-            new() {
-                name = "Back",
-                cb = () => {
-                    quitConfigSetup = true;
-                },
-            }
-        };
-
-        private static void ConfigSetup() {
-            var drawMenu = new Action(() => {
-                // update configSetupOptions names in case values changed
-
-                configSetupOptions[0].name = $"Default width ({biosConfig.Width})"; // width
-                configSetupOptions[1].name = $"Default height ({biosConfig.Height})"; // height
-                configSetupOptions[2].name = $"Default scale ({biosConfig.Scale})"; // scale
-                configSetupOptions[4].name = "Toggle internet (" + (biosConfig.EnableInternet ? "Enabled" : "Disabled") + ")"; // change enable_internet name
-                configSetupOptions[5].name = "Toggle console (" + (biosConfig.ShowConsole ? "Enabled" : "Disabled") + ")"; // change show_console name
-
-                X = 0;
-                Y = 0;
-
-                ResetScreen();
-                CenterPrint("Configuration Menu");
-                Y = 2;
-                for ( int i = 0; i < configSetupOptions.Length; i++ ) {
-                    if ( selection == i ) {
-                        CenterPrint($"[ {configSetupOptions[i].name} ]");
-                    } else {
-                        CenterPrint($"{configSetupOptions[i].name}");
-                    }
-                }
-                Render();
-            });
-
-            selection = 0;
-            quitConfigSetup = false;
-
-            drawMenu();
-            while ( SDL_WaitEvent(out var _ev) != 0 ) {
-
-                if ( _ev.type == SDL_EventType.SDL_QUIT ) {
-                    Eight.Quit();
-                    quitBios = true;
-                    return;
-                }
-
-                if ( _ev.type == SDL_EventType.SDL_KEYDOWN ) {
-                    if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_DOWN ) {
-                        selection++;
-                    } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_UP ) {
-                        selection--;
-                    } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_RETURN ) {
-                        configSetupOptions[selection].cb?.Invoke();
-                        if ( quitConfigSetup ) {
-                            selection = 0;
-                            break;
-                        }
-                    }
-
-                    if ( selection < 0 ) selection = configSetupOptions.Length - 1;
-                    if ( selection >= configSetupOptions.Length ) selection = 0;
-
-                    drawMenu();
-                }
-            }
-        }
-
-        private static BIOSOption[] biosOptions = {
-            new() {
-                name = "Open data directory",
-                cb = () => {
-                    OpenFolder(Eight.DataDir);
-                },
-            },
-
-            new() {
-                name = "Install default OS",
-                cb = Eight.InstallOS,
-            },
-
-            new() {
-                name = "Configuration setup",
-                cb = ConfigSetup,
-            },
-            new() {
-                name = "Continue",
-                cb = () => {
-                    quitBios = true;
-                    resume = true;
-                },
-            },
-
-            new() {
-                name = "Quit",
-                cb = () => {
-                    quitBios = true;
-                    resume = false;
-                    Eight.Quit();
-                },
-            }
-        };
-
-        public static bool BootPrompt() {
-            X = 0;
-            Y = 0;
-            quitBios = false;
-            resume = true;
-            selection = 0;
-
-            // Load config
-
-            if ( !File.Exists(configPath) ) {
-                SaveConfig(new Config {
-                    Width = Eight.DefaultWidth,
-                    Height = Eight.DefaultHeight,
-                    Scale = Eight.DefaultScale,
-                    EnableInternet = true,
-                    ShowConsole = false,
-                });
-            }
-
-            biosConfig = LoadConfig();
-            SaveConfig(biosConfig); // In case new configs are added
-
-            Eight.ShowConsole(biosConfig.ShowConsole);
-
-            var drawMenu = new Action(() => {
-                X = 0;
-                Y = 0;
-
-                ResetScreen();
-                CenterPrint("Eight Setup Menu");
-                Y = 2;
-                for ( int i = 0; i < biosOptions.Length; i++ ) {
-                    if ( selection == i ) {
-                        CenterPrint($"[ {biosOptions[i].name} ]");
-                    } else {
-                        CenterPrint($"{biosOptions[i].name}");
-                    }
-                }
-                Render();
-            });
-
-            Discord.SetStatus("Booting up");
-
-            Print("Eight " + Eight.Version);
-
-            Y = Eight.WindowHeight - 1;
-
-            CenterPrint("Press F2 to enter setup");
-
-            Render();
-
-            bool pressedF2 = false;
-
-            SDL_AddTimer(1500, (interval, param) => {
-                SDL_Event ev = new();
-
-                ev.type = SDL_EventType.SDL_USEREVENT;
-                ev.user.data1 = (IntPtr)0;
-
-                SDL_PushEvent(ref ev);
-                return interval;
-            }, IntPtr.Zero);
-
-            Module.Audio.InitAudio();
-
-            while ( SDL_WaitEvent(out var _ev) != 0 ) {
-                if ( _ev.type == SDL_EventType.SDL_QUIT ) {
-                    Eight.Quit();
-                    return false;
-                }
-                if ( _ev.type == SDL_EventType.SDL_KEYDOWN ) {
-                    if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_F2 ) {
-                        pressedF2 = true;
-                        break;
-                    }
-                }
-                if ( _ev.type == SDL_EventType.SDL_USEREVENT ) {
-                    if ( _ev.user.data1 == (IntPtr)0 ) break;
-                }
-            }
-
-            if ( pressedF2 ) {
-                Discord.SetStatus("In setup menu", "");
-                drawMenu();
-                while ( SDL_WaitEvent(out var _ev) != 0 ) {
-
-                    if ( _ev.type == SDL_EventType.SDL_QUIT ) {
-                        Eight.Quit();
-                        return false;
-                    }
-
-                    if ( _ev.type == SDL_EventType.SDL_KEYDOWN ) {
-                        if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_DOWN ) {
-                            selection++;
-                        } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_UP ) {
-                            selection--;
-                        } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_RETURN ) {
-                            biosOptions[selection].cb?.Invoke();
-                            if ( quitBios ) break;
-                        }
-
-                        if ( selection < 0 ) selection = biosOptions.Length - 1;
-                        if ( selection >= biosOptions.Length ) selection = 0;
-
-                        drawMenu();
-                    }
-                }
-            }
-
-            if ( resume ) {
-                Display.SetScreenSize(biosConfig.Width, biosConfig.Height, biosConfig.Scale);
-            }
-
-            return resume;
-        }
-
         public static string ReadLine(int? maxLen, string regex = "*") {
             string input = "";
             int ox = X;
@@ -477,6 +182,270 @@ namespace Eight {
             }
 
             return input;
+        }
+
+#nullable enable
+        public static void PromptMenu(PromptOption[] options, string title, Action? update = null) {
+            int selection = 0;
+
+            var drawMenu = new Action(() => {
+                update?.Invoke();
+                X = 0;
+                Y = 0;
+
+                ResetScreen();
+                CenterPrint(title);
+                Y = 2;
+                for ( int i = 0; i < options.Length; i++ ) {
+                    if ( selection == i ) {
+                        CenterPrint($"[ {options[i].name} ]");
+                    } else {
+                        CenterPrint($"{options[i].name}");
+                    }
+                }
+                Render();
+            });
+
+            drawMenu();
+
+            while ( SDL_WaitEvent(out var _ev) != 0 ) {
+
+                if ( _ev.type == SDL_EventType.SDL_QUIT ) {
+                    Eight.Quit();
+                    return;
+                }
+
+                if ( _ev.type == SDL_EventType.SDL_KEYDOWN ) {
+                    if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_DOWN ) {
+                        selection++;
+                    } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_UP ) {
+                        selection--;
+                    } else if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_RETURN ) {
+                        if ( options[selection].cb != null && options[selection].cb.Invoke() ) {
+                            break;
+                        }
+                    }
+
+                    if ( selection < 0 ) selection = options.Length - 1;
+                    if ( selection >= options.Length ) selection = 0;
+
+                    drawMenu();
+                }
+            }
+        }
+
+        public static void CenterPrint(string msg) {
+            X = (Eight.WindowWidth - msg.Length) / 2;
+            Print(msg);
+        }
+
+        private static void OpenFolder(string path) {
+            switch ( Environment.OSVersion.Platform ) {
+                case PlatformID.Win32NT:
+                    Process.Start("explorer.exe", path);
+                    break;
+                case PlatformID.Unix:
+                    Process.Start("xdg-open", path);
+                    break;
+            }
+        }
+
+        private static PromptOption[] configSetupOptions = {
+            new() {
+                name = "width",
+                cb = () => {
+                    X = 0;
+                    Y++;
+                    Write("Type new width: ");
+                    var width = int.Parse(ReadLine(4, @"^\d+$"));
+                    biosConfig.Width = width;
+                    return false;
+                },
+            },
+            new() {
+                name = "height",
+                cb = () => {
+                    X = 0;
+                    Y++;
+                    Write("Type new height: ");
+                    var height = int.Parse(ReadLine(4, @"^\d+$"));
+                    biosConfig.Height = height;
+                    return false;
+                },
+            },
+            new() {
+                name = "scale",
+                cb = () => {
+                    X = 0;
+                    Y++;
+                    Write("Type new scale: ");
+                    var scale = float.Parse(ReadLine(4, @"^\d+$"));
+                    biosConfig.Scale = scale;
+                    return false;
+
+                },
+            },
+            new() {
+                name = $"Reset ({Eight.DefaultWidth} x {Eight.DefaultHeight} x {Eight.DefaultScale})",
+                cb = () => {
+                    biosConfig.Width = Eight.DefaultWidth;
+                    biosConfig.Height = Eight.DefaultHeight;
+                    biosConfig.Scale = Eight.DefaultScale;
+                    return false;
+
+                },
+            },
+            new() {
+                name = "enable_internet",
+                cb = () => {
+                    biosConfig.EnableInternet = !biosConfig.EnableInternet;
+                    return false;
+                },
+            },
+            new() {
+                name = "show_console",
+                cb = () => {
+                    biosConfig.ShowConsole = !biosConfig.ShowConsole;
+                    Eight.ShowConsole(biosConfig.ShowConsole);
+                    return false;
+                }
+            },
+            new() {
+                name = "Save",
+                cb = () => {
+                    SaveConfig(biosConfig);
+                    return false;
+                },
+            },
+            new() {
+                name = "Back",
+                cb = () => {
+                    return true;
+
+                },
+            }
+        };
+
+        private static PromptOption[] biosOptions = {
+            new() {
+                name = "Open data directory",
+                cb = () => {
+                    OpenFolder(Eight.DataDir);
+                    return false;
+                },
+            },
+
+            new() {
+                name = "Install default OS",
+                cb = () => {
+                    Eight.InstallOS();
+                    return false;
+                },
+            },
+
+            new() {
+                name = "Configuration setup",
+                cb = () => {
+                    PromptMenu(configSetupOptions, "Configuration Setup", () => {
+                        configSetupOptions[0].name = $"Default width ({biosConfig.Width})"; // width
+                        configSetupOptions[1].name = $"Default height ({biosConfig.Height})"; // height
+                        configSetupOptions[2].name = $"Default scale ({biosConfig.Scale})"; // scale
+                        configSetupOptions[4].name = "Toggle internet (" + (biosConfig.EnableInternet ? "Enabled" : "Disabled") + ")"; // change enable_internet name
+                        configSetupOptions[5].name = "Toggle console (" + (biosConfig.ShowConsole ? "Enabled" : "Disabled") + ")"; // change show_console name
+                    });
+
+                    return false;
+                },
+            },
+            new() {
+                name = "Continue",
+                cb = () => {
+                    resume = true;
+                    return true;
+                },
+            },
+
+            new() {
+                name = "Quit",
+                cb = () => {
+                    resume = false;
+                    return true;
+                },
+            }
+        };
+
+        public static bool BootPrompt() {
+            X = 0;
+            Y = 0;
+            resume = true;
+
+            // Load config
+
+            if ( !File.Exists(configPath) ) {
+                SaveConfig(new Config {
+                    Width = Eight.DefaultWidth,
+                    Height = Eight.DefaultHeight,
+                    Scale = Eight.DefaultScale,
+                    EnableInternet = true,
+                    ShowConsole = false,
+                });
+            }
+
+            biosConfig = LoadConfig();
+            SaveConfig(biosConfig); // In case new configs are added
+
+            Eight.ShowConsole(biosConfig.ShowConsole);
+
+            Discord.SetStatus("Booting up");
+
+            Print("Eight " + Eight.Version);
+
+            Y = Eight.WindowHeight - 1;
+
+            CenterPrint("Press F2 to enter setup");
+
+            Render();
+
+            bool pressedF2 = false;
+
+            SDL_AddTimer(1500, (interval, param) => {
+                SDL_Event ev = new();
+
+                ev.type = SDL_EventType.SDL_USEREVENT;
+                ev.user.data1 = (IntPtr)0;
+
+                SDL_PushEvent(ref ev);
+                return interval;
+            }, IntPtr.Zero);
+
+            Module.Audio.InitAudio();
+
+            while ( SDL_WaitEvent(out var _ev) != 0 ) {
+                if ( _ev.type == SDL_EventType.SDL_QUIT ) {
+                    Eight.Quit();
+                    return false;
+                }
+                if ( _ev.type == SDL_EventType.SDL_KEYDOWN ) {
+                    if ( _ev.key.keysym.sym == SDL_Keycode.SDLK_F2 ) {
+                        pressedF2 = true;
+                        break;
+                    }
+                }
+                if ( _ev.type == SDL_EventType.SDL_USEREVENT ) {
+                    if ( _ev.user.data1 == (IntPtr)0 ) break;
+                }
+            }
+
+            if ( pressedF2 ) {
+                Discord.SetStatus("In setup menu", "");
+                PromptMenu(biosOptions, "Eight Setup Menu");
+            }
+
+            if ( resume ) {
+                Display.SetScreenSize(biosConfig.Width, biosConfig.Height, biosConfig.Scale);
+            }
+
+            return resume;
         }
     }
 }

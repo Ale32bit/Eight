@@ -6,7 +6,11 @@ using System.Linq;
 
 
 namespace Eight.Module {
-    public class FileSystem {
+    public class FileSystem : IModule {
+        public bool ThreadReady {
+            get => true;
+        }
+
         public static LuaRegister[] FileSystemLib = {
             new() {
                 name = "open",
@@ -43,10 +47,10 @@ namespace Eight.Module {
             new() // NULL
         };
 
-        public static void Setup() {
+        public void Init(Lua state) {
             Console.WriteLine("Working in {0}", Eight.DataDir);
 
-            Runtime.LuaState.RequireF("filesystem", OpenLib, false);
+            state.RequireF("filesystem", OpenLib, false);
         }
 
         private static int OpenLib(IntPtr luaState) {

@@ -6,7 +6,10 @@ using System.Numerics;
 using static SDL2.SDL;
 
 namespace Eight.Module {
-    public class Graphics {
+    public class Graphics : IModule {
+        public bool ThreadReady {
+            get => false;
+        }
 
         public static LuaRegister[] GraphicsLib = {
             new() {
@@ -44,8 +47,8 @@ namespace Eight.Module {
             new(),
         };
 
-        public static void Setup() {
-            Runtime.LuaState.RequireF("graphics", OpenLib, false);
+        public void Init(Lua state) {
+            state.RequireF("graphics", OpenLib, false);
         }
 
         public static int OpenLib(IntPtr luaState) {

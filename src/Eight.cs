@@ -15,7 +15,7 @@ namespace Eight {
         public const int DefaultTickrate = 60;
 
         public const int CellWidth = 6;
-        public const int CellHeight = 12;
+        public const int CellHeight = 13;
 
         public static readonly string MainDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eight");
         public static readonly string DataDir = Path.Combine(MainDir, "data");
