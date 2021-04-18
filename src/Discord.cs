@@ -38,10 +38,15 @@ namespace Eight {
             }
         }
 
-        public static void Dispose() {
-            if ( Client != null ) {
-                Client.Dispose();
+        public static void Clear() {
+            if ( Client != null && !Client.IsDisposed ) {
+                Client?.ClearPresence();
             }
+        }
+
+        public static void Dispose() {
+            Clear();
+            Client?.Dispose();
         }
 
     }

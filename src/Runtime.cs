@@ -75,7 +75,7 @@ namespace Eight {
             return true;
         }
 
-        private static void DoLibs(Lua state, bool completeLoad) {
+        public static void DoLibs(Lua state, bool completeLoad) {
             // Get io.open and io.lines for filesystem
             state.GetGlobal("io");
             state.GetField(-1, "open");
@@ -119,8 +119,8 @@ namespace Eight {
 
             var fwContent = File.ReadAllText("Lua/firmware.lua");
 
-            var fwStatus = state.LoadString(fwContent, "@FIRMWARE");
-            if ( fwStatus != LuaStatus.OK ) {
+            var errored = state.DoString(fwContent);
+            if ( errored ) {
                 var error = State.ToString(-1);
                 Console.WriteLine("Lua Load Exception: {0}", error);
             }

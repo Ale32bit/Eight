@@ -19,6 +19,7 @@ namespace Eight {
             public float Scale;
             public bool EnableInternet;
             public bool ShowConsole;
+            public bool EnableDiscordRPC;
         }
 
         public static int X = 0;
@@ -40,6 +41,7 @@ namespace Eight {
             XmlNode scaleNode = doc.DocumentElement.SelectSingleNode("/config/scale");
             XmlNode enableHttpNode = doc.DocumentElement.SelectSingleNode("/config/enable_internet");
             XmlNode showConsoleNode = doc.DocumentElement.SelectSingleNode("/config/show_console");
+            XmlNode enableDiscordRPCNode = doc.DocumentElement.SelectSingleNode("/config/enable_discord_rpc");
 
             int width;
             if ( widthNode == null || !int.TryParse(widthNode.InnerText, out width) ) width = Eight.DefaultWidth;
@@ -56,12 +58,16 @@ namespace Eight {
             bool showConsole;
             if ( showConsoleNode == null || !bool.TryParse(showConsoleNode.InnerText, out showConsole) ) showConsole = false;
 
+            bool enableDiscordRPC;
+            if ( enableDiscordRPCNode == null || !bool.TryParse(enableDiscordRPCNode.InnerText, out enableDiscordRPC) ) enableDiscordRPC = false;
+
             return new Config {
                 Width = width,
                 Height = height,
                 Scale = scale,
                 EnableInternet = enableHttp,
                 ShowConsole = showConsole,
+                EnableDiscordRPC = enableDiscordRPC,
             };
         }
 
@@ -92,6 +98,10 @@ namespace Eight {
             XmlNode showConsoleNode = doc.CreateNode(XmlNodeType.Element, "show_console", null);
             showConsoleNode.InnerText = config.ShowConsole.ToString();
             doc.DocumentElement.AppendChild(showConsoleNode);
+
+            XmlNode enableDiscordRPCNode = doc.CreateNode(XmlNodeType.Element, "enable_discord_rpc", null);
+            enableDiscordRPCNode.InnerText = config.EnableDiscordRPC.ToString();
+            doc.DocumentElement.AppendChild(enableDiscordRPCNode);
 
             doc.Save(configPath);
         }
@@ -311,6 +321,20 @@ namespace Eight {
                 }
             },
             new() {
+                name = "enable_discord_rpc",
+                cb = () => {
+                    if(biosConfig.EnableDiscordRPC) {
+                        biosConfig.EnableDiscordRPC = false;
+                        Discord.Dispose();
+                    } else {
+                        biosConfig.EnableDiscordRPC = true;
+                        Discord.Init();
+                        Discord.SetStatus("In setup menu");
+                    }
+                    return false;
+                }
+            },
+            new() {
                 name = "Save",
                 cb = () => {
                     SaveConfig(biosConfig);
@@ -352,6 +376,7 @@ namespace Eight {
                         configSetupOptions[2].name = $"Default scale ({biosConfig.Scale})"; // scale
                         configSetupOptions[4].name = "Toggle internet (" + (biosConfig.EnableInternet ? "Enabled" : "Disabled") + ")"; // change enable_internet name
                         configSetupOptions[5].name = "Toggle console (" + (biosConfig.ShowConsole ? "Enabled" : "Disabled") + ")"; // change show_console name
+                        configSetupOptions[6].name = "Toggle Discord RPC (" + (biosConfig.EnableDiscordRPC ? "Enabled" : "Disabled") + ")"; // change enable_discord_rpc name
                     });
 
                     return false;
@@ -388,6 +413,7 @@ namespace Eight {
                     Scale = Eight.DefaultScale,
                     EnableInternet = true,
                     ShowConsole = false,
+                    EnableDiscordRPC = true,
                 });
             }
 
@@ -396,7 +422,10 @@ namespace Eight {
 
             Eight.ShowConsole(biosConfig.ShowConsole);
 
-            Discord.SetStatus("Booting up");
+            if ( biosConfig.EnableDiscordRPC ) {
+                Discord.Init();
+                Discord.SetStatus("Booting up");
+            }
 
             Print("Eight " + Eight.Version);
 

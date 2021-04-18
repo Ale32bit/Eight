@@ -54,7 +54,6 @@ namespace Eight {
             Console.WriteLine($"Eight {Version}");
 
             if ( Display.Init() ) {
-                Discord.Init();
                 Init();
 
                 Environment.Exit(0);

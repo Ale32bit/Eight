@@ -1,5 +1,6 @@
 ﻿using KeraLua;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -30,11 +31,15 @@ namespace Eight.Module {
                 function = GetID,
                 name = "getID",
             },
+            new() {
+                function = Sleep,
+                name = "sleep",
+            },
             new()
         };
 
         private static List<Lua> Threads = new();
-        private static Dictionary<string, Stack<Utils.LuaParameter>> Channels = new();
+        private static Dictionary<string, ConcurrentQueue<Utils.LuaParameter>> Channels = new();
 
         public void Init(Lua state) {
             state.PushString("master");
@@ -56,7 +61,7 @@ namespace Eight.Module {
 
             string script = state.CheckString(1);
 
-            var thread = new Lua(false);
+            var thread = new Lua(true);
 
             Threads.Add(thread);
             var id = Threads.Count - 1;
@@ -65,38 +70,13 @@ namespace Eight.Module {
             thread.SetField((int)LuaRegistry.Index, "_thread_id");
             thread.Pop(1);
 
+            Runtime.DoLibs(thread, false);
+
             var status = thread.LoadString(script, "@Thread<" + id + ">");
 
             if ( status != LuaStatus.OK ) {
                 Threads.RemoveAt(id);
 
-                var error = thread.ToString(-1);
-                state.PushBoolean(false);
-                state.PushString(error);
-                return 2;
-            }
-
-            Run(id);
-
-            state.PushBoolean(true);
-            state.PushNumber(id);
-
-            return 2;
-        }
-
-        private static int Legacy(IntPtr luaState) {
-            var state = Lua.FromIntPtr(luaState);
-
-            string script = state.CheckString(1);
-
-            var thread = Runtime.State.NewThread();
-
-            Threads.Add(thread);
-            var id = Threads.Count - 1;
-
-            var status = thread.LoadString(script, "@Thread<" + id + ">");
-
-            if ( status != LuaStatus.OK ) {
                 var error = thread.ToString(-1);
                 state.PushBoolean(false);
                 state.PushString(error);
@@ -184,7 +164,10 @@ namespace Eight.Module {
             LuaType type;
             object value;
 
-            if ( state.IsString(2) ) {
+            if ( state.IsNil(2) ) {
+                type = LuaType.Nil;
+                value = null;
+            } else if ( state.IsString(2) ) {
                 type = LuaType.String;
                 value = state.ToString(2);
             } else if ( state.IsNumber(2) ) {
@@ -194,18 +177,18 @@ namespace Eight.Module {
                 type = LuaType.Boolean;
                 value = state.ToBoolean(2);
             } else {
-                state.ArgumentError(2, "expected string, number or boolean");
+                state.ArgumentError(2, "expected nil, string, number or boolean");
                 return 0;
             }
 
-            Stack<Utils.LuaParameter> stack;
+            ConcurrentQueue<Utils.LuaParameter> queue;
 
-            if ( !Channels.TryGetValue(channel, out stack) ) {
-                stack = new();
-                Channels.Add(channel, stack);
+            if ( !Channels.TryGetValue(channel, out queue) ) {
+                queue = new();
+                Channels.Add(channel, queue);
             }
 
-            stack.Push(new() {
+            queue.Enqueue(new() {
                 Type = type,
                 Value = value,
             });
@@ -218,16 +201,19 @@ namespace Eight.Module {
 
             string channel = state.CheckString(1);
 
-            Stack<Utils.LuaParameter> stack;
+            ConcurrentQueue<Utils.LuaParameter> queue;
 
-            if ( !Channels.TryGetValue(channel, out stack) ) {
+            if ( !Channels.TryGetValue(channel, out queue) ) {
                 return 0;
             }
 
-            if ( !stack.TryPop(out var result) )
+            if ( !queue.TryDequeue(out var result) )
                 return 0;
 
             switch ( result.Type ) {
+                case LuaType.Nil:
+                    state.PushNil();
+                    break;
                 case LuaType.String:
                     state.PushString((string)result.Value);
                     break;
@@ -247,16 +233,19 @@ namespace Eight.Module {
 
             string channel = state.CheckString(1);
 
-            Stack<Utils.LuaParameter> stack;
+            ConcurrentQueue<Utils.LuaParameter> queue;
 
-            if ( !Channels.TryGetValue(channel, out stack) ) {
+            if ( !Channels.TryGetValue(channel, out queue) ) {
                 return 0;
             }
 
-            if ( !stack.TryPeek(out var result) )
+            if ( !queue.TryPeek(out var result) )
                 return 0;
 
             switch ( result.Type ) {
+                case LuaType.Nil:
+                    state.PushNil();
+                    break;
                 case LuaType.String:
                     state.PushString((string)result.Value);
                     break;
@@ -269,6 +258,14 @@ namespace Eight.Module {
             }
 
             return 1;
+        }
+
+        private static int Sleep(IntPtr luaState) {
+            var state = Lua.FromIntPtr(luaState);
+
+            System.Threading.Thread.Sleep((int)state.CheckNumber(1));
+
+            return 0;
         }
     }
 }
