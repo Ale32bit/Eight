@@ -203,6 +203,8 @@ function term.write(...)
                 posY = height - 1
             end
             posX = 0
+        elseif char == "\r" then
+            posX = 0
         elseif char == "\t" then
             posX = posX + 2
         elseif char ~= "\13" then
