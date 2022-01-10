@@ -1,5 +1,0 @@
-local term = require("term")
-term.setBackground(0)
-term.setForeground(0xffffff)
-term.clear()
-term.setPos(0,0)
