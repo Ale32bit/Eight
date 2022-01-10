@@ -2,7 +2,9 @@
 using KeraLua;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,11 +27,11 @@ namespace Eight
             // Open standard packages except unsafe ones
             LuaState.OpenBase();
             LuaState.OpenCoroutine();
-            // LuaState.OpenDebug();
-            // LuaState.OpenIO();
+            LuaState.OpenDebug();
+            LuaState.OpenIO();
             LuaState.OpenMath();
-            // LuaState.OpenOS();
-            // LuaState.OpenPackage();
+            LuaState.OpenOS();
+            LuaState.OpenPackage();
             LuaState.OpenString();
             LuaState.OpenTable();
             LuaState.OpenUTF8();
@@ -39,14 +41,30 @@ namespace Eight
 
             Thread = LuaState.NewThread();
 
-            //LuaState.LoadFile();
+            // print console input
+            Thread.LoadString(@"while true do print(coroutine.yield()) end");
         }
 
+        /// <summary>
+        /// Resume the Lua thread
+        /// </summary>
+        /// <returns>Whether is yielding</returns>
         public bool Resume()
         {
-            var status = Thread.Resume(null, parametersCount);
-
+            var status = Thread.Resume(null, parametersCount, out int pars);
             parametersCount = 0;
+            if (status == LuaStatus.Yield || status == LuaStatus.OK)
+            {
+                Thread.Pop(pars);
+                return status == LuaStatus.Yield;
+
+            }
+
+            var error = Thread.OptString(-1, "Unknown exception");
+            Thread.Traceback(Thread);
+            var stacktrace = Thread.OptString(-1, "");
+
+            Console.WriteLine("Top thread exception:\n{0}\n{1}", error, stacktrace);
 
             return false;
         }
@@ -80,10 +98,35 @@ namespace Eight
                     case byte[] b:
                         Thread.PushBuffer(b);
                         break;
+
+                    case LuaFunction func:
+                        Thread.PushCFunction(func);
+                        break;
+
+                    case IntPtr ptr:
+                        Thread.PushLightUserData(ptr);
+                        break;
+
+                    default:
+                        throw new Exception("Invalid type provided");
                 }
+
 
                 parametersCount++;
             }
         }
+
+        public void PushCClosure(LuaFunction function, int n)
+        {
+            Thread.PushCClosure(function, n);
+            parametersCount++;
+        }
+
+        public void PushObject<T>(T obj)
+        {
+            Thread.PushObject<T>(obj);
+            parametersCount++;
+        }
+
     }
 }

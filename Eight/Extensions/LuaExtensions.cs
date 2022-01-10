@@ -1,62 +1,57 @@
 ﻿using KeraLua;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Eight.Extensions
 {
     static class LuaExtensions
     {
-        public static int OpenBase(this Lua lua)
+        public static void OpenBase(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_base(lua.Handle);
+            lua.RequireF("_G", NativeLuaExtensions.luaopen_base, true);
         }
 
-        public static int OpenCoroutine(this Lua lua)
+        public static void OpenCoroutine(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_coroutine(lua.Handle);
+            lua.RequireF("coroutine", NativeLuaExtensions.luaopen_coroutine, true);
         }
 
-        public static int OpenDebug(this Lua lua)
+        public static void OpenDebug(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_debug(lua.Handle);
+            lua.RequireF("debug", NativeLuaExtensions.luaopen_debug, true);
         }
 
-        public static int OpenIO(this Lua lua)
+        public static void OpenIO(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_io(lua.Handle);
+            lua.RequireF("io", NativeLuaExtensions.luaopen_io, true);
         }
 
-        public static int OpenMath(this Lua lua)
+        public static void OpenMath(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_math(lua.Handle);
+            lua.RequireF("math", NativeLuaExtensions.luaopen_math, true);
         }
 
-        public static int OpenOS(this Lua lua)
+        public static void OpenOS(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_os(lua.Handle);
+            lua.RequireF("os", NativeLuaExtensions.luaopen_os, true);
         }
 
-        public static int OpenPackage(this Lua lua)
+        public static void OpenPackage(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_package(lua.Handle);
+            lua.RequireF("package", NativeLuaExtensions.luaopen_package, true);
         }
 
-        public static int OpenString(this Lua lua)
+        public static void OpenString(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_string(lua.Handle);
+            lua.RequireF("string", NativeLuaExtensions.luaopen_string, true);
         }
 
-        public static int OpenTable(this Lua lua)
+        public static void OpenTable(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_table(lua.Handle);
+            lua.RequireF("table", NativeLuaExtensions.luaopen_table, true);
         }
 
-        public static int OpenUTF8(this Lua lua)
+        public static void OpenUTF8(this Lua lua)
         {
-            return NativeLuaExtensions.luaopen_utf8(lua.Handle);
+            lua.RequireF("utf8", NativeLuaExtensions.luaopen_utf8, true);
         }
     }
 }
