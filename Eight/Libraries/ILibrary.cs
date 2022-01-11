@@ -14,7 +14,7 @@ namespace Eight.Libraries
         /// <summary>
         /// Registers contain the functions to expose to Lua as a module. The array must end with a null value.
         /// </summary>
-        public static LuaRegister[] Registers { get; }
+        public LuaRegister[] Registers { get; }
         public virtual void Register(Lua state)
         {
             state.RequireF(Name, OpenLibrary, Global);

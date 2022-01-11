@@ -8,7 +8,7 @@ namespace Eight.Libraries
         public bool Global => false;
 
 
-        private static LuaRegister[] Registers = new LuaRegister[]
+        public LuaRegister[] Registers => new LuaRegister[]
         {
             new()
             {
@@ -18,9 +18,11 @@ namespace Eight.Libraries
             new(), // NULL
         };
 
-        public static int L_Test(IntPtr state)
+        public static int L_Test(IntPtr luaState)
         {
-            return 0;
+            var state = Lua.FromIntPtr(luaState);
+            state.PushString("Test is successful");
+            return 1;
         }
     }
 }

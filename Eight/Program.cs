@@ -2,6 +2,8 @@
 
 var runtime = new Runtime();
 
+runtime.LoadEightLibraries();
+
 runtime.LoadInit();
 
 while(runtime.Resume()) {

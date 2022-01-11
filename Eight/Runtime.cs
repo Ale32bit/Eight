@@ -1,4 +1,5 @@
 ﻿using Eight.Extensions;
+using Eight.Libraries;
 using KeraLua;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,27 @@ namespace Eight
             LuaState.SetGlobal("_HOST");
 
             Thread = LuaState.NewThread();
+        }
+
+        /// <summary>
+        /// Load all classes that implement the interface ILibrary and calls the method ILibrary.Register( LuaState )
+        /// </summary>
+        public void LoadEightLibraries()
+        {
+            var iType = typeof(ILibrary);
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => iType.IsAssignableFrom(p) && !p.IsInterface);
+
+            foreach (var type in types)
+            {
+                if (type == null)
+                    continue;
+
+                var instance = (ILibrary)Activator.CreateInstance(type)!;
+
+                instance.Register(LuaState);
+            }
         }
 
         public void LoadInit()
