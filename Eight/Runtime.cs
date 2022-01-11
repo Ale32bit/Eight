@@ -40,9 +40,15 @@ namespace Eight
             LuaState.SetGlobal("_HOST");
 
             Thread = LuaState.NewThread();
+        }
 
-            // print console input
-            Thread.LoadString(@"while true do print(coroutine.yield()) end");
+        public void LoadInit()
+        {
+            var status = Thread.LoadFile("Lua/init.lua");
+            if (status != LuaStatus.OK)
+            {
+                throw new LuaException(Thread.ToString(-1));
+            }
         }
 
         /// <summary>

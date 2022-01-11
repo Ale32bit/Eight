@@ -1,8 +1,10 @@
 ﻿using Eight;
-using System.Text;
 
 var runtime = new Runtime();
 
+runtime.LoadInit();
+
 while(runtime.Resume()) {
+    Console.Write("> ");
     runtime.PushParameters(Console.ReadLine() ?? "");
 }

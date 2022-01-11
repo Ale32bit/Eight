@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eight", "Eight\Eight.csproj", "{34A3DFDB-42B9-4454-8B39-8F5D9717697E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eight", "Eight\Eight.csproj", "{34A3DFDB-42B9-4454-8B39-8F5D9717697E}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Static", "Static\Static.shproj", "{2B5F2A23-6D94-4C07-B6F2-11D2BEA9BAD0}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Static\Static.projitems*{2b5f2a23-6d94-4c07-b6f2-11d2bea9bad0}*SharedItemsImports = 13
+		Static\Static.projitems*{34a3dfdb-42b9-4454-8b39-8f5d9717697e}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
