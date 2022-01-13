@@ -38,7 +38,7 @@ public class Screen : IDisposable {
 
     public void Dispose() {
         Available = false;
-        GC.SuppressFinalize(true);
+        GC.SuppressFinalize(this);
         SDL_Quit();
     }
 }
