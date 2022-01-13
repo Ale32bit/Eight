@@ -9,19 +9,15 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Eight
-{
-    class Runtime
-    {
+namespace Eight {
+    public class Runtime {
         public Lua LuaState;
         public Lua Thread;
 
         private int parametersCount = 0;
 
-        public Runtime()
-        {
-            LuaState = new(false)
-            {
+        public Runtime() {
+            LuaState = new Lua(false) {
                 Encoding = Encoding.UTF8,
             };
 
@@ -46,29 +42,22 @@ namespace Eight
         /// <summary>
         /// Load all classes that implement the interface ILibrary and calls the method ILibrary.Register( LuaState )
         /// </summary>
-        public void LoadEightLibraries()
-        {
+        public void LoadEightLibraries() {
             var iType = typeof(ILibrary);
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => iType.IsAssignableFrom(p) && !p.IsInterface);
 
-            foreach (var type in types)
-            {
-                if (type == null)
-                    continue;
-
+            foreach (var type in types) {
                 var instance = (ILibrary)Activator.CreateInstance(type)!;
 
                 instance.Register(LuaState);
             }
         }
 
-        public void LoadInit()
-        {
+        public void LoadInit() {
             var status = Thread.LoadFile("Lua/init.lua");
-            if (status != LuaStatus.OK)
-            {
+            if (status != LuaStatus.OK) {
                 throw new LuaException(Thread.ToString(-1));
             }
         }
@@ -77,15 +66,12 @@ namespace Eight
         /// Resume the Lua thread
         /// </summary>
         /// <returns>Whether is yielding</returns>
-        public bool Resume()
-        {
+        public bool Resume() {
             var status = Thread.Resume(null, parametersCount, out int pars);
             parametersCount = 0;
-            if (status == LuaStatus.Yield || status == LuaStatus.OK)
-            {
+            if (status == LuaStatus.Yield || status == LuaStatus.OK) {
                 Thread.Pop(pars);
                 return status == LuaStatus.Yield;
-
             }
 
             var error = Thread.OptString(-1, "Unknown exception");
@@ -97,12 +83,9 @@ namespace Eight
             return false;
         }
 
-        public void PushParameters(params object[] pars)
-        {
-            foreach (object par in pars)
-            {
-                switch (par)
-                {
+        public void PushParameters(params object[] pars) {
+            foreach (var par in pars) {
+                switch (par) {
                     case string s:
                         Thread.PushString(s);
                         break;
@@ -144,17 +127,14 @@ namespace Eight
             }
         }
 
-        public void PushCClosure(LuaFunction function, int n)
-        {
+        public void PushCClosure(LuaFunction function, int n) {
             Thread.PushCClosure(function, n);
             parametersCount++;
         }
 
-        public void PushObject<T>(T obj)
-        {
+        public void PushObject<T>(T obj) {
             Thread.PushObject<T>(obj);
             parametersCount++;
         }
-
     }
 }

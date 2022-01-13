@@ -1,12 +1,27 @@
-﻿using Eight;
+﻿using static SDL2.SDL.SDL_EventType;
 
-var runtime = new Runtime();
+namespace Eight;
 
-runtime.LoadEightLibraries();
+public static class Program {
+    public static Runtime Runtime;
+    public static Screen Screen;
 
-runtime.LoadInit();
+    public static void Main(string[] args) {
+        Screen = new Screen();
 
-while(runtime.Resume()) {
-    Console.Write("> ");
-    runtime.PushParameters(Console.ReadLine() ?? "");
+        Runtime = new Runtime();
+
+        Runtime.LoadEightLibraries();
+
+        Runtime.LoadInit();
+
+        while (Screen.Available) {
+            var ev = Screen.WaitEvent();
+            switch (ev.type) {
+                case SDL_QUIT:
+                    Screen.Dispose();
+                    break;
+            }
+        }
+    }
 }
