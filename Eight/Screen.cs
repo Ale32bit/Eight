@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using static SDL2.SDL;
 
 namespace Eight;
@@ -26,8 +27,11 @@ public class Screen : IDisposable
     private uint[] _screenBuffer;
     private uint[] _termBuffer;
 
+
+
     public Screen()
     {
+        SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         {
             throw new ScreenException(SDL_GetError());
@@ -49,13 +53,18 @@ public class Screen : IDisposable
             throw new ScreenException(SDL_GetError());
         }
 
+        SDL_SetWindowResizable(Window, SDL_bool.SDL_TRUE);
+
         ApplySize();
+
+        SDL_AddEventWatch(LiveResize, Window);
     }
 
     private void ApplySize()
     {
         _screenBuffer = new uint[RealWidth * RealHeight];
         _termBuffer = new uint[Width * Height];
+        SDL_SetWindowMinimumSize(Window, (int)(CharWidth * Scale), (int)(CharHeight * Scale));
         Surface = SDL_CreateRGBSurface(0, RealWidth, RealHeight, 32, 0x00_ff_00_00, 0x00_00_ff_00, 0x00_00_00_ff, 0xff_00_00_00);
     }
 
@@ -68,6 +77,34 @@ public class Screen : IDisposable
         SDL_SetWindowSize(Window, WindowWidth, WindowHeight);
 
         ApplySize();
+    }
+
+    private unsafe int LiveResize(IntPtr data, IntPtr sdlev)
+    {
+        var ev = (SDL_Event*)sdlev;
+
+        if (ev->type == SDL_EventType.SDL_WINDOWEVENT && ev->window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+        {
+            IntPtr win = SDL_GetWindowFromID(ev->window.windowID);
+            if (win == data)
+            {
+                SDL_GetWindowSize(Window, out var w, out var h);
+                var cw = w / Scale;
+                cw /= CharWidth;
+
+                var ch = h / Scale;
+                ch /= CharHeight;
+
+                if (cw < 1)
+                    cw = 1;
+                if (ch < 1)
+                    ch = 1;
+
+                SDL_SetWindowSize(Window, (int)((int)cw * CharWidth * Scale), (int)((int)ch * CharHeight * Scale));
+            }
+        }
+
+        return 0;
     }
 
     public void SetFont() { }

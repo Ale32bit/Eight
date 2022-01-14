@@ -49,16 +49,16 @@ public static class Program
 
     public static string[] GetKeyMods(SDL_Keymod keymod)
     {
-        if(keymod == SDL_Keymod.KMOD_NONE)
+        if (keymod == SDL_Keymod.KMOD_NONE)
             return Array.Empty<string>();
 
         var mods = new List<string>();
 
-        if(keymod.HasFlag(SDL_Keymod.KMOD_LSHIFT))
+        if (keymod.HasFlag(SDL_Keymod.KMOD_LSHIFT))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_LSHIFT));
         }
-        if(keymod.HasFlag(SDL_Keymod.KMOD_RSHIFT))
+        if (keymod.HasFlag(SDL_Keymod.KMOD_RSHIFT))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_RSHIFT));
         }
@@ -172,7 +172,7 @@ public static class Program
                     var wx = ev.wheel.x;
                     var wy = ev.wheel.y;
 
-                    if(ev.wheel.direction == (uint)SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                    if (ev.wheel.direction == (uint)SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
                     {
                         wx *= -1;
                         wy *= -1;
@@ -190,10 +190,37 @@ public static class Program
 
                 case SDL_TEXTINPUT:
                     // text, string
-                    unsafe {
+                    unsafe
+                    {
                         EnqueueEvent(
                             "text",
                             Marshal.PtrToStringUTF8((IntPtr)ev.text.text) ?? ""
+                        );
+                    }
+                    break;
+
+                case SDL_WINDOWEVENT:
+                    if (ev.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                    {
+                        // window_resize, newW, newH
+                        SDL_GetWindowSize(Screen.Window, out var w, out var h);
+                        var cw = w / Screen.Scale;
+                        cw /= Screen.CharWidth;
+
+                        var ch = h / Screen.Scale;
+                        ch /= Screen.CharHeight;
+
+                        if (cw < 1)
+                            cw = 1;
+                        if (ch < 1)
+                            ch = 1;
+
+                        Screen.SetSize((int)cw, (int)ch);
+
+                        EnqueueEvent(
+                            "window_resize",
+                            Screen.Width,
+                            Screen.Height
                         );
                     }
                     break;
