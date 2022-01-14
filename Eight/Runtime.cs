@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,8 @@ public class Runtime : IDisposable
 
     public Runtime()
     {
-        LuaState = new Lua(false) {
+        LuaState = new Lua(false)
+        {
             Encoding = Encoding.UTF8,
         };
 
@@ -92,69 +94,123 @@ public class Runtime : IDisposable
         return false;
     }
 
+    /// <summary>
+    /// Push an object to the stack
+    /// </summary>
+    /// <param name="par"></param>
+    /// <exception cref="Exception"></exception>
+    public void Push(object? par)
+    {
+        var type = par.GetType();
+        switch (par)
+        {
+            case string s:
+                Thread.PushString(s);
+                break;
+
+            case byte:
+            case sbyte:
+            case short:
+            case ushort:
+            case int:
+            case uint:
+            case double:
+                Thread.PushNumber(Convert.ToDouble(par));
+                break;
+
+            case long l:
+                Thread.PushInteger(l);
+                break;
+
+            case bool b:
+                Thread.PushBoolean(b);
+                break;
+
+            case null:
+                Thread.PushNil();
+                break;
+
+            case byte[] b:
+                Thread.PushBuffer(b);
+                break;
+
+            case LuaFunction func:
+                Thread.PushCFunction(func);
+                break;
+
+            case IntPtr ptr:
+                Thread.PushLightUserData(ptr);
+                break;
+
+            default:
+                if (type.IsArray)
+                {
+                    var mi = typeof(Runtime).GetMethod("PushArray");
+                    var method = mi.MakeGenericMethod(type.GetElementType()!);
+                    method.Invoke(this, new object[] { par, false });
+                }
+                else
+                {
+                    throw new Exception("Invalid type provided");
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Push an array of parameters into the stack and increases the parameters count
+    /// </summary>
+    /// <param name="pars"></param>
     public void PushParameters(object?[] pars)
     {
         foreach (var par in pars)
         {
-            switch (par)
-            {
-                case string s:
-                    Thread.PushString(s);
-                    break;
-
-                case byte:
-                case sbyte:
-                case short:
-                case ushort:
-                case int:
-                case uint:
-                case double:
-                    Thread.PushNumber(Convert.ToDouble(par));
-                    break;
-
-                case long l:
-                    Thread.PushInteger(l);
-                    break;
-
-                case bool b:
-                    Thread.PushBoolean(b);
-                    break;
-
-                case null:
-                    Thread.PushNil();
-                    break;
-
-                case byte[] b:
-                    Thread.PushBuffer(b);
-                    break;
-
-                case LuaFunction func:
-                    Thread.PushCFunction(func);
-                    break;
-
-                case IntPtr ptr:
-                    Thread.PushLightUserData(ptr);
-                    break;
-
-                default:
-                    throw new Exception("Invalid type provided");
-            }
-
-
+            Push(par);
             parametersCount++;
         }
     }
 
+    /// <summary>
+    /// Push a C closure to the stack and increases the parameters count
+    /// </summary>
+    /// <param name="function"></param>
+    /// <param name="n"></param>
     public void PushCClosure(LuaFunction function, int n)
     {
         Thread.PushCClosure(function, n);
         parametersCount++;
     }
 
+    /// <summary>
+    /// Push an instantiated object to the stack and increases the parameters count
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="obj"></param>
     public void PushObject<T>(T obj)
     {
         Thread.PushObject<T>(obj);
         parametersCount++;
+    }
+
+    /// <summary>
+    /// Push a table array of T elements to the stack and increases the parameters count
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="arr"></param>
+    public void PushArray<T>(T[] arr, bool increase = true)
+    {
+        Thread.NewTable();
+
+        for (int i = 0; i < arr.Length; i++)
+        {
+            Push(arr[i]);
+            Thread.RawSetInteger(-2, i + 1);
+        }
+
+        Thread.SetTop(-1);
+
+        if(increase)
+            parametersCount++;
     }
 
     public void Dispose()
