@@ -1,11 +1,16 @@
 ﻿print("Eight 2 Alpha")
 
--- just printing events
+-- just printing events and more
 while true do
-    local ev, key, keyx, mods = coroutine.yield()
-    if ev == "key_down" then
-        for k, v in ipairs(mods) do
-            print(k, v)
+    local ev = table.pack(coroutine.yield())
+    for i = 1, ev.n do
+        if type(ev[i]) == "table" then
+            for k, v in pairs(ev[i]) do
+                print("-", k, v)
+            end
+        else
+            print(i, ev[i])
         end
     end
+    print("-------------------------")
 end

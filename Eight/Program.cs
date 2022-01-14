@@ -1,5 +1,6 @@
 ﻿using static SDL2.SDL.SDL_EventType;
 using static SDL2.SDL;
+using System.Runtime.InteropServices;
 
 namespace Eight;
 
@@ -34,13 +35,22 @@ public static class Program
 
     public static string GetKeyName(SDL_Keycode sym)
     {
-        return SDL_GetKeyName(sym).ToLower().Replace(" ", "_");
+        var name = SDL_GetKeyName(sym).ToLower().Replace(" ", "_");
+        name = name
+            .Replace("windows", "meta")
+            .Replace("/", "divide")
+            .Replace("*", "multiply")
+            .Replace("-", "minus")
+            .Replace("+", "plus")
+            .Replace(",", "comma")
+            .Replace(".", "period");
+        return name;
     }
 
     public static string[] GetKeyMods(SDL_Keymod keymod)
     {
         if(keymod == SDL_Keymod.KMOD_NONE)
-            return new string[0];
+            return Array.Empty<string>();
 
         var mods = new List<string>();
 
@@ -82,6 +92,8 @@ public static class Program
 
     public static void Main(string[] args)
     {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
         Screen = new Screen();
 
         Runtime = new Runtime();
@@ -110,7 +122,7 @@ public static class Program
 
                 case SDL_KEYUP:
                 case SDL_KEYDOWN:
-                    // evname, keyname, keynumber, repeated
+                    // key_down | key_up, keyName, keyNumber, keyMod[], isRepeated
                     EnqueueEvent(
                         ev.key.state == SDL_PRESSED ? "key_down" : "key_up",
                         GetKeyName(ev.key.keysym.sym),
@@ -121,7 +133,7 @@ public static class Program
                     break;
 
                 case SDL_MOUSEMOTION:
-                    // evname, x, y
+                    // mouse_move, posX, posY
                     mouseX = (int)(ev.motion.x / Screen.Scale);
                     mouseY = (int)(ev.motion.y / Screen.Scale);
 
@@ -141,7 +153,7 @@ public static class Program
 
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                    // evname, x, y, button, clicks
+                    // mouse_down | mouse_up, posX, posY, buttonId, clicksAmount
                     mouseX = (int)(ev.motion.x / Screen.Scale);
                     mouseY = (int)(ev.motion.y / Screen.Scale);
 
@@ -156,7 +168,7 @@ public static class Program
                     break;
 
                 case SDL_MOUSEWHEEL:
-                    // evname, x, y, wx, wy
+                    // mouse_wheel, posX, posY, wheelX, wheelY
                     var wx = ev.wheel.x;
                     var wy = ev.wheel.y;
 
@@ -167,13 +179,23 @@ public static class Program
                     }
 
                     EnqueueEvent(
-                        "mouse_scroll",
+                        "mouse_wheel",
                         mouseX,
                         mouseY,
                         wx,
                         wy
                     );
 
+                    break;
+
+                case SDL_TEXTINPUT:
+                    // text, string
+                    unsafe {
+                        EnqueueEvent(
+                            "text",
+                            Marshal.PtrToStringUTF8((IntPtr)ev.text.text) ?? ""
+                        );
+                    }
                     break;
             }
         }
