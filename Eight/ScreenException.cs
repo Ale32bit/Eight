@@ -5,8 +5,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Eight {
-    public class ScreenException : Exception {
+namespace Eight
+{
+    public class ScreenException : Exception
+    {
         public ScreenException() { }
 
         public ScreenException(string? message) : base(message) { }

@@ -1,7 +1,9 @@
 ﻿using KeraLua;
 
-namespace Eight.Libraries {
-    class FileSystem : ILibrary {
+namespace Eight.Libraries
+{
+    class FileSystem : ILibrary
+    {
         public string Name => "fs";
         public bool Global => false;
 
@@ -14,7 +16,8 @@ namespace Eight.Libraries {
             new(), // NULL
         };
 
-        private static int L_Test(IntPtr luaState) {
+        private static int L_Test(IntPtr luaState)
+        {
             var state = Lua.FromIntPtr(luaState);
             state.PushString("Test is successful");
             return 1;
