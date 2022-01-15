@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Lua\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Fonts\" />
   </ItemGroup>
 </Project>

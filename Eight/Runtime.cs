@@ -130,8 +130,8 @@ public class Runtime : IDisposable
                 Thread.PushNil();
                 break;
 
-            case byte[] b:
-                Thread.PushBuffer(b);
+            case StringBuffer b:
+                Thread.PushBuffer(b.Buffer);
                 break;
 
             case LuaFunction func:
@@ -209,7 +209,7 @@ public class Runtime : IDisposable
 
         Thread.SetTop(-1);
 
-        if(increase)
+        if (increase)
             parametersCount++;
     }
 
@@ -218,4 +218,14 @@ public class Runtime : IDisposable
         Thread.Dispose();
         LuaState.Dispose();
     }
+}
+
+public class StringBuffer
+{
+    public readonly byte[] Buffer;
+    public StringBuffer(byte[] buffer)
+    {
+        Buffer = buffer;
+    }
+
 }

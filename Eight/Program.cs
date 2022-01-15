@@ -1,6 +1,7 @@
 ﻿using static SDL2.SDL.SDL_EventType;
 using static SDL2.SDL;
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 
 namespace Eight;
 
@@ -9,7 +10,7 @@ public static class Program
     public static Runtime Runtime;
     public static Screen Screen;
 
-    public static Queue<object?[]> EventQueue = new();
+    public static ConcurrentQueue<object?[]> EventQueue = new();
 
     private static bool runningQueue = false;
 
@@ -57,22 +58,32 @@ public static class Program
         if (keymod.HasFlag(SDL_Keymod.KMOD_LSHIFT))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_LSHIFT));
+            mods.Add("shift");
         }
         if (keymod.HasFlag(SDL_Keymod.KMOD_RSHIFT))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_RSHIFT));
+            mods.Add("shift");
         }
         if (keymod.HasFlag(SDL_Keymod.KMOD_LCTRL))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_LCTRL));
+            mods.Add("ctrl");
         }
         if (keymod.HasFlag(SDL_Keymod.KMOD_RCTRL))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_RCTRL));
+            mods.Add("ctrl");
         }
         if (keymod.HasFlag(SDL_Keymod.KMOD_LALT))
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_LALT));
+            mods.Add("alt");
+        }
+        if (keymod.HasFlag(SDL_Keymod.KMOD_RALT))
+        {
+            mods.Add(GetKeyName(SDL_Keycode.SDLK_RALT));
+            mods.Add("alt");
         }
         if (keymod.HasFlag(SDL_Keymod.KMOD_LGUI))
         {
@@ -86,8 +97,7 @@ public static class Program
         {
             mods.Add(GetKeyName(SDL_Keycode.SDLK_CAPSLOCK));
         }
-
-        return mods.ToArray();
+        return mods.Distinct().ToArray();
     }
 
     public static void Main(string[] args)
@@ -108,6 +118,7 @@ public static class Program
         SDL_GetRelativeMouseState(out var mouseX, out var mouseY);
         mouseX = (int)(mouseX / Screen.Scale);
         mouseY = (int)(mouseY / Screen.Scale);
+        var pressedMouseButtons = new List<byte>();
 
         while (Screen.Available)
         {
@@ -123,13 +134,45 @@ public static class Program
                 case SDL_KEYUP:
                 case SDL_KEYDOWN:
                     // key_down | key_up, keyName, keyNumber, keyMod[], isRepeated
+                    var keyMods = GetKeyMods(ev.key.keysym.mod);
                     EnqueueEvent(
                         ev.key.state == SDL_PRESSED ? "key_down" : "key_up",
                         GetKeyName(ev.key.keysym.sym),
                         (long)ev.key.keysym.sym,
-                        GetKeyMods(ev.key.keysym.mod),
+                        keyMods,
                         ev.key.repeat == 1
                     );
+
+                    // Only if CTRL is pressed
+                    // KMOD_CTRL,ALT,SHIFT aren't detected for some reason
+                    if (keyMods.Contains("ctrl")
+                        && !keyMods.Contains("alt")
+                        && !keyMods.Contains("shift")
+                    )
+                    {
+                        // on CTRL+V: paste, text
+                        if (ev.key.keysym.sym == SDL_Keycode.SDLK_v)
+                        {
+                            if (SDL_HasClipboardText() == SDL_bool.SDL_TRUE)
+                            {
+                                var text = SDL_GetClipboardText();
+                                if (text != null)
+                                {
+                                    text = text.Replace("\r\n", "\n");
+                                    EnqueueEvent(
+                                        "paste",
+                                        text
+                                    );
+                                }
+                            }
+                        }
+                        // on CTRL+T: interrupt
+                        else if (ev.key.keysym.sym == SDL_Keycode.SDLK_t)
+                        {
+                            EnqueueEvent("interrupt");
+                        }
+                    }
+
                     break;
 
                 case SDL_MOUSEMOTION:
@@ -145,6 +188,16 @@ public static class Program
                             mouseY
                         );
 
+                        if (pressedMouseButtons.Count > 0)
+                        {
+                            EnqueueEvent(
+                                "mouse_drag",
+                                mouseX,
+                                mouseY,
+                                pressedMouseButtons.ToArray()
+                            );
+                        }
+
                         oldMouseX = mouseX;
                         oldMouseY = mouseY;
                     }
@@ -156,6 +209,15 @@ public static class Program
                     // mouse_down | mouse_up, posX, posY, buttonId, clicksAmount
                     mouseX = (int)(ev.motion.x / Screen.Scale);
                     mouseY = (int)(ev.motion.y / Screen.Scale);
+
+                    if (ev.button.state == SDL_PRESSED)
+                    {
+                        pressedMouseButtons.Add(ev.button.button);
+                    }
+                    else
+                    {
+                        pressedMouseButtons.Remove(ev.button.button);
+                    }
 
                     EnqueueEvent(
                         ev.button.state == SDL_PRESSED ? "mouse_down" : "mouse_up",
@@ -219,8 +281,8 @@ public static class Program
 
                         EnqueueEvent(
                             "window_resize",
-                            Screen.Width,
-                            Screen.Height
+                            Screen.RealWidth,
+                            Screen.RealHeight
                         );
                     }
                     break;

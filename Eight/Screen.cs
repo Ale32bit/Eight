@@ -7,10 +7,10 @@ public class Screen : IDisposable
 {
     public int Width = 51;
     public int Height = 19;
-    public float Scale = 10;
+    public float Scale = 4;
 
-    public int CharWidth = 2;
-    public int CharHeight = 3;
+    public int CharWidth = 6;
+    public int CharHeight = 9;
 
     public int RealWidth => Width * CharWidth;
     public int RealHeight => Height * CharHeight;
@@ -25,9 +25,9 @@ public class Screen : IDisposable
     public bool Available = true;
 
     private uint[] _screenBuffer;
+
+    // 00, ch, bg, fg
     private uint[] _termBuffer;
-
-
 
     public Screen()
     {
@@ -100,6 +100,7 @@ public class Screen : IDisposable
                 if (ch < 1)
                     ch = 1;
 
+                // Limit amount of SDL calls to avoid crashing the CLR
                 SDL_SetWindowSize(Window, (int)((int)cw * CharWidth * Scale), (int)((int)ch * CharHeight * Scale));
             }
         }
