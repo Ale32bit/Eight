@@ -60,12 +60,36 @@ public class Screen : IDisposable
         SDL_AddEventWatch(LiveResize, Window);
     }
 
+    public unsafe void Present()
+    {
+        Console.WriteLine("presenting");
+
+        var texture = SDL_CreateTextureFromSurface(Renderer, Surface);
+        SDL_RenderCopy(Renderer, texture, IntPtr.Zero, IntPtr.Zero);
+        SDL_DestroyTexture(texture);
+        SDL_RenderPresent(Renderer);
+    }
+
     private void ApplySize()
     {
         _screenBuffer = new uint[RealWidth * RealHeight];
         _termBuffer = new uint[Width * Height];
         SDL_SetWindowMinimumSize(Window, (int)(CharWidth * Scale), (int)(CharHeight * Scale));
+        if(SDL_RenderSetScale(Renderer, Scale, Scale) != 0)
+        {
+            throw new ScreenException(SDL_GetError());
+        }
         Surface = SDL_CreateRGBSurface(0, RealWidth, RealHeight, 32, 0x00_ff_00_00, 0x00_00_ff_00, 0x00_00_00_ff, 0xff_00_00_00);
+
+        var r = new SDL_Rect() {
+            x = 4,
+            y = 6,
+            w= 90,
+            h = 24
+        };
+        SDL_FillRect(Surface, ref r, 0xff_ff_00_00);
+
+        Present();
     }
 
     public void SetSize(int w, int h, float? s = null)

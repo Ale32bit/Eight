@@ -130,7 +130,7 @@ public class Runtime : IDisposable
                 Thread.PushNil();
                 break;
 
-            case StringBuffer b:
+            case LuaBuffer b:
                 Thread.PushBuffer(b.Buffer);
                 break;
 
@@ -220,10 +220,13 @@ public class Runtime : IDisposable
     }
 }
 
-public class StringBuffer
+/// <summary>
+/// Represents a byte[] to pass to Lua.PushBuffer
+/// </summary>
+public class LuaBuffer
 {
     public readonly byte[] Buffer;
-    public StringBuffer(byte[] buffer)
+    public LuaBuffer(byte[] buffer)
     {
         Buffer = buffer;
     }

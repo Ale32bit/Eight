@@ -30,7 +30,6 @@ public static class Program
             Runtime.PushParameters(pars);
             Runtime.Resume();
         }
-
         runningQueue = false;
     }
 
@@ -103,7 +102,7 @@ public static class Program
     public static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-
+        
         Screen = new Screen();
 
         Runtime = new Runtime();
@@ -119,6 +118,10 @@ public static class Program
         mouseX = (int)(mouseX / Screen.Scale);
         mouseY = (int)(mouseY / Screen.Scale);
         var pressedMouseButtons = new List<byte>();
+
+        // Start the Lua script with args as arguments
+        Runtime.PushParameters(args);
+        Runtime.Resume();
 
         while (Screen.Available)
         {
