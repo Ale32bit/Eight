@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using static SDL2.SDL;
 
 namespace Eight;
@@ -24,11 +23,7 @@ public class Screen : IDisposable
 
     public bool Available = true;
 
-    private uint[] _screenBuffer;
-
-    // 00, ch, bg, fg
-    private uint[] _termBuffer;
-
+    private bool _dirty = true;
     public Screen()
     {
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
@@ -45,8 +40,10 @@ public class Screen : IDisposable
             throw new ScreenException(SDL_GetError());
         }
 
-        Renderer = SDL_CreateRenderer(Window, 0,
+        Renderer = SDL_CreateRenderer(Window, -1,
             SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+
+        //Renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(Window));
 
         if (Renderer == IntPtr.Zero)
         {
@@ -60,10 +57,9 @@ public class Screen : IDisposable
         SDL_AddEventWatch(LiveResize, Window);
     }
 
-    public unsafe void Present()
+    public void Present()
     {
-        Console.WriteLine("presenting");
-
+        if (!_dirty) return;
         var texture = SDL_CreateTextureFromSurface(Renderer, Surface);
         SDL_RenderCopy(Renderer, texture, IntPtr.Zero, IntPtr.Zero);
         SDL_DestroyTexture(texture);
@@ -72,24 +68,29 @@ public class Screen : IDisposable
 
     private void ApplySize()
     {
-        _screenBuffer = new uint[RealWidth * RealHeight];
-        _termBuffer = new uint[Width * Height];
+        /*_screenBuffer = new uint[RealWidth * RealHeight];
+        _termBuffer = new uint[Width * Height];*/
         SDL_SetWindowMinimumSize(Window, (int)(CharWidth * Scale), (int)(CharHeight * Scale));
-        if(SDL_RenderSetScale(Renderer, Scale, Scale) != 0)
+        if (SDL_RenderSetScale(Renderer, Scale, Scale) != 0)
         {
             throw new ScreenException(SDL_GetError());
         }
+
         Surface = SDL_CreateRGBSurface(0, RealWidth, RealHeight, 32, 0x00_ff_00_00, 0x00_00_ff_00, 0x00_00_00_ff, 0xff_00_00_00);
-
-        var r = new SDL_Rect() {
-            x = 4,
-            y = 6,
-            w= 90,
-            h = 24
-        };
-        SDL_FillRect(Surface, ref r, 0xff_ff_00_00);
-
         Present();
+    }
+
+    public unsafe void SetPixel(int x, int y, uint c)
+    {
+        var pitch = ((SDL_Surface*)Surface)->pitch;
+        ((uint*)((SDL_Surface*)Surface)->pixels)[x + y * pitch / 4] = 0xffffffff;
+        _dirty = true;
+    }
+
+    public unsafe uint GetPixel(int x, int y)
+    {
+        var pitch = ((SDL_Surface*)Surface)->pitch;
+        return ((uint*)((SDL_Surface*)Surface)->pixels)[x + y * pitch / 4];
     }
 
     public void SetSize(int w, int h, float? s = null)

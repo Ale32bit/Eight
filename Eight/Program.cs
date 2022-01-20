@@ -1,7 +1,7 @@
-﻿using static SDL2.SDL.SDL_EventType;
-using static SDL2.SDL;
+﻿using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using System.Collections.Concurrent;
+using static SDL2.SDL;
+using static SDL2.SDL.SDL_EventType;
 
 namespace Eight;
 
@@ -31,6 +31,7 @@ public static class Program
             Runtime.Resume();
         }
         runningQueue = false;
+
     }
 
     public static string GetKeyName(SDL_Keycode sym)
@@ -102,7 +103,7 @@ public static class Program
     public static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-        
+
         Screen = new Screen();
 
         Runtime = new Runtime();
@@ -123,173 +124,195 @@ public static class Program
         Runtime.PushParameters(args);
         Runtime.Resume();
 
+        double pfreq = SDL_GetPerformanceFrequency();
+        double ptime = 0;
+        ulong last = SDL_GetPerformanceCounter();
+        ulong now = last;
         while (Screen.Available)
         {
-            var ev = Screen.WaitEvent();
-            switch (ev.type)
+
+            while (SDL_PollEvent(out var ev) == 1)
             {
-                case SDL_QUIT:
-                    // user closed the window
-                    Screen.Dispose();
-                    Runtime.Dispose();
-                    break;
+                switch (ev.type)
+                {
+                    case SDL_QUIT:
+                        // user closed the window
+                        Screen.Dispose();
+                        Runtime.Dispose();
+                        break;
 
-                case SDL_KEYUP:
-                case SDL_KEYDOWN:
-                    // key_down | key_up, keyName, keyNumber, keyMod[], isRepeated
-                    var keyMods = GetKeyMods(ev.key.keysym.mod);
-                    EnqueueEvent(
-                        ev.key.state == SDL_PRESSED ? "key_down" : "key_up",
-                        GetKeyName(ev.key.keysym.sym),
-                        (long)ev.key.keysym.sym,
-                        keyMods,
-                        ev.key.repeat == 1
-                    );
+                    case SDL_KEYUP:
+                    case SDL_KEYDOWN:
+                        // key_down | key_up, keyName, keyNumber, keyMod[], isRepeated
+                        var keyMods = GetKeyMods(ev.key.keysym.mod);
+                        EnqueueEvent(
+                            ev.key.state == SDL_PRESSED ? "key_down" : "key_up",
+                            GetKeyName(ev.key.keysym.sym),
+                            (long)ev.key.keysym.sym,
+                            keyMods,
+                            ev.key.repeat == 1
+                        );
 
-                    // Only if CTRL is pressed
-                    // KMOD_CTRL,ALT,SHIFT aren't detected for some reason
-                    if (keyMods.Contains("ctrl")
-                        && !keyMods.Contains("alt")
-                        && !keyMods.Contains("shift")
-                    )
-                    {
-                        // on CTRL+V: paste, text
-                        if (ev.key.keysym.sym == SDL_Keycode.SDLK_v)
+                        // Only if CTRL is pressed
+                        // KMOD_CTRL,ALT,SHIFT aren't detected for some reason
+                        if (keyMods.Contains("ctrl")
+                            && !keyMods.Contains("alt")
+                            && !keyMods.Contains("shift")
+                        )
                         {
-                            if (SDL_HasClipboardText() == SDL_bool.SDL_TRUE)
+                            // on CTRL+V: paste, text
+                            if (ev.key.keysym.sym == SDL_Keycode.SDLK_v)
                             {
-                                var text = SDL_GetClipboardText();
-                                if (text != null)
+                                if (SDL_HasClipboardText() == SDL_bool.SDL_TRUE)
                                 {
-                                    text = text.Replace("\r\n", "\n");
-                                    EnqueueEvent(
-                                        "paste",
-                                        text
-                                    );
+                                    var text = SDL_GetClipboardText();
+                                    if (text != null)
+                                    {
+                                        text = text.Replace("\r\n", "\n");
+                                        EnqueueEvent(
+                                            "paste",
+                                            text
+                                        );
+                                    }
                                 }
                             }
+                            // on CTRL+T: interrupt
+                            else if (ev.key.keysym.sym == SDL_Keycode.SDLK_t)
+                            {
+                                EnqueueEvent("interrupt");
+                            }
                         }
-                        // on CTRL+T: interrupt
-                        else if (ev.key.keysym.sym == SDL_Keycode.SDLK_t)
-                        {
-                            EnqueueEvent("interrupt");
-                        }
-                    }
 
-                    break;
+                        break;
 
-                case SDL_MOUSEMOTION:
-                    // mouse_move, posX, posY
-                    mouseX = (int)(ev.motion.x / Screen.Scale);
-                    mouseY = (int)(ev.motion.y / Screen.Scale);
+                    case SDL_MOUSEMOTION:
+                        // mouse_move, posX, posY
+                        mouseX = (int)(ev.motion.x / Screen.Scale);
+                        mouseY = (int)(ev.motion.y / Screen.Scale);
 
-                    if (oldMouseX != mouseX || oldMouseY != mouseY)
-                    {
-                        EnqueueEvent(
-                            "mouse_move",
-                            mouseX,
-                            mouseY
-                        );
-
-                        if (pressedMouseButtons.Count > 0)
+                        if (oldMouseX != mouseX || oldMouseY != mouseY)
                         {
                             EnqueueEvent(
-                                "mouse_drag",
+                                "mouse_move",
                                 mouseX,
-                                mouseY,
-                                pressedMouseButtons.ToArray()
+                                mouseY
                             );
+
+                            if (pressedMouseButtons.Count > 0)
+                            {
+                                EnqueueEvent(
+                                    "mouse_drag",
+                                    mouseX,
+                                    mouseY,
+                                    pressedMouseButtons.ToArray()
+                                );
+                            }
+
+                            oldMouseX = mouseX;
+                            oldMouseY = mouseY;
                         }
 
-                        oldMouseX = mouseX;
-                        oldMouseY = mouseY;
-                    }
+                        break;
 
-                    break;
+                    case SDL_MOUSEBUTTONUP:
+                    case SDL_MOUSEBUTTONDOWN:
+                        // mouse_down | mouse_up, posX, posY, buttonId, clicksAmount
+                        mouseX = (int)(ev.motion.x / Screen.Scale);
+                        mouseY = (int)(ev.motion.y / Screen.Scale);
 
-                case SDL_MOUSEBUTTONUP:
-                case SDL_MOUSEBUTTONDOWN:
-                    // mouse_down | mouse_up, posX, posY, buttonId, clicksAmount
-                    mouseX = (int)(ev.motion.x / Screen.Scale);
-                    mouseY = (int)(ev.motion.y / Screen.Scale);
-
-                    if (ev.button.state == SDL_PRESSED)
-                    {
-                        pressedMouseButtons.Add(ev.button.button);
-                    }
-                    else
-                    {
-                        pressedMouseButtons.Remove(ev.button.button);
-                    }
-
-                    EnqueueEvent(
-                        ev.button.state == SDL_PRESSED ? "mouse_down" : "mouse_up",
-                        mouseX,
-                        mouseY,
-                        ev.button.button,
-                        ev.button.clicks
-                    );
-
-                    break;
-
-                case SDL_MOUSEWHEEL:
-                    // mouse_wheel, posX, posY, wheelX, wheelY
-                    var wx = ev.wheel.x;
-                    var wy = ev.wheel.y;
-
-                    if (ev.wheel.direction == (uint)SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
-                    {
-                        wx *= -1;
-                        wy *= -1;
-                    }
-
-                    EnqueueEvent(
-                        "mouse_wheel",
-                        mouseX,
-                        mouseY,
-                        wx,
-                        wy
-                    );
-
-                    break;
-
-                case SDL_TEXTINPUT:
-                    // text, string
-                    unsafe
-                    {
-                        EnqueueEvent(
-                            "text",
-                            Marshal.PtrToStringUTF8((IntPtr)ev.text.text) ?? ""
-                        );
-                    }
-                    break;
-
-                case SDL_WINDOWEVENT:
-                    if (ev.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
-                    {
-                        // window_resize, newW, newH
-                        SDL_GetWindowSize(Screen.Window, out var w, out var h);
-                        var cw = w / Screen.Scale;
-                        cw /= Screen.CharWidth;
-
-                        var ch = h / Screen.Scale;
-                        ch /= Screen.CharHeight;
-
-                        if (cw < 1)
-                            cw = 1;
-                        if (ch < 1)
-                            ch = 1;
-
-                        Screen.SetSize((int)cw, (int)ch);
+                        if (ev.button.state == SDL_PRESSED)
+                        {
+                            pressedMouseButtons.Add(ev.button.button);
+                        }
+                        else
+                        {
+                            pressedMouseButtons.Remove(ev.button.button);
+                        }
 
                         EnqueueEvent(
-                            "window_resize",
-                            Screen.RealWidth,
-                            Screen.RealHeight
+                            ev.button.state == SDL_PRESSED ? "mouse_down" : "mouse_up",
+                            mouseX,
+                            mouseY,
+                            ev.button.button,
+                            ev.button.clicks
                         );
-                    }
-                    break;
+
+
+                        break;
+
+                    case SDL_MOUSEWHEEL:
+                        // mouse_wheel, posX, posY, wheelX, wheelY
+                        var wx = ev.wheel.x;
+                        var wy = ev.wheel.y;
+
+                        if (ev.wheel.direction == (uint)SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                        {
+                            wx *= -1;
+                            wy *= -1;
+                        }
+
+                        EnqueueEvent(
+                            "mouse_wheel",
+                            mouseX,
+                            mouseY,
+                            wx,
+                            wy
+                        );
+
+                        break;
+
+                    case SDL_TEXTINPUT:
+                        // text, string
+                        unsafe
+                        {
+                            EnqueueEvent(
+                                "text",
+                                Marshal.PtrToStringUTF8((IntPtr)ev.text.text) ?? ""
+                            );
+                        }
+                        break;
+
+                    case SDL_WINDOWEVENT:
+                        if (ev.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                        {
+                            // window_resize, newW, newH
+                            SDL_GetWindowSize(Screen.Window, out var w, out var h);
+                            var cw = w / Screen.Scale;
+                            cw /= Screen.CharWidth;
+
+                            var ch = h / Screen.Scale;
+                            ch /= Screen.CharHeight;
+
+                            if (cw < 1)
+                                cw = 1;
+                            if (ch < 1)
+                                ch = 1;
+
+                            Screen.SetSize((int)cw, (int)ch);
+
+                            EnqueueEvent(
+                                "window_resize",
+                                Screen.RealWidth,
+                                Screen.RealHeight
+                            );
+                        }
+                        break;
+                }
+
             }
+
+            if ((ptime * 1000) >= 60)
+            {
+                ptime = 0;
+
+                Screen.Present();
+            }
+
+            SDL_Delay(1);
+            now = SDL_GetPerformanceCounter();
+            ptime += (now - last) / pfreq;
+            last = now;
+
         }
     }
 }
