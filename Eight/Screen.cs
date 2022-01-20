@@ -85,7 +85,7 @@ public class Screen : IDisposable
     public unsafe void SetPixel(int x, int y, uint c)
     {
         var pitch = ((SDL_Surface*)Surface)->pitch;
-        ((uint*)((SDL_Surface*)Surface)->pixels)[x + y * pitch / 4] = 0xffffffff;
+        ((uint*)((SDL_Surface*)Surface)->pixels)[x + y * pitch / 4] = c;
         _dirty = true;
     }
 
