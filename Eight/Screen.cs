@@ -18,8 +18,9 @@ public class Screen : IDisposable
     public int WindowHeight => (int)(RealHeight * Scale);
 
     public IntPtr Window;
-    public IntPtr Renderer;
+    public IntPtr HardwareRenderer;
     public IntPtr Surface;
+    public IntPtr Renderer;
 
     public bool Available = true;
 
@@ -40,12 +41,12 @@ public class Screen : IDisposable
             throw new ScreenException(SDL_GetError());
         }
 
-        Renderer = SDL_CreateRenderer(Window, -1,
+        HardwareRenderer = SDL_CreateRenderer(Window, -1,
             SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
 
         //Renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(Window));
 
-        if (Renderer == IntPtr.Zero)
+        if (HardwareRenderer == IntPtr.Zero)
         {
             throw new ScreenException(SDL_GetError());
         }
@@ -60,10 +61,10 @@ public class Screen : IDisposable
     public void Present()
     {
         if (!_dirty) return;
-        var texture = SDL_CreateTextureFromSurface(Renderer, Surface);
-        SDL_RenderCopy(Renderer, texture, IntPtr.Zero, IntPtr.Zero);
+        var texture = SDL_CreateTextureFromSurface(HardwareRenderer, Surface);
+        SDL_RenderCopy(HardwareRenderer, texture, IntPtr.Zero, IntPtr.Zero);
         SDL_DestroyTexture(texture);
-        SDL_RenderPresent(Renderer);
+        SDL_RenderPresent(HardwareRenderer);
     }
 
     private void ApplySize()
@@ -71,12 +72,13 @@ public class Screen : IDisposable
         /*_screenBuffer = new uint[RealWidth * RealHeight];
         _termBuffer = new uint[Width * Height];*/
         SDL_SetWindowMinimumSize(Window, (int)(CharWidth * Scale), (int)(CharHeight * Scale));
-        if (SDL_RenderSetScale(Renderer, Scale, Scale) != 0)
+        if (SDL_RenderSetScale(HardwareRenderer, Scale, Scale) != 0)
         {
             throw new ScreenException(SDL_GetError());
         }
 
         Surface = SDL_CreateRGBSurface(0, RealWidth, RealHeight, 32, 0x00_ff_00_00, 0x00_00_ff_00, 0x00_00_00_ff, 0xff_00_00_00);
+        Renderer = SDL_CreateSoftwareRenderer(Surface);
         Present();
     }
 

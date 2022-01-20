@@ -18,12 +18,17 @@ local function deepPrintArray(tbl, indent, index)
 end
 
 -- just printing events and more
+local oldx, oldy
 while true do
     local ev = table.pack(coroutine.yield())
     --deepPrintArray(ev)
     --print("-------------------------")
 
     if ev[1] == "mouse_down" or ev[1] == "mouse_drag" then
-        screen.drawPixel(ev[2], ev[3], 0xffffffff)
+        oldx, oldy = oldx or ev[2], oldy or ev[3]
+        screen.drawLine(ev[2], ev[3], oldx, oldy, 0xffffffff)
+        oldx, oldy = ev[2], ev[3]
+    elseif ev[1] == "mouse_up" then
+        oldx, oldy = nil, nil
     end
 end
