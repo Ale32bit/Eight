@@ -28,7 +28,14 @@ public static class Program
         while (EventQueue.TryDequeue(out var pars))
         {
             Runtime.PushParameters(pars);
-            Runtime.Resume();
+            try
+            {
+                Runtime.Resume();
+            } catch(LuaException e)
+            {
+                Panic(e.Message);
+                runningQueue = false;
+            }
         }
         runningQueue = false;
 
@@ -122,7 +129,14 @@ public static class Program
 
         // Start the Lua script with args as arguments
         Runtime.PushParameters(args);
-        Runtime.Resume();
+
+        try
+        {
+            Runtime.Resume();
+        } catch(LuaException e)
+        {
+            Panic(e.Message);
+        }
 
         double pfreq = SDL_GetPerformanceFrequency();
         double ptime = 0;
@@ -313,6 +327,37 @@ public static class Program
             ptime += (now - last) / pfreq;
             last = now;
 
+        }
+    }
+
+    /// <summary>
+    /// Force kill the Lua runtime and display an error message in a BSOD style
+    /// </summary>
+    /// <param name="message">The error to show</param>
+    public static void Panic(string message)
+    {
+        Console.WriteLine($"Panic error.\n{message}");
+        Screen.SetSize(51, 19);
+        SDL_SetWindowResizable(Screen.Window, SDL_bool.SDL_FALSE);
+
+        SDL_SetRenderDrawColor(Screen.Renderer, 3, 3, 128, 255); // a nice, classic blue
+        SDL_RenderClear(Screen.Renderer);
+
+        SDL_SetRenderDrawColor(Screen.Renderer, 255, 255, 255, 255);
+        // TODO: Print text when font system is done
+
+        Screen.Present();
+
+        while(true)
+        {
+            while(SDL_WaitEvent(out var ev) == 1)
+            {
+                if(ev.type == SDL_QUIT)
+                {
+                    Environment.Exit(-1);
+                    break;
+                }
+            }
         }
     }
 }

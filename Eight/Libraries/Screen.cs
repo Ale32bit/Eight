@@ -1,4 +1,5 @@
 ﻿using KeraLua;
+using System.Runtime.InteropServices;
 using static SDL2.SDL;
 
 namespace Eight.Libraries
@@ -43,6 +44,10 @@ namespace Eight.Libraries
             new() {
                 name = "drawLine",
                 function = L_DrawLine,
+            },
+            new() {
+                name = "drawRectangle",
+                function = L_DrawRectangle,
             },
             new(), // NULL
         };
@@ -130,10 +135,11 @@ namespace Eight.Libraries
             }
             else
             {
+                state.CheckNumber(1); // automatically raises the error
                 return 0;
             }
 
-            SDL_SetRenderDrawColor(Program.Screen.Renderer, 255, r, g, b);
+            SDL_SetRenderDrawColor(Program.Screen.Renderer, r, g, b, 255);
 
             return 0;
         }
@@ -163,6 +169,7 @@ namespace Eight.Libraries
             return 0;
         }
 
+        // Accelerated drawing functions
         private static int L_DrawLine(IntPtr luaState)
         {
             var state = Lua.FromIntPtr(luaState);
@@ -173,6 +180,28 @@ namespace Eight.Libraries
             var y2 = (int)state.CheckNumber(4);
 
             SDL_RenderDrawLine(Program.Screen.Renderer, x1, y1, x2, y2);
+
+            return 0;
+        }
+
+        private static int L_DrawRectangle(IntPtr luaState)
+        {
+            var state = Lua.FromIntPtr(luaState);
+
+            var x = (int)state.CheckNumber(1);
+            var y = (int)state.CheckNumber(2);
+            var w = (int)state.CheckNumber(3);
+            var h = (int)state.CheckNumber(4);
+
+            var rect = new SDL_Rect
+            {
+                x = x,
+                y = y,
+                w = w,
+                h = h
+            };
+
+            SDL_RenderDrawRect(Program.Screen.Renderer, ref rect);
 
             return 0;
         }

@@ -82,9 +82,7 @@ public class Runtime : IDisposable
         Thread.Traceback(Thread);
         var stacktrace = Thread.OptString(-1, "");
 
-        Console.WriteLine("Top thread exception:\n{0}\n{1}", error, stacktrace);
-
-        return false;
+        throw new LuaException($"Top thread exception:\n{error}\n{stacktrace}");
     }
 
     /// <summary>

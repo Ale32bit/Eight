@@ -1,5 +1,4 @@
 using static SDL2.SDL;
-
 namespace Eight;
 
 public class Screen : IDisposable
@@ -61,6 +60,10 @@ public class Screen : IDisposable
     public void Present()
     {
         if (!_dirty) return;
+
+        SDL_SetRenderDrawColor(HardwareRenderer, 0, 0, 0, 255);
+        SDL_RenderClear(HardwareRenderer);
+
         var texture = SDL_CreateTextureFromSurface(HardwareRenderer, Surface);
         SDL_RenderCopy(HardwareRenderer, texture, IntPtr.Zero, IntPtr.Zero);
         SDL_DestroyTexture(texture);
@@ -77,7 +80,7 @@ public class Screen : IDisposable
             throw new ScreenException(SDL_GetError());
         }
 
-        Surface = SDL_CreateRGBSurface(0, RealWidth, RealHeight, 32, 0x00_ff_00_00, 0x00_00_ff_00, 0x00_00_00_ff, 0xff_00_00_00);
+        Surface = SDL_CreateRGBSurface(0, RealWidth, RealHeight, 32, 0xff_00_00_00, 0x00_ff_00_00, 0x00_00_ff_00, 0x00_00_00_ff);
         Renderer = SDL_CreateSoftwareRenderer(Surface);
         Present();
     }
