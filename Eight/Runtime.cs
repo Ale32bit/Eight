@@ -57,7 +57,7 @@ public class Runtime : IDisposable
 
     public void LoadInit()
     {
-        var status = Thread.LoadFile("Lua/init.lua");
+        var status = Thread.LoadFile("Assets/Lua/init.lua");
         if (status != LuaStatus.OK)
         {
             throw new LuaException(Thread.ToString(-1));

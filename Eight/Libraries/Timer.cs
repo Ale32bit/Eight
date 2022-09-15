@@ -19,6 +19,14 @@ class Timer : ILibrary
         new() // NULL
     };
 
+    public async Task PreInitAsync()
+    {
+    }
+
+    public async Task InitAsync()
+    {
+    }
+
     private static int _timerId = 0;
 
     private static int L_Start(IntPtr luaState)

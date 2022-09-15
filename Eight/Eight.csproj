@@ -16,6 +16,15 @@
     <ProjectReference Include="..\SDL2-CS\SDL2-CS.Core.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Static\Static.projitems" Label="Shared" />
+  <ItemGroup>
+    <None Remove="Assets\Lua\init.lua" />
+    <Content Include="Assets\Lua\init.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Remove="Assets\Fonts\tewi.bdf" />
+    <Content Include="Assets\Fonts\tewi.bdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
 </Project>

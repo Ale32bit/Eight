@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eight", "Eight\Eight.csproj", "{34A3DFDB-42B9-4454-8B39-8F5D9717697E}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Static", "Static\Static.shproj", "{2B5F2A23-6D94-4C07-B6F2-11D2BEA9BAD0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDL2-CS.Core", "SDL2-CS\SDL2-CS.Core.csproj", "{A444E86D-F4D3-46DA-B6BA-0A59710C617C}"
 EndProject
 Global

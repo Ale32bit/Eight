@@ -10,16 +10,28 @@ namespace Eight.Libraries
 
         public LuaRegister[] Registers => new LuaRegister[] {
             new() {
-                name = "test",
-                function = L_Test,
+                name = "read",
+                function = L_Read,
             },
             new(), // NULL
         };
 
-        private static int L_Test(IntPtr luaState)
+        public async Task PreInitAsync()
+        {
+            
+        }
+
+        public async Task InitAsync()
+        {
+        }
+
+        private static int L_Read(IntPtr luaState)
         {
             var state = Lua.FromIntPtr(luaState);
-            state.PushString("Test is successful");
+            var path = state.CheckString(1);
+            
+            state.PushString(File.ReadAllText(path));
+            
             return 1;
         }
     }

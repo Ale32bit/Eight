@@ -52,6 +52,14 @@ namespace Eight.Libraries
             new(), // NULL
         };
 
+        public async Task PreInitAsync()
+        {
+        }
+
+        public async Task InitAsync()
+        {
+        }
+
         private static int L_GetSize(IntPtr luaState)
         {
             var state = Lua.FromIntPtr(luaState);
